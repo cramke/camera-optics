@@ -80,6 +80,13 @@ pub fn calculate_dof(
     (near, far, total_dof)
 }
 
+/// Calculate focal length from field of view and sensor size
+/// focal_length = (sensor_size / 2) / tan(fov / 2)
+pub fn calculate_focal_length_from_fov(sensor_size_mm: f64, fov_deg: f64) -> f64 {
+    let fov_rad = fov_deg.to_radians();
+    (sensor_size_mm / 2.0) / (fov_rad / 2.0).tan()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -107,5 +114,37 @@ mod tests {
         
         // Should be around 10.4 meters
         assert!((hyperfocal - 10416.7).abs() < 100.0);
+    }
+
+    #[test]
+    fn test_focal_length_from_fov() {
+        // Full frame sensor (36mm width), 39.6° horizontal FOV
+        // Should calculate to approximately 50mm focal length
+        let focal_length = calculate_focal_length_from_fov(36.0, 39.6);
+        
+        assert!((focal_length - 50.0).abs() < 1.0);
+        
+        // Test with vertical FOV: 24mm height, 27° vertical FOV
+        // Should also be around 50mm
+        let focal_length_v = calculate_focal_length_from_fov(24.0, 27.0);
+        
+        assert!((focal_length_v - 50.0).abs() < 1.0);
+    }
+
+    #[test]
+    fn test_focal_length_roundtrip() {
+        // Test that FOV -> focal length -> FOV gives consistent results
+        let sensor_width = 36.0;
+        let original_fov = 39.6;
+        
+        // Calculate focal length from FOV
+        let focal_length = calculate_focal_length_from_fov(sensor_width, original_fov);
+        
+        // Calculate FOV back from focal length
+        let camera = CameraSystem::new(sensor_width, 24.0, 6000, 4000, focal_length);
+        let result = calculate_fov(&camera, 5000.0);
+        
+        // Should match original FOV within tolerance
+        assert!((result.horizontal_fov_deg - original_fov).abs() < 0.1);
     }
 }

@@ -86,6 +86,21 @@ enum Commands {
         #[arg(long)]
         presets: bool,
     },
+    
+    /// Calculate focal length from field of view
+    FocalLength {
+        /// Sensor size in millimeters (width or height depending on FOV type)
+        #[arg(short = 's', long)]
+        sensor_size: f64,
+        
+        /// Field of view in degrees
+        #[arg(short = 'f', long)]
+        fov: f64,
+        
+        /// Whether this is horizontal FOV (default) or vertical FOV
+        #[arg(short = 'v', long)]
+        vertical: bool,
+    },
 }
 
 fn main() {
@@ -177,6 +192,19 @@ fn main() {
                 println!("{}", "=".repeat(80));
                 println!();
             }
+        }
+        
+        Commands::FocalLength { sensor_size, fov, vertical } => {
+            let focal_length = calculate_focal_length_from_fov(sensor_size, fov);
+            
+            let fov_type = if vertical { "Vertical" } else { "Horizontal" };
+            
+            println!("Focal Length Calculation");
+            println!("========================");
+            println!("Sensor Size: {} mm", sensor_size);
+            println!("{} FOV: {}°", fov_type, fov);
+            println!();
+            println!("Calculated Focal Length: {:.2} mm", focal_length);
         }
     }
 }

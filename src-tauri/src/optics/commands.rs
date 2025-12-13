@@ -40,3 +40,9 @@ pub fn calculate_depth_of_field(
         "total_dof_mm": total
     })
 }
+
+/// Tauri command to calculate focal length from FOV
+#[tauri::command]
+pub fn calculate_focal_length_from_fov_command(sensor_size_mm: f64, fov_deg: f64) -> f64 {
+    calculate_focal_length_from_fov(sensor_size_mm, fov_deg)
+}

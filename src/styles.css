@@ -168,6 +168,36 @@ button {
   box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
 }
 
+/* Alternative Input */
+.alternative-input {
+  background: #f0f9ff;
+  border: 1px dashed #3b82f6;
+  border-radius: 6px;
+  padding: 1rem;
+  margin-bottom: 1rem;
+}
+
+.alternative-input > label {
+  display: block;
+  margin-bottom: 0.75rem;
+  font-weight: 600;
+  color: #1e40af;
+  font-size: 0.9rem;
+}
+
+.calc-btn {
+  background: #3b82f6;
+  color: white;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.calc-btn:hover {
+  background: #2563eb;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(59, 130, 246, 0.3);
+}
+
 /* Presets */
 .presets {
   background: white;
@@ -518,6 +548,15 @@ button {
 
   .preset-btn:hover {
     background: #111827;
+  }
+
+  .alternative-input {
+    background: #1f2937;
+    border-color: #3b82f6;
+  }
+
+  .alternative-input > label {
+    color: #60a5fa;
   }
 
   .tab-btn {

@@ -113,6 +113,53 @@ function getDistance(): number {
   return parseFloat((document.getElementById("distance") as HTMLInputElement).value) * 1000;
 }
 
+// Calculate focal length from FOV in degrees using Rust
+async function calculateFocalLength() {
+  const sensorWidth = parseFloat((document.getElementById("sensor-width") as HTMLInputElement).value);
+  const sensorHeight = parseFloat((document.getElementById("sensor-height") as HTMLInputElement).value);
+  const hfovDeg = parseFloat((document.getElementById("hfov-deg") as HTMLInputElement).value);
+  const vfovDeg = parseFloat((document.getElementById("vfov-deg") as HTMLInputElement).value);
+
+  if (!sensorWidth || !sensorHeight) {
+    alert("Please enter sensor width and height first");
+    return;
+  }
+
+  let sensorSize = 0;
+  let fovDeg = 0;
+
+  // Use horizontal FOV if provided
+  if (hfovDeg && hfovDeg > 0) {
+    sensorSize = sensorWidth;
+    fovDeg = hfovDeg;
+  }
+  // Or use vertical FOV if provided
+  else if (vfovDeg && vfovDeg > 0) {
+    sensorSize = sensorHeight;
+    fovDeg = vfovDeg;
+  } else {
+    alert("Please enter either Horizontal FOV or Vertical FOV");
+    return;
+  }
+
+  try {
+    const focalLength: number = await invoke("calculate_focal_length_from_fov_command", {
+      sensorSizeMm: sensorSize,
+      fovDeg: fovDeg,
+    });
+
+    // Update focal length field
+    (document.getElementById("focal-length") as HTMLInputElement).value = focalLength.toFixed(2);
+
+    // Clear the FOV input fields
+    (document.getElementById("hfov-deg") as HTMLInputElement).value = "";
+    (document.getElementById("vfov-deg") as HTMLInputElement).value = "";
+  } catch (error) {
+    console.error("Error calculating focal length:", error);
+    alert(`Error: ${error}`);
+  }
+}
+
 // Calculate FOV for current form values
 async function calculateFov() {
   const camera = getCameraFromForm();
@@ -456,6 +503,7 @@ window.addEventListener("DOMContentLoaded", () => {
   // Button listeners
   document.getElementById("calculate-btn")?.addEventListener("click", calculateFov);
   document.getElementById("add-system-btn")?.addEventListener("click", addToComparison);
+  document.getElementById("calc-focal-btn")?.addEventListener("click", calculateFocalLength);
 
   // Preset buttons
   document.querySelectorAll(".preset-btn").forEach((btn) => {
