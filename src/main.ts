@@ -205,4 +205,27 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Initialize empty systems list
   updateSystemsList();
+
+  // Auto-calculate FOV when any form field changes
+  const formFields = [
+    "sensor-width",
+    "sensor-height", 
+    "pixel-width",
+    "pixel-height",
+    "focal-length",
+    "distance"
+  ];
+
+  formFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      field.addEventListener("input", () => {
+        // Debounce to avoid too many calculations while typing
+        calculateFov();
+      });
+    }
+  });
+
+  // Calculate FOV with default values on startup
+  calculateFov();
 });
