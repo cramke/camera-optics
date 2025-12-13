@@ -153,6 +153,47 @@ export function initializeDoriDesigner(): void {
     });
   });
 
+  // Clear button handlers
+  const clearButtons = document.querySelectorAll(".param-clear");
+  clearButtons.forEach(button => {
+    button.addEventListener("click", () => {
+      const inputId = button.getAttribute("data-input");
+      if (!inputId) return;
+
+      const inputEl = document.getElementById(inputId) as HTMLInputElement;
+      if (inputEl) {
+        inputEl.value = "";
+        button.setAttribute("style", "display: none;");
+
+        // Re-enable range inputs
+        const param = inputId.replace("fixed-", "");
+        const minEl = document.getElementById(`min-${param}`) as HTMLInputElement;
+        const maxEl = document.getElementById(`max-${param}`) as HTMLInputElement;
+        minEl?.removeAttribute("disabled");
+        maxEl?.removeAttribute("disabled");
+
+        // Re-calculate to update status and ranges
+        calculateParameterRanges();
+      }
+    });
+  });
+
+  // Show/hide clear buttons based on input
+  constraintFields.forEach(fieldId => {
+    if (fieldId.startsWith("fixed-")) {
+      const field = document.getElementById(fieldId) as HTMLInputElement;
+      const clearBtn = document.querySelector(`[data-input="${fieldId}"]`) as HTMLButtonElement;
+      
+      field?.addEventListener("input", () => {
+        if (field.value) {
+          clearBtn?.setAttribute("style", "display: block;");
+        } else {
+          clearBtn?.setAttribute("style", "display: none;");
+        }
+      });
+    }
+  });
+
   // Export to comparison button
   const exportBtn = document.getElementById("export-to-comparison-btn");
   exportBtn?.addEventListener("click", exportToComparison);
@@ -289,14 +330,7 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
   };
 
   // Update each parameter's range display and validation status
-  Object.entries(ranges).forEach(([key, value]) => {
-    if (key === "limiting_requirement" || !value) return;
-
-    const range = value as { min: number; max: number };
-    const mapping = parameterMapping[key];
-
-    if (!mapping) return;
-
+  Object.entries(parameterMapping).forEach(([key, mapping]) => {
     const rangeEl = document.getElementById(mapping.rangeId);
     const inputEl = document.getElementById(mapping.inputId) as HTMLInputElement;
     const statusEl = document.getElementById(mapping.statusId);
@@ -304,29 +338,45 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
     if (!rangeEl || !statusEl) return;
 
     const isFixed = inputEl?.value && inputEl.value.trim() !== "";
-    const isSingleValue = Math.abs(range.max - range.min) < 0.01; // Tolerance for floating point
-    const isComplete = isFixed || isSingleValue;
+    const rangeData = ranges[key as keyof DoriParameterRanges];
+    
+    // Check if this parameter has a calculated range
+    if (rangeData && typeof rangeData === 'object' && 'min' in rangeData && 'max' in rangeData) {
+      const range = rangeData as { min: number; max: number };
+      const isSingleValue = Math.abs(range.max - range.min) < 0.01; // Tolerance for floating point
+      const isComplete = isFixed || isSingleValue;
 
-    // Update status indicator in label
-    if (isComplete) {
+      // Update status indicator in label
+      if (isComplete) {
+        statusEl.innerHTML = '✓';
+        statusEl.className = 'field-status-inline complete';
+        statusEl.style.display = 'inline-flex';
+      } else {
+        statusEl.innerHTML = '•';
+        statusEl.className = 'field-status-inline incomplete';
+        statusEl.style.display = 'inline-flex';
+      }
+
+      // Show range only if input is empty (floating mode)
+      if (!inputEl?.value) {
+        rangeEl.innerHTML = `
+          <span class="range-text">
+            ${range.min.toFixed(range.min < 10 ? 2 : 0)} – ${range.max.toFixed(range.max < 10 ? 2 : 0)} ${mapping.unit}
+          </span>
+        `;
+        rangeEl.classList.add("active");
+      } else {
+        rangeEl.classList.remove("active");
+      }
+    } else if (isFixed) {
+      // Parameter is fixed by user but not in ranges (it's a constraint)
       statusEl.innerHTML = '✓';
       statusEl.className = 'field-status-inline complete';
       statusEl.style.display = 'inline-flex';
+      rangeEl.classList.remove("active");
     } else {
-      statusEl.innerHTML = '•';
-      statusEl.className = 'field-status-inline incomplete';
-      statusEl.style.display = 'inline-flex';
-    }
-
-    // Show range only if input is empty (floating mode)
-    if (!inputEl?.value) {
-      rangeEl.innerHTML = `
-        <span class="range-text">
-          ${range.min.toFixed(range.min < 10 ? 2 : 0)} – ${range.max.toFixed(range.max < 10 ? 2 : 0)} ${mapping.unit}
-        </span>
-      `;
-      rangeEl.classList.add("active");
-    } else {
+      // No range data and not fixed - hide status
+      statusEl.style.display = 'none';
       rangeEl.classList.remove("active");
     }
   });
