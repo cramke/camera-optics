@@ -61,8 +61,8 @@ function updateSystemsList() {
   systemsItems.innerHTML = cameraSystems
     .map(
       (item, index) => `
-      <div class="system-item ${index === selectedSystemIndex ? 'selected' : ''}" style="border-left: 4px solid ${getColor(index)}">
-        <div class="system-info" data-index="${index}" style="cursor: pointer;">
+      <div class="system-item ${index === selectedSystemIndex ? 'selected' : ''}" data-index="${index}" style="border-left: 4px solid ${getColor(index)}; cursor: pointer;">
+        <div class="system-info">
           <strong>${item.camera.name || `System ${index + 1}`}</strong>
           <span class="system-specs">${item.camera.sensor_width_mm}×${item.camera.sensor_height_mm}mm, ${item.camera.focal_length_mm}mm</span>
         </div>
@@ -75,9 +75,9 @@ function updateSystemsList() {
     )
     .join("");
 
-  // Add click listeners to system info to view in results tab
-  document.querySelectorAll(".system-info").forEach((info) => {
-    info.addEventListener("click", (e) => {
+  // Add click listeners to entire system item to view in results tab
+  document.querySelectorAll(".system-item").forEach((item) => {
+    item.addEventListener("click", (e) => {
       const index = parseInt((e.currentTarget as HTMLElement).dataset.index!);
       const system = cameraSystems[index];
       
@@ -85,8 +85,8 @@ function updateSystemsList() {
       selectedSystemIndex = index;
       
       // Update the visual selection by toggling the class
-      document.querySelectorAll(".system-item").forEach((item, i) => {
-        item.classList.toggle("selected", i === index);
+      document.querySelectorAll(".system-item").forEach((sysItem, i) => {
+        sysItem.classList.toggle("selected", i === index);
       });
       
       displaySingleResult(system.camera, system.result, index);
