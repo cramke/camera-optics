@@ -39,6 +39,9 @@ async function calculateFov(exitEditMode: boolean = false) {
       setEditMode(null);
     }
 
+    // Update the calculated FOV values in the focal length section
+    updateCalculatedFov(result.horizontal_fov_deg, result.vertical_fov_deg);
+
     displaySingleResult(camera, result);
     drawVisualization([{ camera, result }]);
   } catch (error) {
@@ -50,6 +53,17 @@ async function calculateFov(exitEditMode: boolean = false) {
     // Clear visualization and show error in results
     drawVisualization([]);
     displayCalculationError();
+  }
+}
+
+// Update the calculated FOV in the FOV input fields
+function updateCalculatedFov(hFov: number, vFov: number) {
+  const hFovInput = document.getElementById('hfov-deg') as HTMLInputElement;
+  const vFovInput = document.getElementById('vfov-deg') as HTMLInputElement;
+  
+  if (hFovInput && vFovInput) {
+    hFovInput.value = hFov.toFixed(2);
+    vFovInput.value = vFov.toFixed(2);
   }
 }
 
@@ -151,6 +165,9 @@ function updateSystemsList() {
       // Load the system values into the form (for viewing)
       loadSystemToView(index);
       
+      // Update calculated FOV values
+      updateCalculatedFov(system.result.horizontal_fov_deg, system.result.vertical_fov_deg);
+      
       // Update results tab with the selected system
       displaySingleResult(system.camera, system.result, index);
       
@@ -169,6 +186,10 @@ function updateSystemsList() {
       
       // Load system values into form for editing
       loadSystemToView(index);
+      
+      // Update calculated FOV values
+      const system = cameraSystems[index];
+      updateCalculatedFov(system.result.horizontal_fov_deg, system.result.vertical_fov_deg);
       
       // Enter edit mode
       setEditMode(index);
@@ -289,8 +310,20 @@ async function autoCalculateFocalLength() {
     const focalLength = await calculateFocalLengthFromFov(sensorSize, fovDeg);
     // Update focal length field (but keep it disabled since we're in FOV mode)
     (document.getElementById("focal-length") as HTMLInputElement).value = focalLength.toFixed(2);
+    
+    // Update the calculated focal length display in the FOV section
+    updateCalculatedFocalLength(focalLength);
   } catch (error) {
     console.error("Error calculating focal length:", error);
+  }
+}
+
+// Update the calculated focal length in the focal length input field
+function updateCalculatedFocalLength(focalLength: number) {
+  const focalInput = document.getElementById('focal-length') as HTMLInputElement;
+  
+  if (focalInput) {
+    focalInput.value = focalLength.toFixed(2);
   }
 }
 
