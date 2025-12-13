@@ -1,13 +1,16 @@
 {
-  "name": "tauri-app",
-  "private": true,
+  "name": "camera-optics-app",
+    "private": true,
   "version": "0.1.0",
+  "description": "Camera Optics Calculator - Calculate FOV and spatial resolution for camera systems",
   "type": "module",
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
