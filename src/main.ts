@@ -130,7 +130,7 @@ async function addToComparison() {
 }
 
 // Update systems comparison list
-function updateSystemsList() {
+export function updateSystemsList() {
   const systemsItems = document.getElementById("systems-items")!;
   const cameraSystems = store.getCameraSystems();
   

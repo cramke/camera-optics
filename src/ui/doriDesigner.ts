@@ -3,8 +3,15 @@
  * Specify target DORI distances and find parameter ranges
  */
 
-import { calculateDoriRanges, calculateDoriFromSingleDistance } from "../services/api";
-import type { DoriTargets, ParameterConstraint, DoriParameterRanges } from "../core/types";
+import { calculateDoriRanges, calculateDoriFromSingleDistance, calculateCameraFov } from "../services/api";
+import type { DoriTargets, ParameterConstraint, DoriParameterRanges, CameraSystem } from "../core/types";
+import { store } from "../services/store";
+import { showToast } from "./toast";
+import { updateSystemsList } from "../main";
+
+// Store the last calculated ranges for export
+let lastCalculatedRanges: DoriParameterRanges | null = null;
+let lastCalculatedTargets: DoriTargets | null = null;
 
 /**
  * Auto-calculate all DORI distances based on one input using backend
@@ -105,6 +112,10 @@ export function initializeDoriDesigner(): void {
   // Calculate ranges button
   const calculateBtn = document.getElementById("calculate-ranges-btn");
   calculateBtn?.addEventListener("click", calculateParameterRanges);
+
+  // Export to comparison button
+  const exportBtn = document.getElementById("export-to-comparison-btn");
+  exportBtn?.addEventListener("click", exportToComparison);
 }
 
 /**
@@ -184,8 +195,18 @@ async function calculateParameterRanges(): Promise<void> {
     // Call backend to calculate ranges
     const ranges = await calculateDoriRanges(targets, constraints);
 
+    // Store for export
+    lastCalculatedRanges = ranges;
+    lastCalculatedTargets = targets;
+
     // Display results
     displayParameterRanges(ranges);
+
+    // Show export button
+    const exportBtn = document.getElementById("export-to-comparison-btn") as HTMLButtonElement;
+    if (exportBtn) {
+      exportBtn.style.display = "block";
+    }
   } catch (error) {
     console.error("Error calculating parameter ranges:", error);
     alert("Failed to calculate parameter ranges. Please check your inputs.");
@@ -232,4 +253,67 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
       rangeEl.classList.remove("active");
     }
   });
+}
+
+/**
+ * Export a camera configuration to the comparison list
+ * Takes the midpoint of each range to create a concrete camera system
+ */
+async function exportToComparison(): Promise<void> {
+  if (!lastCalculatedRanges || !lastCalculatedTargets) {
+    alert("Please calculate parameter ranges first");
+    return;
+  }
+
+  try {
+    const constraints = getConstraints();
+
+    // Build camera system using fixed values or midpoints of ranges
+    const camera: CameraSystem = {
+      sensor_width_mm: constraints.sensor_width_mm || getMidpoint(lastCalculatedRanges.sensor_width_mm),
+      sensor_height_mm: constraints.sensor_height_mm || getMidpoint(lastCalculatedRanges.sensor_height_mm),
+      pixel_width: Math.round(constraints.pixel_width || getMidpoint(lastCalculatedRanges.pixel_width)),
+      pixel_height: Math.round(constraints.pixel_height || getMidpoint(lastCalculatedRanges.pixel_height)),
+      focal_length_mm: constraints.focal_length_mm || getMidpoint(lastCalculatedRanges.focal_length_mm),
+    };
+
+    // Use the first specified DORI target as the distance
+    const distance_m = lastCalculatedTargets.identification_m 
+      || lastCalculatedTargets.recognition_m 
+      || lastCalculatedTargets.observation_m 
+      || lastCalculatedTargets.detection_m 
+      || 10;
+
+    // Calculate FOV for this configuration
+    const fovResult = await calculateCameraFov(camera, distance_m * 1000); // Convert to mm
+
+    // Generate a name based on DORI targets
+    const doriNames: string[] = [];
+    if (lastCalculatedTargets.detection_m) doriNames.push(`D${lastCalculatedTargets.detection_m}m`);
+    if (lastCalculatedTargets.observation_m) doriNames.push(`O${lastCalculatedTargets.observation_m}m`);
+    if (lastCalculatedTargets.recognition_m) doriNames.push(`R${lastCalculatedTargets.recognition_m}m`);
+    if (lastCalculatedTargets.identification_m) doriNames.push(`I${lastCalculatedTargets.identification_m}m`);
+    
+    camera.name = `DORI: ${doriNames.join(', ')}`;
+
+    // Add to store
+    store.addCameraSystem({ camera, result: fovResult });
+
+    // Update the comparison list UI
+    updateSystemsList();
+
+    // Show success message
+    showToast(`Added to comparison: ${camera.name}`, "success");
+  } catch (error) {
+    console.error("Error adding to comparison:", error);
+    alert("Failed to add camera configuration to comparison");
+  }
+}
+
+/**
+ * Get midpoint of a parameter range, or 0 if range is undefined
+ */
+function getMidpoint(range: { min: number; max: number } | null | undefined): number {
+  if (!range) return 0;
+  return (range.min + range.max) / 2;
 }
