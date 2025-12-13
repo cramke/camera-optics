@@ -64,6 +64,7 @@ export interface ParameterConstraint {
   pixel_width?: number;
   pixel_height?: number;
   focal_length_mm?: number;
+  horizontal_fov_deg?: number;
 }
 
 export interface DoriParameterRanges {
@@ -72,5 +73,6 @@ export interface DoriParameterRanges {
   pixel_width?: ParameterRange;
   pixel_height?: ParameterRange;
   focal_length_mm?: ParameterRange;
+  horizontal_fov_deg?: ParameterRange;
   limiting_requirement: string;
 }

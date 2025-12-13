@@ -638,4 +638,118 @@ mod tests {
         assert!((from_obs.detection_m - 80.0).abs() < 0.01);
         assert!((from_det.detection_m - 80.0).abs() < 0.01);
     }
+
+    #[test]
+    fn test_dori_ranges_with_fov_constraint() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test with FOV constraint only
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: Some(60.0),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // With FOV fixed, focal and sensor should have ranges
+        assert!(ranges.focal_length_mm.is_some());
+        assert!(ranges.sensor_width_mm.is_some());
+        
+        // FOV should not have a range since it's fixed
+        assert!(ranges.horizontal_fov_deg.is_none());
+        
+        // Verify that sensor/focal maintain the FOV relationship
+        if let (Some(focal_range), Some(sensor_range)) = (&ranges.focal_length_mm, &ranges.sensor_width_mm) {
+            // Check that the FOV is maintained at both extremes
+            let fov_at_min = 2.0 * (sensor_range.min / (2.0 * focal_range.min)).atan().to_degrees();
+            let fov_at_max = 2.0 * (sensor_range.max / (2.0 * focal_range.max)).atan().to_degrees();
+            
+            // Both should be close to 60 degrees
+            assert!((fov_at_min - 60.0).abs() < 1.0);
+            assert!((fov_at_max - 60.0).abs() < 1.0);
+        }
+    }
+
+    #[test]
+    fn test_dori_ranges_fov_and_pixel_constraint() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test with both FOV and pixel width constrained
+        let targets = DoriTargets {
+            identification_m: Some(20.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: Some(1920),
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: Some(90.0),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // With both FOV and pixels fixed, focal and sensor should still have ranges
+        // but they're related by the FOV constraint
+        assert!(ranges.focal_length_mm.is_some());
+        assert!(ranges.sensor_width_mm.is_some());
+        
+        // Verify FOV relationship is maintained
+        if let (Some(focal_range), Some(sensor_range)) = (&ranges.focal_length_mm, &ranges.sensor_width_mm) {
+            let fov_at_min = 2.0 * (sensor_range.min / (2.0 * focal_range.min)).atan().to_degrees();
+            let fov_at_max = 2.0 * (sensor_range.max / (2.0 * focal_range.max)).atan().to_degrees();
+            
+            assert!((fov_at_min - 90.0).abs() < 1.0);
+            assert!((fov_at_max - 90.0).abs() < 1.0);
+        }
+    }
+
+    #[test]
+    fn test_dori_ranges_no_fov_constraint() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test without FOV constraint - FOV range should be calculated
+        let targets = DoriTargets {
+            identification_m: Some(15.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Without FOV constraint, FOV should have a range
+        assert!(ranges.horizontal_fov_deg.is_some());
+        
+        // Verify FOV range makes sense (should be between narrow and wide angles)
+        if let Some(fov_range) = &ranges.horizontal_fov_deg {
+            assert!(fov_range.min > 0.0);
+            assert!(fov_range.max < 180.0);
+            assert!(fov_range.min < fov_range.max);
+        }
+    }
 }

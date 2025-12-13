@@ -51,7 +51,9 @@ export function initializeDoriDesigner(): void {
     { input: "fixed-sensor-width", range: "range-sensor-width" },
     { input: "fixed-pixel-width", range: "range-pixel-width" },
     { input: "fixed-focal-length", range: "range-focal-length" },
+    { input: "fixed-horizontal-fov", range: "range-horizontal-fov" },
     { input: "fixed-sensor-height", range: "range-sensor-height" },
+    { input: "fixed-pixel-height", range: "range-pixel-height" },
   ];
 
   paramInputs.forEach(({ input, range }) => {
@@ -134,7 +136,9 @@ function getConstraints(): ParameterConstraint {
   const sensorWidthEl = document.getElementById("fixed-sensor-width") as HTMLInputElement;
   const pixelWidthEl = document.getElementById("fixed-pixel-width") as HTMLInputElement;
   const focalLengthEl = document.getElementById("fixed-focal-length") as HTMLInputElement;
+  const horizontalFovEl = document.getElementById("fixed-horizontal-fov") as HTMLInputElement;
   const sensorHeightEl = document.getElementById("fixed-sensor-height") as HTMLInputElement;
+  const pixelHeightEl = document.getElementById("fixed-pixel-height") as HTMLInputElement;
 
   if (sensorWidthEl?.value) {
     constraints.sensor_width_mm = parseFloat(sensorWidthEl.value);
@@ -148,8 +152,16 @@ function getConstraints(): ParameterConstraint {
     constraints.focal_length_mm = parseFloat(focalLengthEl.value);
   }
 
+  if (horizontalFovEl?.value) {
+    constraints.horizontal_fov_deg = parseFloat(horizontalFovEl.value);
+  }
+
   if (sensorHeightEl?.value) {
     constraints.sensor_height_mm = parseFloat(sensorHeightEl.value);
+  }
+
+  if (pixelHeightEl?.value) {
+    constraints.pixel_height = parseInt(pixelHeightEl.value);
   }
 
   return constraints;
@@ -191,6 +203,7 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
     pixel_width: { rangeId: "range-pixel-width", inputId: "fixed-pixel-width", unit: "px" },
     pixel_height: { rangeId: "range-pixel-height", inputId: "fixed-pixel-height", unit: "px" },
     focal_length_mm: { rangeId: "range-focal-length", inputId: "fixed-focal-length", unit: "mm" },
+    horizontal_fov_deg: { rangeId: "range-horizontal-fov", inputId: "fixed-horizontal-fov", unit: "°" },
   };
 
   // Update each parameter's range display
