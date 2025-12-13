@@ -1096,4 +1096,887 @@ mod tests {
             assert!((fov.min - fov.max).abs() < 0.01, "Min and max should be the same (determined value)");
         }
     }
+
+    // Comprehensive test cases for all parameter combinations
+    // Parameters: sensor_width, pixel_width, focal_length, horizontal_fov
+    // Each can be Some (constrained) or None (unconstrained)
+    // This gives 2^4 = 16 combinations
+
+    #[test]
+    fn test_combo_none_none_none_none() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 0000: All unconstrained - should give full ranges for all parameters
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // All should have ranges
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should have range");
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+        assert!(ranges.horizontal_fov_deg.is_some(), "FOV should have range");
+        assert!(ranges.sensor_height_mm.is_some(), "Sensor height should have range");
+        assert!(ranges.pixel_height.is_some(), "Pixel height should have range");
+        
+        // FOV range should span from narrow to wide angles
+        if let Some(fov) = &ranges.horizontal_fov_deg {
+            assert!(fov.min > 0.0 && fov.min < fov.max && fov.max < 180.0);
+        }
+    }
+
+    #[test]
+    fn test_combo_sensor_none_none_none() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 1000: Only sensor constrained
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(8.0),
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Sensor should not have range (it's fixed)
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None (fixed input)");
+        // Others should have ranges
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+        assert!(ranges.horizontal_fov_deg.is_some(), "FOV should have range");
+        // Height should be calculated
+        assert!(ranges.sensor_height_mm.is_some(), "Sensor height should be calculated");
+        
+        if let Some(sensor_h) = &ranges.sensor_height_mm {
+            let expected = 8.0 / (4.0 / 3.0);
+            assert!((sensor_h.min - expected).abs() < 0.01);
+        }
+    }
+
+    #[test]
+    fn test_combo_none_pixel_none_none() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 0100: Only pixel_width constrained
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: Some(3840),
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Pixel should not have range (it's fixed)
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None (fixed input)");
+        // Sensor and focal should have constrained ranges
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should have range");
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+        assert!(ranges.horizontal_fov_deg.is_some(), "FOV should have range");
+        // Pixel height should be calculated
+        assert!(ranges.pixel_height.is_some(), "Pixel height should be calculated");
+        
+        if let Some(pixel_h) = &ranges.pixel_height {
+            let expected = 3840.0 / (4.0 / 3.0);
+            assert!((pixel_h.min - expected).abs() < 0.01);
+        }
+    }
+
+    #[test]
+    fn test_combo_sensor_pixel_none_none() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 1100: Sensor and pixel constrained
+        let targets = DoriTargets {
+            identification_m: Some(15.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(6.4),
+            sensor_height_mm: None,
+            pixel_width: Some(1920),
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Sensor and pixel should not have ranges (fixed inputs)
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None");
+        // Focal should have constrained range
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+        assert!(ranges.horizontal_fov_deg.is_some(), "FOV should have range");
+        
+        // Verify focal range makes sense for DORI requirement
+        if let Some(focal) = &ranges.focal_length_mm {
+            // Min focal = (distance × sensor × px_per_m) / pixels
+            let expected_min = (15.0 * 6.4 * 250.0) / 1920.0;
+            assert!((focal.min - expected_min).abs() < 0.5, 
+                "Min focal should be ~{}, got {}", expected_min, focal.min);
+        }
+    }
+
+    #[test]
+    fn test_combo_none_none_focal_none() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 0010: Only focal constrained
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: Some(50.0),
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Focal should not have range (it's fixed)
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None (fixed input)");
+        // Others should have ranges
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should have range");
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        assert!(ranges.horizontal_fov_deg.is_some(), "FOV should have range");
+    }
+
+    #[test]
+    fn test_combo_sensor_none_focal_none() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 1010: Sensor and focal constrained - FOV is determined
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(12.0),
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: Some(35.0),
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Sensor and focal should not have ranges (fixed inputs)
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None");
+        // Pixel should have range
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        // FOV should be determined (single value)
+        assert!(ranges.horizontal_fov_deg.is_some(), "FOV should be calculated");
+        
+        if let Some(fov) = &ranges.horizontal_fov_deg {
+            let ratio = 12.0_f64 / (2.0 * 35.0);
+            let expected = 2.0 * ratio.atan().to_degrees();
+            assert!((fov.min - expected).abs() < 0.1, "FOV should be ~{}", expected);
+            assert!((fov.min - fov.max).abs() < 0.01, "FOV should be single value");
+        }
+    }
+
+    #[test]
+    fn test_combo_none_pixel_focal_none() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 0110: Pixel and focal constrained
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: Some(2560),
+            pixel_height: None,
+            focal_length_mm: Some(25.0),
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Pixel and focal should not have ranges (fixed inputs)
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None");
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None");
+        // Sensor should have range
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should have range");
+        assert!(ranges.horizontal_fov_deg.is_some(), "FOV should have range");
+    }
+
+    #[test]
+    fn test_combo_sensor_pixel_focal_none() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 1110: Sensor, pixel, and focal constrained
+        // Note: When sensor and focal are fixed, the code still calculates
+        // what pixel range would meet the DORI requirement (for validation purposes)
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(7.66),
+            sensor_height_mm: None,
+            pixel_width: Some(1920),
+            pixel_height: None,
+            focal_length_mm: Some(16.0),
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // When sensor + focal are fixed, pixel still gets a range (requirement range)
+        // This tells us what pixel widths would meet the DORI requirement
+        assert!(ranges.pixel_width.is_some(), "Pixel width range should show DORI requirement");
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None (fixed)");
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None (fixed)");
+        // FOV should be calculated
+        assert!(ranges.horizontal_fov_deg.is_some(), "FOV should be calculated");
+        
+        if let Some(fov) = &ranges.horizontal_fov_deg {
+            assert!((fov.min - fov.max).abs() < 0.01, "FOV should be single value");
+        }
+    }
+
+    #[test]
+    fn test_combo_none_none_none_fov() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 0001: Only FOV constrained
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: Some(45.0),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // FOV should not have range (it's fixed)
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None (fixed input)");
+        // Focal and sensor should have ranges constrained by FOV relationship
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should have range");
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        
+        // Verify sensor/focal maintain FOV relationship
+        if let (Some(focal), Some(sensor)) = (&ranges.focal_length_mm, &ranges.sensor_width_mm) {
+            let fov_min = 2.0 * (sensor.min / (2.0 * focal.min)).atan().to_degrees();
+            let fov_max = 2.0 * (sensor.max / (2.0 * focal.max)).atan().to_degrees();
+            assert!((fov_min - 45.0).abs() < 1.0, "FOV at min should be ~45°");
+            assert!((fov_max - 45.0).abs() < 1.0, "FOV at max should be ~45°");
+        }
+    }
+
+    #[test]
+    fn test_combo_sensor_none_none_fov() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 1001: Sensor and FOV constrained - focal is determined
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(10.0),
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: Some(30.0),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Sensor and FOV should not have ranges (fixed inputs)
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
+        // Focal should be calculated, pixel should have range
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should be calculated");
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        
+        if let Some(focal) = &ranges.focal_length_mm {
+            let expected = 10.0 / (2.0 * (15.0_f64.to_radians()).tan());
+            assert!((focal.min - expected).abs() < 0.5, "Focal should be ~{}", expected);
+            assert!((focal.min - focal.max).abs() < 0.01, "Focal should be single value");
+        }
+    }
+
+    #[test]
+    fn test_combo_none_pixel_none_fov() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 0101: Pixel and FOV constrained
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: Some(1920),
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: Some(60.0),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Pixel and FOV should not have ranges (fixed inputs)
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
+        // Focal and sensor should have ranges maintaining FOV relationship
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should have range");
+    }
+
+    #[test]
+    fn test_combo_sensor_pixel_none_fov() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 1101: Sensor, pixel, and FOV constrained - focal is determined
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(8.8),
+            sensor_height_mm: None,
+            pixel_width: Some(3840),
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: Some(50.0),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Sensor, pixel, and FOV should not have ranges (fixed inputs)
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
+        // Focal should be calculated
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should be calculated");
+        
+        if let Some(focal) = &ranges.focal_length_mm {
+            let expected = 8.8 / (2.0 * (25.0_f64.to_radians()).tan());
+            assert!((focal.min - expected).abs() < 0.5, "Focal should be ~{}", expected);
+            assert!((focal.min - focal.max).abs() < 0.01, "Focal should be single value");
+        }
+    }
+
+    #[test]
+    fn test_combo_none_none_focal_fov() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 0011: Focal and FOV constrained - sensor is determined
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: Some(50.0),
+            horizontal_fov_deg: Some(40.0),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Focal and FOV should not have ranges (fixed inputs)
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
+        // Sensor should be calculated, pixel should have range
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should be calculated");
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        
+        if let Some(sensor) = &ranges.sensor_width_mm {
+            let expected = 2.0 * 50.0 * (20.0_f64.to_radians()).tan();
+            assert!((sensor.min - expected).abs() < 0.5, "Sensor should be ~{}", expected);
+            assert!((sensor.min - sensor.max).abs() < 0.01, "Sensor should be single value");
+        }
+    }
+
+    #[test]
+    fn test_combo_sensor_none_focal_fov() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 1011: Sensor, focal, and FOV constrained - over-constrained (must be consistent)
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        // Use consistent values: sensor=36mm, focal=50mm -> FOV≈39.6°
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(36.0),
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: Some(50.0),
+            horizontal_fov_deg: Some(39.6),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // All three should not have ranges (fixed inputs)
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
+        // Only pixel should have range
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+    }
+
+    #[test]
+    fn test_combo_none_pixel_focal_fov() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 0111: Pixel, focal, and FOV constrained - sensor is determined
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: Some(4096),
+            pixel_height: None,
+            focal_length_mm: Some(28.0),
+            horizontal_fov_deg: Some(65.0),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Pixel, focal, and FOV should not have ranges (fixed inputs)
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None");
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
+        // Sensor should be calculated
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should be calculated");
+        
+        if let Some(sensor) = &ranges.sensor_width_mm {
+            let expected = 2.0 * 28.0 * (32.5_f64.to_radians()).tan();
+            assert!((sensor.min - expected).abs() < 1.0, "Sensor should be ~{}", expected);
+            assert!((sensor.min - sensor.max).abs() < 0.01, "Sensor should be single value");
+        }
+    }
+
+    #[test]
+    fn test_combo_sensor_pixel_focal_fov() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Case 1111: All constrained - fully determined system
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        // Use consistent values
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(6.4),
+            sensor_height_mm: None,
+            pixel_width: Some(1920),
+            pixel_height: None,
+            focal_length_mm: Some(4.0),
+            horizontal_fov_deg: Some(84.0), // Approximately correct for these values
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // All main parameters should not have ranges (all fixed inputs)
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None");
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
+        
+        // Only heights should be calculated
+        assert!(ranges.sensor_height_mm.is_some(), "Sensor height should be calculated");
+        assert!(ranges.pixel_height.is_some(), "Pixel height should be calculated");
+    }
+
+    // Additional tests for height parameters as constraints
+    
+    #[test]
+    fn test_height_sensor_height_only() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test with only sensor_height constrained (unusual but valid)
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: Some(6.0),
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Sensor height is fixed, should not have range
+        assert!(ranges.sensor_height_mm.is_none(), "Sensor height should be None (fixed input)");
+        // Other parameters should have ranges
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should have range");
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+    }
+
+    #[test]
+    fn test_height_pixel_height_only() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test with only pixel_height constrained
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: Some(1080),
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Pixel height is fixed, should not have range
+        assert!(ranges.pixel_height.is_none(), "Pixel height should be None (fixed input)");
+        // Other parameters should have ranges
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should have range");
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+    }
+
+    #[test]
+    fn test_height_sensor_width_and_height() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test with both sensor width and height constrained (custom aspect ratio)
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(12.0),
+            sensor_height_mm: Some(8.0), // 3:2 aspect ratio instead of 4:3
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Both sensor dimensions are fixed
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None (fixed)");
+        assert!(ranges.sensor_height_mm.is_none(), "Sensor height should be None (fixed)");
+        // Other parameters should have ranges
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+    }
+
+    #[test]
+    fn test_height_pixel_width_and_height() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test with both pixel width and height constrained (custom aspect ratio)
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: Some(1920),
+            pixel_height: Some(1080), // 16:9 aspect ratio
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Both pixel dimensions are fixed
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None (fixed)");
+        assert!(ranges.pixel_height.is_none(), "Pixel height should be None (fixed)");
+        // Other parameters should have ranges
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should have range");
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+    }
+
+    #[test]
+    fn test_height_sensor_and_focal_with_sensor_height() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test sensor width + height + focal (determines aspect ratio)
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(8.0),
+            sensor_height_mm: Some(6.0), // 4:3 aspect
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: Some(25.0),
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Sensor dimensions and focal are fixed
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.sensor_height_mm.is_none(), "Sensor height should be None");
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None");
+        // Pixel should have range, and pixel_height should maintain aspect ratio
+        assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        
+        if let Some(pixel_h) = &ranges.pixel_height {
+            if let Some(pixel_w) = &ranges.pixel_width {
+                // Should maintain 4:3 aspect ratio
+                let aspect_min = pixel_w.min / pixel_h.min;
+                let aspect_max = pixel_w.max / pixel_h.max;
+                assert!((aspect_min - 4.0/3.0).abs() < 0.01, "Min aspect should be 4:3");
+                assert!((aspect_max - 4.0/3.0).abs() < 0.01, "Max aspect should be 4:3");
+            }
+        }
+    }
+
+    #[test]
+    fn test_height_all_pixels_constrained() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test with all pixel dimensions constrained along with sensor
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(6.4),
+            sensor_height_mm: Some(4.8), // 4:3
+            pixel_width: Some(1920),
+            pixel_height: Some(1440), // 4:3
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // All dimensions are fixed, only focal should have range
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.sensor_height_mm.is_none(), "Sensor height should be None");
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None");
+        assert!(ranges.pixel_height.is_none(), "Pixel height should be None");
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+    }
+
+    #[test]
+    fn test_height_mismatched_aspect_ratios() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test with mismatched aspect ratios (sensor 4:3, pixels 16:9)
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(8.0),
+            sensor_height_mm: Some(6.0), // 4:3 aspect
+            pixel_width: Some(1920),
+            pixel_height: Some(1080), // 16:9 aspect
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // All dimensions fixed despite mismatched aspect ratios
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.sensor_height_mm.is_none(), "Sensor height should be None");
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None");
+        assert!(ranges.pixel_height.is_none(), "Pixel height should be None");
+        // Focal should still have range
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should have range");
+    }
+
+    #[test]
+    fn test_height_fov_with_heights() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test FOV constraint with height dimensions
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(6.0),
+            sensor_height_mm: Some(4.5), // 4:3
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: Some(45.0),
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Sensor width, height, and FOV are fixed - focal should be determined
+        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
+        assert!(ranges.sensor_height_mm.is_none(), "Sensor height should be None");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
+        // Focal should be calculated
+        assert!(ranges.focal_length_mm.is_some(), "Focal length should be calculated");
+        
+        if let Some(focal) = &ranges.focal_length_mm {
+            // Verify it's a single value (determined)
+            assert!((focal.min - focal.max).abs() < 0.01, "Focal should be single value");
+        }
+    }
+
+    #[test]
+    fn test_height_vertical_fov_implications() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test that vertical FOV is implied by horizontal FOV and aspect ratio
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(12.0),
+            sensor_height_mm: Some(9.0), // 4:3
+            pixel_width: Some(1920),
+            pixel_height: Some(1440), // 4:3
+            focal_length_mm: Some(50.0),
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Everything is fixed - FOV should be calculated
+        assert!(ranges.horizontal_fov_deg.is_some(), "Horizontal FOV should be calculated");
+        
+        // Note: Vertical FOV would be calculated as:
+        // vertical_fov = 2 × atan(sensor_height / (2 × focal))
+        // But our system only tracks horizontal FOV in ranges
+        if let Some(h_fov) = &ranges.horizontal_fov_deg {
+            let ratio = 12.0_f64 / (2.0 * 50.0);
+            let expected_h = 2.0 * ratio.atan().to_degrees();
+            assert!((h_fov.min - expected_h).abs() < 0.5, "Horizontal FOV should be ~{}", expected_h);
+        }
+    }
 }
