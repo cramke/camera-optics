@@ -374,7 +374,7 @@ pub fn calculate_dori_parameter_ranges(
     // If focal length is fixed, calculate pixel width and sensor width ranges
     if let Some(focal) = constraints.focal_length_mm {
         if let Some(sensor_w) = constraints.sensor_width_mm {
-            // Both focal and sensor are fixed - calculate pixel width range
+            // Both focal and sensor are fixed - calculate pixel width range and FOV
             let required_product = target_distance * sensor_w * required_px_per_m / focal;
             let min_pixels = required_product.max(MIN_PIXEL_WIDTH as f64);
             let max_pixels = MAX_PIXEL_WIDTH as f64;
@@ -382,6 +382,13 @@ pub fn calculate_dori_parameter_ranges(
             ranges.pixel_width = Some(ParameterRange {
                 min: min_pixels,
                 max: max_pixels,
+            });
+            
+            // Calculate determined FOV value
+            let fov = calc_fov_deg(sensor_w, focal);
+            ranges.horizontal_fov_deg = Some(ParameterRange {
+                min: fov,
+                max: fov,
             });
             
             // Calculate aspect ratio constraint for pixel height
@@ -1046,6 +1053,47 @@ mod tests {
             assert!((sensor.min - expected_sensor).abs() < 0.1, "Min sensor should be ~28.87mm");
             assert!((sensor.max - expected_sensor).abs() < 0.1, "Max sensor should be ~28.87mm");
             assert!((sensor.min - sensor.max).abs() < 0.01, "Min and max should be the same (determined value)");
+        }
+    }
+
+    #[test]
+    fn test_dori_ranges_sensor_with_focal_determines_fov() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test case from screenshot: sensor=5mm, focal=75mm should give FOV≈3.82°
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(5.0),
+            sensor_height_mm: None,
+            pixel_width: Some(6000),
+            pixel_height: None,
+            focal_length_mm: Some(75.0),
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // FOV should be determined (fixed value)
+        assert!(ranges.horizontal_fov_deg.is_some(), "FOV should be calculated");
+        
+        if let Some(fov) = &ranges.horizontal_fov_deg {
+            // FOV = 2 × atan(sensor / (2 × focal))
+            // FOV = 2 × atan(5 / (2 × 75))
+            // FOV = 2 × atan(5 / 150)
+            // FOV ≈ 3.82°
+            let sensor_over_twice_focal = 5.0_f64 / (2.0 * 75.0);
+            let expected_fov = 2.0 * sensor_over_twice_focal.atan().to_degrees();
+            println!("Expected FOV: {}, Got: min={}, max={}", expected_fov, fov.min, fov.max);
+            
+            assert!((fov.min - expected_fov).abs() < 0.01, "Min FOV should be ~3.82°");
+            assert!((fov.max - expected_fov).abs() < 0.01, "Max FOV should be ~3.82°");
+            assert!((fov.min - fov.max).abs() < 0.01, "Min and max should be the same (determined value)");
         }
     }
 }
