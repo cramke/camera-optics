@@ -469,6 +469,42 @@ pub fn calculate_dori_parameter_ranges(
         }
     }
     
+    // Calculate sensor_height and pixel_height based on standard 4:3 aspect ratio
+    // if not already constrained
+    const STANDARD_ASPECT_RATIO: f64 = 4.0 / 3.0;
+    
+    if constraints.sensor_height_mm.is_none() {
+        if let Some(sensor_width_range) = &ranges.sensor_width_mm {
+            ranges.sensor_height_mm = Some(ParameterRange {
+                min: sensor_width_range.min / STANDARD_ASPECT_RATIO,
+                max: sensor_width_range.max / STANDARD_ASPECT_RATIO,
+            });
+        } else if let Some(sensor_w) = constraints.sensor_width_mm {
+            // Width is fixed, calculate height
+            let sensor_h = sensor_w / STANDARD_ASPECT_RATIO;
+            ranges.sensor_height_mm = Some(ParameterRange {
+                min: sensor_h,
+                max: sensor_h,
+            });
+        }
+    }
+    
+    if constraints.pixel_height.is_none() {
+        if let Some(pixel_width_range) = &ranges.pixel_width {
+            ranges.pixel_height = Some(ParameterRange {
+                min: pixel_width_range.min / STANDARD_ASPECT_RATIO,
+                max: pixel_width_range.max / STANDARD_ASPECT_RATIO,
+            });
+        } else if let Some(pixels_w) = constraints.pixel_width {
+            // Width is fixed, calculate height
+            let pixels_h = pixels_w as f64 / STANDARD_ASPECT_RATIO;
+            ranges.pixel_height = Some(ParameterRange {
+                min: pixels_h,
+                max: pixels_h,
+            });
+        }
+    }
+    
     ranges
 }
 
@@ -785,6 +821,92 @@ mod tests {
             assert!(fov_range.min > 0.0);
             assert!(fov_range.max < 180.0);
             assert!(fov_range.min < fov_range.max);
+        }
+    }
+
+    #[test]
+    fn test_dori_ranges_calculates_height_dimensions() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test that sensor_height and pixel_height are calculated with 4:3 aspect ratio
+        let targets = DoriTargets {
+            identification_m: Some(20.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: None,
+            sensor_height_mm: None,
+            pixel_width: None,
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Both width and height should have ranges
+        assert!(ranges.sensor_width_mm.is_some());
+        assert!(ranges.sensor_height_mm.is_some());
+        assert!(ranges.pixel_width.is_some());
+        assert!(ranges.pixel_height.is_some());
+        
+        // Verify 4:3 aspect ratio is maintained
+        if let (Some(sensor_w), Some(sensor_h)) = (&ranges.sensor_width_mm, &ranges.sensor_height_mm) {
+            let aspect_ratio_min = sensor_w.min / sensor_h.min;
+            let aspect_ratio_max = sensor_w.max / sensor_h.max;
+            
+            // Should be 4:3 = 1.333...
+            assert!((aspect_ratio_min - 1.333).abs() < 0.01, "Min aspect ratio should be 4:3");
+            assert!((aspect_ratio_max - 1.333).abs() < 0.01, "Max aspect ratio should be 4:3");
+        }
+        
+        if let (Some(pixel_w), Some(pixel_h)) = (&ranges.pixel_width, &ranges.pixel_height) {
+            let aspect_ratio_min = pixel_w.min / pixel_h.min;
+            let aspect_ratio_max = pixel_w.max / pixel_h.max;
+            
+            // Should be 4:3 = 1.333...
+            assert!((aspect_ratio_min - 1.333).abs() < 0.01, "Min pixel aspect ratio should be 4:3");
+            assert!((aspect_ratio_max - 1.333).abs() < 0.01, "Max pixel aspect ratio should be 4:3");
+        }
+    }
+
+    #[test]
+    fn test_dori_ranges_height_with_fixed_width() {
+        use crate::optics::types::{DoriTargets, ParameterConstraint};
+        
+        // Test that when width is fixed, height is calculated from it
+        let targets = DoriTargets {
+            identification_m: Some(10.0),
+            observation_m: None,
+            recognition_m: None,
+            detection_m: None,
+        };
+        
+        let constraints = ParameterConstraint {
+            sensor_width_mm: Some(12.0), // Fixed width
+            sensor_height_mm: None,
+            pixel_width: Some(1920), // Fixed width
+            pixel_height: None,
+            focal_length_mm: None,
+            horizontal_fov_deg: None,
+        };
+        
+        let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
+        
+        // Height should be calculated with fixed value (same min/max)
+        if let Some(sensor_h) = &ranges.sensor_height_mm {
+            let expected_height = 12.0 / (4.0 / 3.0); // 9.0
+            assert!((sensor_h.min - expected_height).abs() < 0.01);
+            assert!((sensor_h.max - expected_height).abs() < 0.01);
+        }
+        
+        if let Some(pixel_h) = &ranges.pixel_height {
+            let expected_height = 1920.0 / (4.0 / 3.0); // 1440.0
+            assert!((pixel_h.min - expected_height).abs() < 0.01);
+            assert!((pixel_h.max - expected_height).abs() < 0.01);
         }
     }
 }
