@@ -1,66 +1,9 @@
 import { invoke } from "@tauri-apps/api/core";
 import type { CameraSystem, FovResult, CameraWithResult, ReferenceObject } from "./types";
+import { REFERENCE_OBJECTS, CAMERA_PRESETS, SYSTEM_COLORS } from "./constants";
 
 // Store camera systems for comparison
 const cameraSystems: CameraWithResult[] = [];
-
-const referenceObjects: ReferenceObject[] = [
-  {
-    id: "human",
-    name: "Human",
-    width: 0.5,
-    height: 1.75,
-    color: "#ff6b6b",
-    label: "👤",
-    description: "1.75m tall",
-  },
-  {
-    id: "tanker",
-    name: "Oil Tanker",
-    width: 330,
-    height: 58,
-    color: "#4a5568",
-    label: "🚢",
-    description: "330m long",
-  },
-  {
-    id: "drone",
-    name: "DJI Drone",
-    width: 0.25,
-    height: 0.25,
-    color: "#48bb78",
-    label: "🛸",
-    description: "0.25m",
-  },
-];
-
-// Preset camera configurations
-const presets: Record<string, Partial<CameraSystem>> = {
-  "full-frame": {
-    sensor_width_mm: 36,
-    sensor_height_mm: 24,
-    pixel_width: 6000,
-    pixel_height: 4000,
-    focal_length_mm: 50,
-    name: "Full Frame 50mm",
-  },
-  "aps-c": {
-    sensor_width_mm: 23.5,
-    sensor_height_mm: 15.6,
-    pixel_width: 6000,
-    pixel_height: 4000,
-    focal_length_mm: 35,
-    name: "APS-C 35mm",
-  },
-  "micro43": {
-    sensor_width_mm: 17.3,
-    sensor_height_mm: 13,
-    pixel_width: 5184,
-    pixel_height: 3888,
-    focal_length_mm: 25,
-    name: "Micro 4/3 25mm",
-  },
-};
 
 // Get form values
 function getCameraFromForm(): CameraSystem {
@@ -362,7 +305,7 @@ function drawVisualization(systems: CameraWithResult[]) {
   const selectedObjectId = (document.getElementById("ref-object-select") as HTMLSelectElement)?.value;
   
   if (selectedObjectId && selectedObjectId !== "none") {
-    const obj = referenceObjects.find(o => o.id === selectedObjectId);
+    const obj = REFERENCE_OBJECTS.find(o => o.id === selectedObjectId);
     if (obj) {
       drawReferenceObject(ctx, obj, centerX, centerY, scale);
     }
@@ -431,13 +374,12 @@ function drawReferenceObject(
 
 // Get color for system index
 function getColor(index: number): string {
-  const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#ec4899"];
-  return colors[index % colors.length];
+  return SYSTEM_COLORS[index % SYSTEM_COLORS.length];
 }
 
 // Load preset
 function loadPreset(presetName: string) {
-  const preset = presets[presetName];
+  const preset = CAMERA_PRESETS[presetName];
   if (!preset) return;
 
   (document.getElementById("sensor-width") as HTMLInputElement).value = preset.sensor_width_mm?.toString() || "";
@@ -493,8 +435,8 @@ window.addEventListener("DOMContentLoaded", () => {
     // Clear existing options except "None"
     refSelect.innerHTML = '<option value="none">None</option>';
     
-    // Add options from referenceObjects array
-    referenceObjects.forEach((obj, index) => {
+    // Add options from REFERENCE_OBJECTS array
+    REFERENCE_OBJECTS.forEach((obj, index) => {
       const option = document.createElement("option");
       option.value = obj.id;
       option.textContent = `${obj.name} (${obj.description})`;
