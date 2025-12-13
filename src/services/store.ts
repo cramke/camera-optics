@@ -2,7 +2,7 @@
  * Application state management with observable pattern
  */
 
-import type { CameraWithResult } from "./types";
+import type { CameraWithResult } from "../core/types";
 
 /**
  * Global state store for camera systems

@@ -1,9 +1,9 @@
-import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "./constants";
-import { calculateCameraFov } from "./api";
-import { store } from "./store";
-import { drawVisualization } from "./visualization";
-import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToForm, loadPreset } from "./form";
-import { displaySingleResult } from "./results";
+import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "./core/constants";
+import { calculateCameraFov } from "./services/api";
+import { store } from "./services/store";
+import { drawVisualization } from "./ui/visualization";
+import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToForm, loadPreset } from "./ui/form";
+import { displaySingleResult } from "./ui/results";
 
 // Calculate FOV for current form values
 async function calculateFov() {

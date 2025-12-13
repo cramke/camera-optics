@@ -2,7 +2,7 @@
  * Results page rendering for camera FOV calculations
  */
 
-import type { CameraSystem, FovResult } from "./types";
+import type { CameraSystem, FovResult } from "../core/types";
 
 /**
  * Render a single camera system result to the results tab

@@ -2,10 +2,10 @@
  * Form component for camera system input and management
  */
 
-import type { CameraSystem } from "./types";
-import { CAMERA_PRESETS } from "./constants";
-import { calculateFocalLengthFromFov } from "./api";
-import { store } from "./store";
+import type { CameraSystem } from "../core/types";
+import { CAMERA_PRESETS } from "../core/constants";
+import { calculateFocalLengthFromFov } from "../services/api";
+import { store } from "../services/store";
 
 /**
  * Get camera system data from form inputs

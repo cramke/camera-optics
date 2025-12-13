@@ -3,7 +3,7 @@
  */
 
 import { invoke } from "@tauri-apps/api/core";
-import type { CameraSystem, FovResult } from "./types";
+import type { CameraSystem, FovResult } from "../core/types";
 
 /**
  * Calculate FOV for a camera system at a given distance

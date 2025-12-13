@@ -2,8 +2,8 @@
  * Canvas visualization component for FOV rendering
  */
 
-import type { CameraWithResult, ReferenceObject } from "./types";
-import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "./constants";
+import type { CameraWithResult, ReferenceObject } from "../core/types";
+import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "../core/constants";
 
 /**
  * Draw FOV visualization on canvas
