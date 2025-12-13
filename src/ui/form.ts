@@ -135,6 +135,22 @@ export function loadSystemToForm(index: number, onUpdate: () => void): void {
 }
 
 /**
+ * Load a system from comparison list to view (without removing it)
+ */
+export function loadSystemToView(index: number): void {
+  const system = store.getCameraSystem(index);
+  if (!system) return;
+
+  (document.getElementById("sensor-width") as HTMLInputElement).value = system.camera.sensor_width_mm.toString();
+  (document.getElementById("sensor-height") as HTMLInputElement).value = system.camera.sensor_height_mm.toString();
+  (document.getElementById("pixel-width") as HTMLInputElement).value = system.camera.pixel_width.toString();
+  (document.getElementById("pixel-height") as HTMLInputElement).value = system.camera.pixel_height.toString();
+  (document.getElementById("focal-length") as HTMLInputElement).value = system.camera.focal_length_mm.toString();
+  (document.getElementById("distance") as HTMLInputElement).value = (system.result.distance_m).toString();
+  (document.getElementById("name") as HTMLInputElement).value = system.camera.name || "";
+}
+
+/**
  * Load preset camera values into the form
  */
 export function loadPreset(presetName: string): void {

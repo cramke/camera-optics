@@ -2,7 +2,7 @@ import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "./core/constants";
 import { calculateCameraFov } from "./services/api";
 import { store } from "./services/store";
 import { drawVisualization } from "./ui/visualization";
-import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToForm, loadPreset } from "./ui/form";
+import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToForm, loadSystemToView, loadPreset } from "./ui/form";
 import { displaySingleResult } from "./ui/results";
 import { showToast } from "./ui/toast";
 
@@ -94,7 +94,7 @@ function updateSystemsList() {
     )
     .join("");
 
-  // Add click listeners to entire system item to view in results tab
+  // Add click listeners to entire system item to select and display it
   document.querySelectorAll(".system-item").forEach((item) => {
     item.addEventListener("click", (e) => {
       const index = parseInt((e.currentTarget as HTMLElement).dataset.index!);
@@ -108,8 +108,16 @@ function updateSystemsList() {
         sysItem.classList.toggle("selected", i === index);
       });
       
+      // Load the system values into the form (for viewing)
+      loadSystemToView(index);
+      
+      // Update results tab with the selected system
       displaySingleResult(system.camera, system.result, index);
-      switchTab("results");
+      
+      // Update visualization to highlight the selected system
+      drawVisualization(store.getCameraSystems());
+      
+      // Don't switch tabs - stay on current tab
     });
   });
 
