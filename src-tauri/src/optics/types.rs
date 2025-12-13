@@ -88,6 +88,7 @@ pub struct ParameterConstraint {
     pub pixel_width: Option<u32>,
     pub pixel_height: Option<u32>,
     pub focal_length_mm: Option<f64>,
+    pub horizontal_fov_deg: Option<f64>,
 }
 
 /// Ranges of camera parameters that satisfy DORI requirements
@@ -103,6 +104,8 @@ pub struct DoriParameterRanges {
     pub pixel_height: Option<ParameterRange>,
     /// Range for focal length in mm (if not constrained)
     pub focal_length_mm: Option<ParameterRange>,
+    /// Range for horizontal FOV in degrees (if not constrained)
+    pub horizontal_fov_deg: Option<ParameterRange>,
     /// The DORI target that was used (the most restrictive one)
     pub limiting_requirement: String,
 }

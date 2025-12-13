@@ -196,8 +196,113 @@ pub fn calculate_dori_parameter_ranges(
         pixel_width: None,
         pixel_height: None,
         focal_length_mm: None,
+        horizontal_fov_deg: None,
         limiting_requirement: String::new(), // No longer needed but kept for API compatibility
     };
+    
+    // Helper function to calculate FOV from sensor width and focal length
+    let calc_fov_deg = |sensor_mm: f64, focal_mm: f64| -> f64 {
+        2.0 * (sensor_mm / (2.0 * focal_mm)).atan().to_degrees()
+    };
+    
+    // If FOV is constrained, it affects the relationship between focal length and sensor width
+    // FOV = 2 × atan(sensor / (2 × focal))
+    // Rearranged: sensor = 2 × focal × tan(FOV / 2)
+    if let Some(fov_deg) = constraints.horizontal_fov_deg {
+        let fov_rad = fov_deg.to_radians();
+        let tan_half_fov = (fov_rad / 2.0).tan();
+        
+        if let Some(focal) = constraints.focal_length_mm {
+            // FOV and focal are fixed - sensor is determined
+            let sensor_w = 2.0 * focal * tan_half_fov;
+            
+            // Now calculate pixel width range based on fixed focal and sensor
+            if let Some(_pixels) = constraints.pixel_width {
+                // All three fixed - no ranges to calculate, just validate
+                ranges.pixel_width = None;
+                ranges.sensor_width_mm = None;
+                ranges.focal_length_mm = None;
+            } else {
+                // Calculate pixel width range
+                let required_product = target_distance * sensor_w * required_px_per_m / focal;
+                let min_pixels = required_product.max(MIN_PIXEL_WIDTH as f64);
+                let max_pixels = MAX_PIXEL_WIDTH as f64;
+                
+                ranges.pixel_width = Some(ParameterRange {
+                    min: min_pixels,
+                    max: max_pixels,
+                });
+            }
+        } else if let Some(sensor_w) = constraints.sensor_width_mm {
+            // FOV and sensor are fixed - focal is determined
+            let focal = sensor_w / (2.0 * tan_half_fov);
+            
+            if let Some(_pixels) = constraints.pixel_width {
+                // All three fixed - no ranges
+                ranges.pixel_width = None;
+                ranges.sensor_width_mm = None;
+                ranges.focal_length_mm = None;
+            } else {
+                // Calculate pixel width range
+                let required_product = target_distance * sensor_w * required_px_per_m / focal;
+                let min_pixels = required_product.max(MIN_PIXEL_WIDTH as f64);
+                let max_pixels = MAX_PIXEL_WIDTH as f64;
+                
+                ranges.pixel_width = Some(ParameterRange {
+                    min: min_pixels,
+                    max: max_pixels,
+                });
+            }
+        } else if let Some(_pixels) = constraints.pixel_width {
+            // FOV and pixels are fixed - calculate constrained focal and sensor
+            // From DORI: distance = (focal × pixels) / (sensor × px_per_m)
+            // From FOV: sensor = 2 × focal × tan(FOV/2)
+            // Substitute: distance = (focal × pixels) / (2 × focal × tan(FOV/2) × px_per_m)
+            // Simplify: distance = pixels / (2 × tan(FOV/2) × px_per_m)
+            // This means focal cancels out, so we can pick focal range and derive sensor
+            
+            let min_focal = MIN_FOCAL_LENGTH_MM;
+            let max_focal = MAX_FOCAL_LENGTH_MM;
+            
+            ranges.focal_length_mm = Some(ParameterRange {
+                min: min_focal,
+                max: max_focal,
+            });
+            
+            // Sensor is determined by FOV and focal
+            let min_sensor = 2.0 * min_focal * tan_half_fov;
+            let max_sensor = 2.0 * max_focal * tan_half_fov;
+            
+            ranges.sensor_width_mm = Some(ParameterRange {
+                min: min_sensor.max(MIN_SENSOR_WIDTH_MM),
+                max: max_sensor.min(MAX_SENSOR_WIDTH_MM),
+            });
+        } else {
+            // Only FOV is fixed - give ranges for focal, sensor follows from FOV
+            let min_focal = MIN_FOCAL_LENGTH_MM;
+            let max_focal = MAX_FOCAL_LENGTH_MM;
+            
+            ranges.focal_length_mm = Some(ParameterRange {
+                min: min_focal,
+                max: max_focal,
+            });
+            
+            let min_sensor = 2.0 * min_focal * tan_half_fov;
+            let max_sensor = 2.0 * max_focal * tan_half_fov;
+            
+            ranges.sensor_width_mm = Some(ParameterRange {
+                min: min_sensor.max(MIN_SENSOR_WIDTH_MM),
+                max: max_sensor.min(MAX_SENSOR_WIDTH_MM),
+            });
+            
+            ranges.pixel_width = Some(ParameterRange {
+                min: MIN_PIXEL_WIDTH as f64,
+                max: MAX_PIXEL_WIDTH as f64,
+            });
+        }
+        
+        return ranges; // FOV is fixed, so we handle it completely here
+    }
     
     // If focal length is fixed, calculate pixel width and sensor width ranges
     if let Some(focal) = constraints.focal_length_mm {
@@ -300,6 +405,44 @@ pub fn calculate_dori_parameter_ranges(
             min: MIN_PIXEL_WIDTH as f64,
             max: MAX_PIXEL_WIDTH as f64,
         });
+    }
+    
+    // Calculate FOV range if not constrained
+    if constraints.horizontal_fov_deg.is_none() {
+        // FOV range depends on the ranges of sensor and focal
+        if let (Some(sensor_range), Some(focal_range)) = (&ranges.sensor_width_mm, &ranges.focal_length_mm) {
+            // Min FOV occurs with min sensor and max focal
+            let min_fov = calc_fov_deg(sensor_range.min, focal_range.max);
+            // Max FOV occurs with max sensor and min focal
+            let max_fov = calc_fov_deg(sensor_range.max, focal_range.min);
+            
+            ranges.horizontal_fov_deg = Some(ParameterRange {
+                min: min_fov,
+                max: max_fov,
+            });
+        } else if let Some(focal) = constraints.focal_length_mm {
+            // Focal is fixed, sensor has range
+            if let Some(sensor_range) = &ranges.sensor_width_mm {
+                let min_fov = calc_fov_deg(sensor_range.min, focal);
+                let max_fov = calc_fov_deg(sensor_range.max, focal);
+                
+                ranges.horizontal_fov_deg = Some(ParameterRange {
+                    min: min_fov,
+                    max: max_fov,
+                });
+            }
+        } else if let Some(sensor_w) = constraints.sensor_width_mm {
+            // Sensor is fixed, focal has range
+            if let Some(focal_range) = &ranges.focal_length_mm {
+                let min_fov = calc_fov_deg(sensor_w, focal_range.max);
+                let max_fov = calc_fov_deg(sensor_w, focal_range.min);
+                
+                ranges.horizontal_fov_deg = Some(ParameterRange {
+                    min: min_fov,
+                    max: max_fov,
+                });
+            }
+        }
     }
     
     ranges
