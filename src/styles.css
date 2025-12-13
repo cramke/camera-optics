@@ -168,6 +168,15 @@ button {
   box-shadow: 0 4px 8px rgba(16, 185, 129, 0.3);
 }
 
+.secondary-btn.edit-mode {
+  background: #f59e0b;
+}
+
+.secondary-btn.edit-mode:hover {
+  background: #d97706;
+  box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
+}
+
 /* Alternative Input */
 .alternative-input {
   background: #f0f9ff;

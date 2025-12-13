@@ -34,6 +34,16 @@ class Store {
   }
 
   /**
+   * Update a camera system at a specific index
+   */
+  updateCameraSystem(index: number, system: CameraWithResult): void {
+    if (index >= 0 && index < this.cameraSystems.length) {
+      this.cameraSystems[index] = system;
+      this.notifyListeners();
+    }
+  }
+
+  /**
    * Remove a camera system by index
    */
   removeCameraSystem(index: number): void {

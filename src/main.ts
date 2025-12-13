@@ -2,19 +2,41 @@ import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "./core/constants";
 import { calculateCameraFov } from "./services/api";
 import { store } from "./services/store";
 import { drawVisualization } from "./ui/visualization";
-import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToForm, loadSystemToView, loadPreset } from "./ui/form";
+import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToView, loadPreset } from "./ui/form";
 import { displaySingleResult } from "./ui/results";
 import { showToast } from "./ui/toast";
 
 // Track the currently selected system index for highlighting
 let selectedSystemIndex: number | null = null;
 
+// Track if we're in edit mode and which index is being edited
+let editingIndex: number | null = null;
+
+// Update UI to show edit mode
+function setEditMode(index: number | null): void {
+  editingIndex = index;
+  const addBtn = document.getElementById("add-system-btn") as HTMLButtonElement;
+  
+  if (index !== null) {
+    addBtn.textContent = "Save Changes";
+    addBtn.classList.add("edit-mode");
+  } else {
+    addBtn.textContent = "Add to Comparison";
+    addBtn.classList.remove("edit-mode");
+  }
+}
+
 // Calculate FOV for current form values
-async function calculateFov() {
+async function calculateFov(exitEditMode: boolean = false) {
   try {
     const camera = getCameraFromForm();
     const distance = getDistance();
     const result = await calculateCameraFov(camera, distance);
+
+    // Only exit edit mode if explicitly requested (e.g., from Calculate button click)
+    if (exitEditMode) {
+      setEditMode(null);
+    }
 
     displaySingleResult(camera, result);
     drawVisualization([{ camera, result }]);
@@ -43,7 +65,7 @@ function displayCalculationError(): void {
   `;
 }
 
-// Add current system to comparison list
+// Add current system to comparison list or save changes if editing
 async function addToComparison() {
   const camera = getCameraFromForm();
   const distance = getDistance();
@@ -51,19 +73,33 @@ async function addToComparison() {
   try {
     const result = await calculateCameraFov(camera, distance);
 
-    store.addCameraSystem({ camera, result });
-    
-    // Set the newly added system as selected
-    selectedSystemIndex = store.getCameraSystems().length - 1;
+    if (editingIndex !== null) {
+      // Update existing system
+      store.updateCameraSystem(editingIndex, { camera, result });
+      selectedSystemIndex = editingIndex;
+      
+      // Exit edit mode
+      setEditMode(null);
+      
+      showToast("Changes saved", "success", 2000);
+    } else {
+      // Add new system
+      store.addCameraSystem({ camera, result });
+      
+      // Set the newly added system as selected
+      selectedSystemIndex = store.getCameraSystems().length - 1;
+      
+      showToast("System added to comparison", "success", 2000);
+    }
     
     updateSystemsList();
     drawVisualization(store.getCameraSystems());
     
-    // Display the newly added system in results tab
+    // Display the system in results tab
     displaySingleResult(camera, result, selectedSystemIndex);
   } catch (error) {
-    console.error("Error adding system:", error);
-    alert(`Error: ${error}`);
+    console.error("Error saving system:", error);
+    showToast(`Error: ${error}`, "error", 3000);
   }
 }
 
@@ -103,6 +139,9 @@ function updateSystemsList() {
       // Update selected index
       selectedSystemIndex = index;
       
+      // Exit edit mode when viewing a different system
+      setEditMode(null);
+      
       // Update the visual selection by toggling the class
       document.querySelectorAll(".system-item").forEach((sysItem, i) => {
         sysItem.classList.toggle("selected", i === index);
@@ -126,10 +165,21 @@ function updateSystemsList() {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       const index = parseInt((e.target as HTMLElement).dataset.index!);
-      loadSystemToForm(index, () => {
-        updateSystemsList();
-        drawVisualization(store.getCameraSystems());
+      
+      // Load system values into form for editing
+      loadSystemToView(index);
+      
+      // Enter edit mode
+      setEditMode(index);
+      selectedSystemIndex = index;
+      
+      // Update visual selection
+      document.querySelectorAll(".system-item").forEach((sysItem, i) => {
+        sysItem.classList.toggle("selected", i === index);
       });
+      
+      // Scroll to the form
+      document.querySelector(".camera-form")?.scrollIntoView({ behavior: "smooth" });
     });
   });
 
@@ -189,7 +239,7 @@ function switchTab(tabName: string) {
 // Initialize app
 window.addEventListener("DOMContentLoaded", () => {
   // Button listeners
-  document.getElementById("calculate-btn")?.addEventListener("click", calculateFov);
+  document.getElementById("calculate-btn")?.addEventListener("click", () => calculateFov(true));
   document.getElementById("add-system-btn")?.addEventListener("click", addToComparison);
   document.getElementById("calc-focal-btn")?.addEventListener("click", calculateFocalLength);
 
@@ -198,6 +248,8 @@ window.addEventListener("DOMContentLoaded", () => {
     btn.addEventListener("click", (e) => {
       const preset = (e.target as HTMLElement).dataset.preset!;
       loadPreset(preset);
+      // Exit edit mode when loading a preset
+      setEditMode(null);
     });
   });
 
