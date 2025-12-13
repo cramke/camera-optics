@@ -27,6 +27,47 @@ interface CameraWithResult {
 // Store camera systems for comparison
 const cameraSystems: CameraWithResult[] = [];
 
+// Reference objects (size in meters)
+interface ReferenceObject {
+  id: string;
+  name: string;
+  width: number;
+  height: number;
+  color: string;
+  label: string;
+  description: string;
+}
+
+const referenceObjects: ReferenceObject[] = [
+  {
+    id: "human",
+    name: "Human",
+    width: 0.5,
+    height: 1.75,
+    color: "#ff6b6b",
+    label: "👤",
+    description: "1.75m tall",
+  },
+  {
+    id: "tanker",
+    name: "Oil Tanker",
+    width: 330,
+    height: 58,
+    color: "#4a5568",
+    label: "🚢",
+    description: "330m long",
+  },
+  {
+    id: "drone",
+    name: "DJI Drone",
+    width: 0.25,
+    height: 0.25,
+    color: "#48bb78",
+    label: "🛸",
+    description: "0.25m",
+  },
+];
+
 // Preset camera configurations
 const presets: Record<string, Partial<CameraSystem>> = {
   "full-frame": {
@@ -304,6 +345,16 @@ function drawVisualization(systems: CameraWithResult[]) {
     ctx.textAlign = "left";
   });
 
+  // Draw reference object if selected
+  const selectedObjectId = (document.getElementById("ref-object-select") as HTMLSelectElement)?.value;
+  
+  if (selectedObjectId && selectedObjectId !== "none") {
+    const obj = referenceObjects.find(o => o.id === selectedObjectId);
+    if (obj) {
+      drawReferenceObject(ctx, obj, centerX, centerY, scale);
+    }
+  }
+
   // Update legend
   legend.innerHTML = `
     <h4>Legend</h4>
@@ -319,6 +370,50 @@ function drawVisualization(systems: CameraWithResult[]) {
       )
       .join("")}
   `;
+}
+
+// Draw reference object on canvas
+function drawReferenceObject(
+  ctx: CanvasRenderingContext2D,
+  obj: ReferenceObject,
+  centerX: number,
+  centerY: number,
+  scale: number
+) {
+  const width = obj.width * 1000 * scale; // Convert to mm then scale
+  const height = obj.height * 1000 * scale;
+  const x = centerX - width / 2;
+  const y = centerY - height / 2;
+
+  // Draw filled rectangle
+  ctx.fillStyle = obj.color;
+  ctx.fillRect(x, y, width, height);
+
+  // Draw outline
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y, width, height);
+
+  // Draw label
+  ctx.fillStyle = "#fff";
+  ctx.strokeStyle = "#000";
+  ctx.lineWidth = 2;
+  ctx.font = "bold 14px sans-serif";
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  
+  // Draw text with outline for visibility
+  ctx.strokeText(obj.label, centerX, centerY);
+  ctx.fillText(obj.label, centerX, centerY);
+
+  // Draw size label below object
+  ctx.fillStyle = obj.color;
+  ctx.font = "10px sans-serif";
+  ctx.textBaseline = "top";
+  const sizeLabel = `${obj.name} (${obj.width}×${obj.height}m)`;
+  ctx.fillText(sizeLabel, centerX, y + height + 3);
+  
+  ctx.textBaseline = "alphabetic";
 }
 
 // Get color for system index
@@ -377,6 +472,27 @@ window.addEventListener("DOMContentLoaded", () => {
       switchTab(tab);
     });
   });
+
+  // Populate reference objects dropdown
+  const refSelect = document.getElementById("ref-object-select") as HTMLSelectElement;
+  if (refSelect) {
+    // Clear existing options except "None"
+    refSelect.innerHTML = '<option value="none">None</option>';
+    
+    // Add options from referenceObjects array
+    referenceObjects.forEach((obj, index) => {
+      const option = document.createElement("option");
+      option.value = obj.id;
+      option.textContent = `${obj.name} (${obj.description})`;
+      if (index === 0) option.selected = true; // Select first object by default
+      refSelect.appendChild(option);
+    });
+    
+    // Add change listener
+    refSelect.addEventListener("change", () => {
+      drawVisualization(cameraSystems);
+    });
+  }
 
   // Initialize empty systems list
   updateSystemsList();

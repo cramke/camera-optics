@@ -326,6 +326,42 @@ button {
   display: block;
 }
 
+/* Reference Objects */
+.reference-objects {
+  margin-top: 1rem;
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.reference-objects label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #374151;
+  margin: 0;
+}
+
+.reference-objects select {
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  min-width: 200px;
+}
+
+.reference-objects select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+}
+
 /* Canvas */
 .canvas-container {
   display: flex;
@@ -436,9 +472,20 @@ button {
   .presets,
   .systems-list,
   .result-card,
+  .reference-objects,
   #fov-canvas {
     background: #374151;
     border-color: #4b5563;
+  }
+
+  .reference-objects label {
+    color: #e5e7eb;
+  }
+
+  .reference-objects select {
+    background: #1f2937;
+    border-color: #4b5563;
+    color: #f9fafb;
   }
 
   .form-group input {
