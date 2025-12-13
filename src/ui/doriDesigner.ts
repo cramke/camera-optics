@@ -179,12 +179,6 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
   // Clear previous results
   rangesContent.innerHTML = "";
 
-  // Show limiting requirement
-  const limitingDiv = document.createElement("div");
-  limitingDiv.className = "limiting-requirement";
-  limitingDiv.innerHTML = `<span><strong>Most restrictive:</strong> ${ranges.limiting_requirement}</span>`;
-  rangesContent.appendChild(limitingDiv);
-
   // Display each parameter range
   const parameterLabels: { [key: string]: { label: string; unit: string; help: string } } = {
     sensor_width_mm: {

@@ -175,17 +175,19 @@ pub fn calculate_dori_parameter_ranges(
     const MIN_FOCAL_LENGTH_MM: f64 = 2.0;
     const MAX_FOCAL_LENGTH_MM: f64 = 400.0;
     
-    // Find the most restrictive DORI requirement (highest px/m at longest distance)
-    let (target_distance, required_px_per_m, limiting_req) = [
-        (targets.identification_m, IDENTIFICATION_PX_PER_M, "Identification"),
-        (targets.recognition_m, RECOGNITION_PX_PER_M, "Recognition"),
-        (targets.observation_m, OBSERVATION_PX_PER_M, "Observation"),
-        (targets.detection_m, DETECTION_PX_PER_M, "Detection"),
-    ]
-    .iter()
-    .filter_map(|(dist, px_m, name)| dist.map(|d| (d, *px_m, *name)))
-    .max_by(|a, b| (a.0 * a.1).partial_cmp(&(b.0 * b.1)).unwrap())
-    .expect("At least one DORI target must be specified");
+    // Pick the first specified DORI target (prefer identification as most common/restrictive)
+    // Since DORI values maintain fixed ratios, any single target defines all others
+    let (target_distance, required_px_per_m) = if let Some(id) = targets.identification_m {
+        (id, IDENTIFICATION_PX_PER_M)
+    } else if let Some(rec) = targets.recognition_m {
+        (rec, RECOGNITION_PX_PER_M)
+    } else if let Some(obs) = targets.observation_m {
+        (obs, OBSERVATION_PX_PER_M)
+    } else if let Some(det) = targets.detection_m {
+        (det, DETECTION_PX_PER_M)
+    } else {
+        panic!("At least one DORI target must be specified");
+    };
     
     // Calculate ranges based on what's constrained
     let mut ranges = DoriParameterRanges {
@@ -194,7 +196,7 @@ pub fn calculate_dori_parameter_ranges(
         pixel_width: None,
         pixel_height: None,
         focal_length_mm: None,
-        limiting_requirement: limiting_req.to_string(),
+        limiting_requirement: String::new(), // No longer needed but kept for API compatibility
     };
     
     // If focal length is fixed, calculate pixel width and sensor width ranges
