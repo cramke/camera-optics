@@ -2,7 +2,8 @@ import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "./core/constants";
 import { calculateCameraFov } from "./services/api";
 import { store } from "./services/store";
 import { drawVisualization } from "./ui/visualization";
-import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToView, loadPreset } from "./ui/form";
+import { getCameraFromForm, getDistance, loadSystemToView, loadPreset } from "./ui/form";
+import { calculateFocalLengthFromFov } from "./services/api";
 import { displaySingleResult } from "./ui/results";
 import { showToast } from "./ui/toast";
 
@@ -236,11 +237,71 @@ function switchTab(tabName: string) {
   }
 }
 
+// Switch between focal length and FOV input methods
+function switchInputMethod(method: 'focal' | 'fov') {
+  const focalMethod = document.getElementById('focal-method');
+  const fovMethod = document.getElementById('fov-method');
+  const focalInput = document.getElementById('focal-length') as HTMLInputElement;
+  const hfovInput = document.getElementById('hfov-deg') as HTMLInputElement;
+  const vfovInput = document.getElementById('vfov-deg') as HTMLInputElement;
+  
+  if (method === 'focal') {
+    focalMethod?.classList.add('active');
+    fovMethod?.classList.remove('active');
+    focalInput.disabled = false;
+    hfovInput.disabled = true;
+    vfovInput.disabled = true;
+  } else {
+    focalMethod?.classList.remove('active');
+    fovMethod?.classList.add('active');
+    focalInput.disabled = true;
+    hfovInput.disabled = false;
+    vfovInput.disabled = false;
+  }
+}
+
+// Auto-calculate focal length from FOV fields
+async function autoCalculateFocalLength() {
+  const sensorWidth = parseFloat((document.getElementById("sensor-width") as HTMLInputElement).value);
+  const sensorHeight = parseFloat((document.getElementById("sensor-height") as HTMLInputElement).value);
+  const hfovDeg = parseFloat((document.getElementById("hfov-deg") as HTMLInputElement).value);
+  const vfovDeg = parseFloat((document.getElementById("vfov-deg") as HTMLInputElement).value);
+
+  if (!sensorWidth || !sensorHeight) return;
+
+  let sensorSize = 0;
+  let fovDeg = 0;
+
+  // Use horizontal FOV if provided
+  if (hfovDeg && hfovDeg > 0) {
+    sensorSize = sensorWidth;
+    fovDeg = hfovDeg;
+  }
+  // Or use vertical FOV if provided
+  else if (vfovDeg && vfovDeg > 0) {
+    sensorSize = sensorHeight;
+    fovDeg = vfovDeg;
+  } else {
+    return; // No valid FOV input
+  }
+
+  try {
+    const focalLength = await calculateFocalLengthFromFov(sensorSize, fovDeg);
+    // Update focal length field (but keep it disabled since we're in FOV mode)
+    (document.getElementById("focal-length") as HTMLInputElement).value = focalLength.toFixed(2);
+  } catch (error) {
+    console.error("Error calculating focal length:", error);
+  }
+}
+
 // Initialize app
 window.addEventListener("DOMContentLoaded", () => {
   // Button listeners
   document.getElementById("add-system-btn")?.addEventListener("click", addToComparison);
-  document.getElementById("calc-focal-btn")?.addEventListener("click", calculateFocalLength);
+
+  // Input method selection
+  document.getElementById('focal-method')?.addEventListener('click', () => switchInputMethod('focal'));
+  document.getElementById('fov-method')?.addEventListener('click', () => switchInputMethod('fov'));
 
   // Preset buttons
   document.querySelectorAll(".preset-btn").forEach((btn) => {
@@ -298,11 +359,26 @@ window.addEventListener("DOMContentLoaded", () => {
     const field = document.getElementById(fieldId);
     if (field) {
       field.addEventListener("input", () => {
-        // Debounce to avoid too many calculations while typing
         calculateFov();
       });
     }
   });
+
+  // Auto-calculate focal length when FOV fields change
+  const fovFields = ["hfov-deg", "vfov-deg"];
+  fovFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+      field.addEventListener("input", async () => {
+        await autoCalculateFocalLength();
+        // Also recalculate FOV with the new focal length
+        calculateFov();
+      });
+    }
+  });
+
+  // Initialize with focal length method active
+  switchInputMethod('focal');
 
   // Calculate FOV with default values on startup
   calculateFov();
