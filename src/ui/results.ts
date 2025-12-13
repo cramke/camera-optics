@@ -7,12 +7,13 @@ import type { CameraSystem, FovResult } from "../core/types";
 /**
  * Render a single camera system result to the results tab
  */
-export function renderSingleResult(camera: CameraSystem, result: FovResult): string {
+export function renderSingleResult(camera: CameraSystem, result: FovResult, systemNumber?: number): string {
   const pixelPitch = (camera.sensor_width_mm * 1000) / camera.pixel_width;
+  const title = camera.name || (systemNumber !== undefined ? `System ${systemNumber + 1}` : "Camera System");
   
   return `
     <div class="result-card">
-      <h3>${camera.name || "Camera System"}</h3>
+      <h2 class="result-title">${title}</h2>
       <div class="result-section">
         <h4>Camera Specifications</h4>
         <p>Sensor: ${camera.sensor_width_mm} × ${camera.sensor_height_mm} mm</p>
@@ -38,9 +39,9 @@ export function renderSingleResult(camera: CameraSystem, result: FovResult): str
 /**
  * Display a single result in the results tab
  */
-export function displaySingleResult(camera: CameraSystem, result: FovResult): void {
+export function displaySingleResult(camera: CameraSystem, result: FovResult, systemNumber?: number): void {
   const resultsOutput = document.getElementById("results-output");
   if (!resultsOutput) return;
   
-  resultsOutput.innerHTML = renderSingleResult(camera, result);
+  resultsOutput.innerHTML = renderSingleResult(camera, result, systemNumber);
 }

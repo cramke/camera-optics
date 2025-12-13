@@ -5,6 +5,9 @@ import { drawVisualization } from "./ui/visualization";
 import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToForm, loadPreset } from "./ui/form";
 import { displaySingleResult } from "./ui/results";
 
+// Track the currently selected system index for highlighting
+let selectedSystemIndex: number | null = null;
+
 // Calculate FOV for current form values
 async function calculateFov() {
   const camera = getCameraFromForm();
@@ -30,8 +33,15 @@ async function addToComparison() {
     const result = await calculateCameraFov(camera, distance);
 
     store.addCameraSystem({ camera, result });
+    
+    // Set the newly added system as selected
+    selectedSystemIndex = store.getCameraSystems().length - 1;
+    
     updateSystemsList();
     drawVisualization(store.getCameraSystems());
+    
+    // Display the newly added system in results tab
+    displaySingleResult(camera, result, selectedSystemIndex);
   } catch (error) {
     console.error("Error adding system:", error);
     alert(`Error: ${error}`);
@@ -51,7 +61,7 @@ function updateSystemsList() {
   systemsItems.innerHTML = cameraSystems
     .map(
       (item, index) => `
-      <div class="system-item" style="border-left: 4px solid ${getColor(index)}">
+      <div class="system-item ${index === selectedSystemIndex ? 'selected' : ''}" style="border-left: 4px solid ${getColor(index)}">
         <div class="system-info" data-index="${index}" style="cursor: pointer;">
           <strong>${item.camera.name || `System ${index + 1}`}</strong>
           <span class="system-specs">${item.camera.sensor_width_mm}×${item.camera.sensor_height_mm}mm, ${item.camera.focal_length_mm}mm</span>
@@ -65,14 +75,22 @@ function updateSystemsList() {
     )
     .join("");
 
-  // Add click listeners to system info for editing
+  // Add click listeners to system info to view in results tab
   document.querySelectorAll(".system-info").forEach((info) => {
     info.addEventListener("click", (e) => {
       const index = parseInt((e.currentTarget as HTMLElement).dataset.index!);
-      loadSystemToForm(index, () => {
-        updateSystemsList();
-        drawVisualization(store.getCameraSystems());
+      const system = cameraSystems[index];
+      
+      // Update selected index
+      selectedSystemIndex = index;
+      
+      // Update the visual selection by toggling the class
+      document.querySelectorAll(".system-item").forEach((item, i) => {
+        item.classList.toggle("selected", i === index);
       });
+      
+      displaySingleResult(system.camera, system.result, index);
+      switchTab("results");
     });
   });
 
@@ -94,8 +112,28 @@ function updateSystemsList() {
       e.stopPropagation();
       const index = parseInt((e.target as HTMLElement).dataset.index!);
       store.removeCameraSystem(index);
+      
+      // Adjust selected index after removal
+      if (selectedSystemIndex !== null) {
+        if (selectedSystemIndex === index) {
+          // If we removed the selected item, select the last item
+          const updatedSystems = store.getCameraSystems();
+          selectedSystemIndex = updatedSystems.length > 0 ? updatedSystems.length - 1 : null;
+        } else if (selectedSystemIndex > index) {
+          // If we removed an item before the selected one, adjust the index
+          selectedSystemIndex--;
+        }
+      }
+      
       updateSystemsList();
       drawVisualization(store.getCameraSystems());
+      
+      // Update results tab to show the selected system if available
+      const updatedSystems = store.getCameraSystems();
+      if (updatedSystems.length > 0 && selectedSystemIndex !== null) {
+        const selected = updatedSystems[selectedSystemIndex];
+        displaySingleResult(selected.camera, selected.result, selectedSystemIndex);
+      }
     });
   });
 }

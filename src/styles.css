@@ -259,6 +259,13 @@ button {
   background: #f3f4f6;
 }
 
+.system-item.selected {
+  background: #ffffff;
+  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-left-width: 6px;
+  transform: translateX(2px);
+}
+
 .system-info {
   display: flex;
   flex-direction: column;
@@ -448,6 +455,15 @@ button {
   border-radius: 8px;
   padding: 1.5rem;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.result-title {
+  margin: 0 0 1.5rem 0;
+  color: #1f2937;
+  font-size: 1.75rem;
+  font-weight: 700;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid #667eea;
 }
 
 .result-card h3 {
