@@ -147,7 +147,7 @@ export function loadSystemToView(index: number): void {
   (document.getElementById("pixel-height") as HTMLInputElement).value = system.camera.pixel_height.toString();
   (document.getElementById("focal-length") as HTMLInputElement).value = system.camera.focal_length_mm.toString();
   (document.getElementById("distance") as HTMLInputElement).value = (system.result.distance_m).toString();
-  (document.getElementById("name") as HTMLInputElement).value = system.camera.name || "";
+  (document.getElementById("name") as HTMLInputElement).value = system.camera.name || `System ${index + 1}`;
 }
 
 /**
