@@ -154,25 +154,68 @@ function updateSystemsList() {
     .map(
       (item, index) => `
       <div class="system-item" style="border-left: 4px solid ${getColor(index)}">
-        <div class="system-info">
+        <div class="system-info" data-index="${index}" style="cursor: pointer;">
           <strong>${item.camera.name || `System ${index + 1}`}</strong>
           <span class="system-specs">${item.camera.sensor_width_mm}×${item.camera.sensor_height_mm}mm, ${item.camera.focal_length_mm}mm</span>
         </div>
-        <button class="remove-btn" data-index="${index}">×</button>
+        <div class="system-actions">
+          <button class="edit-btn" data-index="${index}" title="Edit">✎</button>
+          <button class="remove-btn" data-index="${index}" title="Remove">×</button>
+        </div>
       </div>
     `
     )
     .join("");
 
+  // Add click listeners to system info for editing
+  document.querySelectorAll(".system-info").forEach((info) => {
+    info.addEventListener("click", (e) => {
+      const index = parseInt((e.currentTarget as HTMLElement).dataset.index!);
+      loadSystemToForm(index);
+    });
+  });
+
+  // Add edit button listeners
+  document.querySelectorAll(".edit-btn").forEach((btn) => {
+    btn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const index = parseInt((e.target as HTMLElement).dataset.index!);
+      loadSystemToForm(index);
+    });
+  });
+
   // Add remove listeners
   document.querySelectorAll(".remove-btn").forEach((btn) => {
     btn.addEventListener("click", (e) => {
+      e.stopPropagation();
       const index = parseInt((e.target as HTMLElement).dataset.index!);
       cameraSystems.splice(index, 1);
       updateSystemsList();
       drawVisualization(cameraSystems);
     });
   });
+}
+
+// Load a system from the comparison list into the form
+function loadSystemToForm(index: number) {
+  const system = cameraSystems[index];
+  if (!system) return;
+
+  (document.getElementById("sensor-width") as HTMLInputElement).value = system.camera.sensor_width_mm.toString();
+  (document.getElementById("sensor-height") as HTMLInputElement).value = system.camera.sensor_height_mm.toString();
+  (document.getElementById("pixel-width") as HTMLInputElement).value = system.camera.pixel_width.toString();
+  (document.getElementById("pixel-height") as HTMLInputElement).value = system.camera.pixel_height.toString();
+  (document.getElementById("focal-length") as HTMLInputElement).value = system.camera.focal_length_mm.toString();
+  (document.getElementById("distance") as HTMLInputElement).value = (system.result.distance_m).toString();
+  (document.getElementById("name") as HTMLInputElement).value = system.camera.name || "";
+
+  // Remove the system from the list so it can be re-added after editing
+  cameraSystems.splice(index, 1);
+  updateSystemsList();
+  drawVisualization(cameraSystems);
+
+  // Scroll to the form
+  document.querySelector(".camera-form")?.scrollIntoView({ behavior: "smooth" });
 }
 
 // Draw FOV visualization on canvas

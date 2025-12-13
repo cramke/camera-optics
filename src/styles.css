@@ -222,6 +222,11 @@ button {
   background: #f9fafb;
   border-radius: 4px;
   border-left: 4px solid #667eea;
+  transition: background 0.2s;
+}
+
+.system-item:hover {
+  background: #f3f4f6;
 }
 
 .system-info {
@@ -240,6 +245,26 @@ button {
   font-size: 0.8rem;
 }
 
+.system-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-btn {
+  background: #3b82f6;
+  color: white;
+  padding: 0.25rem 0.5rem;
+  font-size: 1rem;
+  line-height: 1;
+  min-width: auto;
+}
+
+.edit-btn:hover {
+  background: #2563eb;
+  transform: none;
+  box-shadow: none;
+}
+
 .remove-btn {
   background: #ef4444;
   color: white;
@@ -251,6 +276,8 @@ button {
 
 .remove-btn:hover {
   background: #dc2626;
+  transform: none;
+  box-shadow: none;
 }
 
 .empty-message {
