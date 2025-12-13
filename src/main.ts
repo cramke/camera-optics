@@ -1,6 +1,7 @@
 import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "./core/constants";
 import type { CameraWithResult } from "./core/types";
 import { calculateCameraFov } from "./services/api";
+import { FEATURES } from "./core/settings";
 import { store } from "./services/store";
 import { drawVisualization } from "./ui/visualization";
 import { getCameraFromForm, getDistance, loadSystemToView, loadPreset } from "./ui/form";
@@ -9,6 +10,7 @@ import { displaySingleResult } from "./ui/results";
 import { showToast } from "./ui/toast";
 import { initializeDoriDesigner } from "./ui/doriDesigner";
 import { initializeImagePreview, updatePreviewCamera } from "./ui/imagePreview";
+import { initializeModals } from "./ui/modals";
 
 // Track the currently selected system index for highlighting
 let selectedSystemIndex: number | null = null;
@@ -430,12 +432,39 @@ window.addEventListener("DOMContentLoaded", () => {
   // Initialize with focal length method active
   switchInputMethod('focal');
 
-  // Initialize DORI Designer
-  initializeDoriDesigner();
+  // Initialize DORI Designer (if enabled)
+  if (FEATURES.DORI_DESIGNER) {
+    initializeDoriDesigner();
+  }
 
-  // Initialize Image Preview
-  initializeImagePreview();
+  // Initialize Image Preview (if enabled)
+  if (FEATURES.IMAGE_PREVIEW) {
+    initializeImagePreview();
+  }
+
+  // Hide feature-flagged tabs
+  hideDisabledFeatures();
+
+  // Initialize settings and about modals
+  initializeModals();
 
   // Calculate FOV with default values on startup
   calculateFov();
 });
+
+// Hide tabs for disabled features
+function hideDisabledFeatures(): void {
+  if (!FEATURES.IMAGE_PREVIEW) {
+    const previewTab = document.querySelector('[data-tab="image-preview"]');
+    const previewContent = document.getElementById('image-preview-tab');
+    if (previewTab) previewTab.remove();
+    if (previewContent) previewContent.remove();
+  }
+
+  if (!FEATURES.DORI_DESIGNER) {
+    const doriTab = document.querySelector('[data-tab="dori-designer"]');
+    const doriContent = document.getElementById('dori-designer-tab');
+    if (doriTab) doriTab.remove();
+    if (doriContent) doriContent.remove();
+  }
+}

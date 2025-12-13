@@ -11,8 +11,19 @@
   <body>
     <div class="app-container">
       <header>
-        <h1>📷 Camera Optics Calculator</h1>
-        <p class="subtitle">Calculate FOV and spatial resolution for camera systems</p>
+        <div class="header-content">
+          <div class="header-title">
+            <h1>📷 Camera Optics Calculator</h1>
+            <p class="subtitle">Calculate FOV and spatial resolution for camera systems</p>
+          </div>
+          <div class="header-menu">
+            <button id="menu-toggle-btn" class="menu-btn">⋮</button>
+            <div id="menu-dropdown" class="menu-dropdown">
+              <button id="settings-btn-mobile" class="dropdown-item">⚙️ Settings</button>
+              <button id="about-btn-mobile" class="dropdown-item">ℹ️ About</button>
+            </div>
+          </div>
+        </div>
       </header>
 
       <div class="main-content">
@@ -346,5 +357,51 @@
 
     <!-- Toast notification container -->
     <div id="toast-container"></div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>⚙️ Settings</h2>
+          <button class="modal-close" id="settings-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <div class="setting-group">
+            <h3>Experimental Features</h3>
+            <label class="checkbox-label">
+              <input type="checkbox" id="enable-experimental" />
+              <span>Enable experimental features (Image Preview & DORI Designer)</span>
+            </label>
+            <p class="setting-description">These features are in development and may not work as expected.</p>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button id="settings-save" class="primary-btn">Save & Reload</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- About Modal -->
+    <div id="about-modal" class="modal">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h2>ℹ️ About</h2>
+          <button class="modal-close" id="about-close">&times;</button>
+        </div>
+        <div class="modal-body">
+          <h3>Camera Optics Calculator</h3>
+          <p><strong>Version:</strong> 0.1.0</p>
+          <p>Calculate field of view and spatial resolution for camera systems.</p>
+          <br>
+          <p><strong>Features:</strong></p>
+          <ul>
+            <li>FOV calculation and visualization</li>
+            <li>Multi-camera comparison</li>
+            <li>DORI distance analysis</li>
+            <li>Reference object overlays</li>
+          </ul>
+        </div>
+      </div>
+    </div>
   </body>
 </html>
