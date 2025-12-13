@@ -239,7 +239,6 @@ function switchTab(tabName: string) {
 // Initialize app
 window.addEventListener("DOMContentLoaded", () => {
   // Button listeners
-  document.getElementById("calculate-btn")?.addEventListener("click", () => calculateFov(true));
   document.getElementById("add-system-btn")?.addEventListener("click", addToComparison);
   document.getElementById("calc-focal-btn")?.addEventListener("click", calculateFocalLength);
 

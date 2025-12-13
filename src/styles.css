@@ -177,6 +177,10 @@ button {
   box-shadow: 0 4px 8px rgba(245, 158, 11, 0.3);
 }
 
+.full-width {
+  width: 100%;
+}
+
 /* Alternative Input */
 .alternative-input {
   background: #f0f9ff;
