@@ -308,9 +308,20 @@ pub fn calculate_dori_parameter_ranges(
                 max: max_sensor,
             });
             
+            // Calculate pixel width range based on FOV constraint
+            // From DORI: distance = (focal × pixels) / (sensor × px_per_m)
+            // From FOV: sensor = 2 × focal × tan(FOV/2)
+            // Substitute: distance = (focal × pixels) / (2 × focal × tan(FOV/2) × px_per_m)
+            // Simplify: distance = pixels / (2 × tan(FOV/2) × px_per_m)
+            // Therefore: pixels = distance × 2 × tan(FOV/2) × px_per_m
+            
+            let calculated_pixels = target_distance * 2.0 * tan_half_fov * required_px_per_m;
+            let min_pixels = calculated_pixels.max(MIN_PIXEL_WIDTH as f64);
+            let max_pixels = MAX_PIXEL_WIDTH as f64;
+            
             ranges.pixel_width = Some(ParameterRange {
-                min: MIN_PIXEL_WIDTH as f64,
-                max: MAX_PIXEL_WIDTH as f64,
+                min: min_pixels,
+                max: max_pixels,
             });
         }
         
@@ -681,6 +692,17 @@ mod tests {
         
         // FOV should not have a range since it's fixed
         assert!(ranges.horizontal_fov_deg.is_none());
+        
+        // Pixel width should also have a constrained range based on FOV
+        assert!(ranges.pixel_width.is_some());
+        if let Some(pixel_range) = &ranges.pixel_width {
+            // For 60° FOV and 10m identification distance:
+            // pixels = distance × 2 × tan(FOV/2) × px_per_m
+            // pixels = 10 × 2 × tan(30°) × 250 ≈ 2887
+            // So min should be around 2887 (or higher due to MIN_PIXEL_WIDTH)
+            assert!(pixel_range.min > 2800.0, "Min pixels should be constrained by FOV: {}", pixel_range.min);
+            assert!(pixel_range.min < 3000.0, "Min pixels should be around 2887: {}", pixel_range.min);
+        }
         
         // Verify that sensor/focal maintain the FOV relationship
         if let (Some(focal_range), Some(sensor_range)) = (&ranges.focal_length_mm, &ranges.sensor_width_mm) {
