@@ -34,4 +34,5 @@ export interface ReferenceObject {
   color: string;
   label: string;
   description: string;
+  iconPath?: string; // Optional path to custom SVG/image icon
 }

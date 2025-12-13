@@ -161,6 +161,36 @@ function drawFovBox(
   ctx.textAlign = "left";
 }
 
+// Cache for reference object images (optional feature)
+const referenceObjectImages = new Map<string, HTMLImageElement>();
+const imageLoadStatus = new Map<string, boolean>();
+
+/**
+ * Attempt to preload an image for a reference object
+ * This is an optional feature - rendering will fall back to standard if image fails
+ */
+function tryLoadReferenceImage(objectId: string, imagePath: string): void {
+  if (!referenceObjectImages.has(objectId)) {
+    const img = new Image();
+    img.onload = () => {
+      imageLoadStatus.set(objectId, true);
+    };
+    img.onerror = () => {
+      // Silently fail - this is optional
+      imageLoadStatus.set(objectId, false);
+    };
+    img.src = imagePath;
+    referenceObjectImages.set(objectId, img);
+  }
+}
+
+// Preload icons for reference objects that have iconPath defined
+REFERENCE_OBJECTS.forEach(obj => {
+  if (obj.iconPath) {
+    tryLoadReferenceImage(obj.id, obj.iconPath);
+  }
+});
+
 /**
  * Draw reference object on canvas
  */
@@ -176,26 +206,40 @@ function drawReferenceObject(
   const x = centerX - width / 2;
   const y = centerY - height / 2;
 
-  // Draw filled rectangle
-  ctx.fillStyle = obj.color;
-  ctx.fillRect(x, y, width, height);
+  // Check if custom image is available for this object (optional feature)
+  const hasCustomImage = referenceObjectImages.has(obj.id) && imageLoadStatus.get(obj.id) === true;
+  
+  if (hasCustomImage) {
+    // Draw custom image (e.g., drone SVG icon)
+    const img = referenceObjectImages.get(obj.id)!;
+    ctx.drawImage(img, x, y, width, height);
+    
+    // Draw subtle outline
+    ctx.strokeStyle = obj.color;
+    ctx.lineWidth = 2;
+    ctx.strokeRect(x, y, width, height);
+  } else {
+    // Standard rendering: filled rectangle with emoji label
+    ctx.fillStyle = obj.color;
+    ctx.fillRect(x, y, width, height);
 
-  // Draw outline
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 1;
-  ctx.strokeRect(x, y, width, height);
+    // Draw outline
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 1;
+    ctx.strokeRect(x, y, width, height);
 
-  // Draw label
-  ctx.fillStyle = "#fff";
-  ctx.strokeStyle = "#000";
-  ctx.lineWidth = 2;
-  ctx.font = "bold 14px sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
+    // Draw label
+    ctx.fillStyle = "#fff";
+    ctx.strokeStyle = "#000";
+    ctx.lineWidth = 2;
+    ctx.font = "bold 14px sans-serif";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
 
-  // Draw text with outline for visibility
-  ctx.strokeText(obj.label, centerX, centerY);
-  ctx.fillText(obj.label, centerX, centerY);
+    // Draw text with outline for visibility
+    ctx.strokeText(obj.label, centerX, centerY);
+    ctx.fillText(obj.label, centerX, centerY);
+  }
 
   // Draw size label below object
   ctx.fillStyle = obj.color;

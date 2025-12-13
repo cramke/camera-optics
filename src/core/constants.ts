@@ -32,6 +32,7 @@ export const REFERENCE_OBJECTS: ReferenceObject[] = [
     color: "#48bb78",
     label: "🛸",
     description: "0.25m",
+    iconPath: "/src/assets/air-drone-icon.svg",
   },
 ];
 
