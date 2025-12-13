@@ -400,13 +400,13 @@ pub fn calculate_dori_parameter_ranges(
                 });
             }
         } else if let Some(pixels) = constraints.pixel_width {
-            // Focal and pixels are fixed - calculate sensor width range
-            let min_sensor = (focal * pixels as f64) / (target_distance * required_px_per_m * MAX_PIXEL_WIDTH as f64);
-            let max_sensor = (focal * pixels as f64) / (target_distance * required_px_per_m * MIN_PIXEL_WIDTH as f64);
+            // Focal and pixels are fixed - sensor is determined
+            // From DORI formula: sensor = (focal × pixels) / (distance × px_per_m)
+            let sensor = (focal * pixels as f64) / (target_distance * required_px_per_m);
             
             ranges.sensor_width_mm = Some(ParameterRange {
-                min: min_sensor.max(MIN_SENSOR_WIDTH_MM),
-                max: max_sensor.min(MAX_SENSOR_WIDTH_MM),
+                min: sensor,
+                max: sensor,
             });
         } else {
             // Only focal is fixed - give ranges for both sensor and pixels
