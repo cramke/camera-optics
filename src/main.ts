@@ -1,42 +1,8 @@
 import { invoke } from "@tauri-apps/api/core";
-
-interface CameraSystem {
-  sensor_width_mm: number;
-  sensor_height_mm: number;
-  pixel_width: number;
-  pixel_height: number;
-  focal_length_mm: number;
-  name?: string;
-}
-
-interface FovResult {
-  horizontal_fov_deg: number;
-  vertical_fov_deg: number;
-  horizontal_fov_m: number;
-  vertical_fov_m: number;
-  ppm: number;
-  gsd_mm: number;
-  distance_m: number;
-}
-
-interface CameraWithResult {
-  camera: CameraSystem;
-  result: FovResult;
-}
+import type { CameraSystem, FovResult, CameraWithResult, ReferenceObject } from "./types";
 
 // Store camera systems for comparison
 const cameraSystems: CameraWithResult[] = [];
-
-// Reference objects (size in meters)
-interface ReferenceObject {
-  id: string;
-  name: string;
-  width: number;
-  height: number;
-  color: string;
-  label: string;
-  description: string;
-}
 
 const referenceObjects: ReferenceObject[] = [
   {
