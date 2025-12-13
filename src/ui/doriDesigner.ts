@@ -3,8 +3,44 @@
  * Specify target DORI distances and find parameter ranges
  */
 
-import { calculateDoriRanges } from "../services/api";
+import { calculateDoriRanges, calculateDoriFromSingleDistance } from "../services/api";
 import type { DoriTargets, ParameterConstraint, DoriParameterRanges } from "../core/types";
+
+/**
+ * Auto-calculate all DORI distances based on one input using backend
+ */
+async function autoCalculateDoriDistances(changedField: string, value: number): Promise<void> {
+  if (!value || value <= 0) {
+    // Clear all fields if invalid value
+    return;
+  }
+
+  try {
+    // Call backend to calculate all DORI distances
+    const doriDistances = await calculateDoriFromSingleDistance(value, changedField as any);
+
+    const detectionEl = document.getElementById("target-detection") as HTMLInputElement;
+    const observationEl = document.getElementById("target-observation") as HTMLInputElement;
+    const recognitionEl = document.getElementById("target-recognition") as HTMLInputElement;
+    const identificationEl = document.getElementById("target-identification") as HTMLInputElement;
+
+    // Fill in all the calculated values (except the one that was changed)
+    if (changedField !== "detection") {
+      detectionEl.value = doriDistances.detection_m.toFixed(1);
+    }
+    if (changedField !== "observation") {
+      observationEl.value = doriDistances.observation_m.toFixed(1);
+    }
+    if (changedField !== "recognition") {
+      recognitionEl.value = doriDistances.recognition_m.toFixed(1);
+    }
+    if (changedField !== "identification") {
+      identificationEl.value = doriDistances.identification_m.toFixed(1);
+    }
+  } catch (error) {
+    console.error("Error calculating DORI distances:", error);
+  }
+}
 
 /**
  * Initialize DORI Designer functionality
@@ -26,6 +62,24 @@ export function initializeDoriDesigner(): void {
       inputEl.disabled = !checkboxEl.checked;
       if (!checkboxEl.checked) {
         inputEl.value = "";
+      }
+    });
+  });
+
+  // Auto-calculate other DORI distances when one is entered
+  const doriFields = [
+    { id: "target-detection", name: "detection" },
+    { id: "target-observation", name: "observation" },
+    { id: "target-recognition", name: "recognition" },
+    { id: "target-identification", name: "identification" },
+  ];
+
+  doriFields.forEach(({ id, name }) => {
+    const field = document.getElementById(id) as HTMLInputElement;
+    field?.addEventListener("input", () => {
+      const value = parseFloat(field.value);
+      if (value > 0) {
+        autoCalculateDoriDistances(name, value);
       }
     });
   });

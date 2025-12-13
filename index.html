@@ -129,29 +129,29 @@
             <div class="dori-designer-content">
               <div class="designer-section">
                 <h3>Target DORI Distances</h3>
-                <p class="section-description">Specify your required surveillance distances</p>
+                <p class="section-description">Enter any one distance - the others will be calculated automatically based on standard DORI ratios</p>
                 
                 <div class="form-group">
                   <label for="target-detection">Detection Distance (m)</label>
-                  <input type="number" id="target-detection" placeholder="e.g., 50" step="1" />
+                  <input type="number" id="target-detection" placeholder="e.g., 50" step="0.1" />
                   <span class="help-text">Identify that an object is present (25 px/m)</span>
                 </div>
                 
                 <div class="form-group">
                   <label for="target-observation">Observation Distance (m)</label>
-                  <input type="number" id="target-observation" placeholder="e.g., 20" step="1" />
+                  <input type="number" id="target-observation" placeholder="e.g., 20" step="0.1" />
                   <span class="help-text">Determine general characteristics (62.5 px/m)</span>
                 </div>
                 
                 <div class="form-group">
                   <label for="target-recognition">Recognition Distance (m)</label>
-                  <input type="number" id="target-recognition" placeholder="e.g., 10" step="1" />
+                  <input type="number" id="target-recognition" placeholder="e.g., 10" step="0.1" />
                   <span class="help-text">Recognize familiar person/object (125 px/m)</span>
                 </div>
                 
                 <div class="form-group">
                   <label for="target-identification">Identification Distance (m)</label>
-                  <input type="number" id="target-identification" placeholder="e.g., 5" step="1" />
+                  <input type="number" id="target-identification" placeholder="e.g., 5" step="0.1" />
                   <span class="help-text">Identify specific person (250 px/m)</span>
                 </div>
               </div>

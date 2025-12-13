@@ -55,3 +55,9 @@ pub fn calculate_dori_ranges(
 ) -> DoriParameterRanges {
     calculate_dori_parameter_ranges(&targets, &constraints)
 }
+
+/// Tauri command to calculate all DORI distances from a single input
+#[tauri::command]
+pub fn calculate_dori_from_single_distance(distance_m: f64, dori_type: String) -> DoriDistances {
+    calculate_dori_from_single(distance_m, &dori_type)
+}

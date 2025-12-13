@@ -20,7 +20,8 @@ pub fn run() {
             calculate_hyperfocal_distance,
             calculate_depth_of_field,
             calculate_focal_length_from_fov_command,
-            calculate_dori_ranges
+            calculate_dori_ranges,
+            calculate_dori_from_single_distance
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

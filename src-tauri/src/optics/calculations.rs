@@ -97,6 +97,50 @@ pub fn calculate_dori_distances(camera: &CameraSystem) -> DoriDistances {
     }
 }
 
+/// Calculate all DORI distances from a single distance input
+/// 
+/// Since DORI distances have fixed relationships based on pixel density requirements,
+/// if one distance is known, all others can be calculated automatically.
+/// 
+/// # Arguments
+/// * `distance_m` - The known distance in meters
+/// * `dori_type` - Which DORI type the distance corresponds to ("detection", "observation", "recognition", or "identification")
+/// 
+/// # Returns
+/// Complete DORI distances for all four categories
+pub fn calculate_dori_from_single(distance_m: f64, dori_type: &str) -> DoriDistances {
+    // Standard DORI pixel density requirements
+    const DETECTION_PX_PER_M: f64 = 25.0;
+    const OBSERVATION_PX_PER_M: f64 = 62.5;
+    const RECOGNITION_PX_PER_M: f64 = 125.0;
+    const IDENTIFICATION_PX_PER_M: f64 = 250.0;
+    
+    // Get the base pixel density for the input type
+    let base_px_per_m = match dori_type.to_lowercase().as_str() {
+        "detection" => DETECTION_PX_PER_M,
+        "observation" => OBSERVATION_PX_PER_M,
+        "recognition" => RECOGNITION_PX_PER_M,
+        "identification" => IDENTIFICATION_PX_PER_M,
+        _ => IDENTIFICATION_PX_PER_M, // Default to most restrictive
+    };
+    
+    // Calculate all distances using the relationship:
+    // distance_A / distance_B = px_per_m_B / px_per_m_A
+    // Therefore: distance_target = distance_base × (px_per_m_base / px_per_m_target)
+    
+    let detection_m = distance_m * (base_px_per_m / DETECTION_PX_PER_M);
+    let observation_m = distance_m * (base_px_per_m / OBSERVATION_PX_PER_M);
+    let recognition_m = distance_m * (base_px_per_m / RECOGNITION_PX_PER_M);
+    let identification_m = distance_m * (base_px_per_m / IDENTIFICATION_PX_PER_M);
+    
+    DoriDistances {
+        detection_m,
+        observation_m,
+        recognition_m,
+        identification_m,
+    }
+}
+
 /// Calculate ranges of camera parameters that satisfy given DORI distance requirements
 /// 
 /// This is the inverse of calculate_dori_distances - given target distances, find what
@@ -377,5 +421,61 @@ mod tests {
         // With 3x the focal length, all DORI distances should be ~3x farther
         assert!((dori.detection_m - 144.0).abs() < 2.0);
         assert!((dori.identification_m - 14.4).abs() < 0.2);
+    }
+
+    #[test]
+    fn test_dori_from_single_identification() {
+        // If identification is at 5m, calculate all others
+        let dori = calculate_dori_from_single(5.0, "identification");
+        
+        // Identification should be the input value
+        assert!((dori.identification_m - 5.0).abs() < 0.01);
+        
+        // Recognition should be 2x farther (250/125 = 2)
+        assert!((dori.recognition_m - 10.0).abs() < 0.01);
+        
+        // Observation should be 4x farther (250/62.5 = 4)
+        assert!((dori.observation_m - 20.0).abs() < 0.01);
+        
+        // Detection should be 10x farther (250/25 = 10)
+        assert!((dori.detection_m - 50.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_dori_from_single_detection() {
+        // If detection is at 100m, calculate all others
+        let dori = calculate_dori_from_single(100.0, "detection");
+        
+        // Detection should be the input value
+        assert!((dori.detection_m - 100.0).abs() < 0.01);
+        
+        // Observation should be 2.5x closer (25/62.5 = 0.4)
+        assert!((dori.observation_m - 40.0).abs() < 0.01);
+        
+        // Recognition should be 5x closer (25/125 = 0.2)
+        assert!((dori.recognition_m - 20.0).abs() < 0.01);
+        
+        // Identification should be 10x closer (25/250 = 0.1)
+        assert!((dori.identification_m - 10.0).abs() < 0.01);
+    }
+
+    #[test]
+    fn test_dori_from_single_maintains_ratios() {
+        // Test that ratios are maintained regardless of starting point
+        let from_id = calculate_dori_from_single(8.0, "identification");
+        let from_rec = calculate_dori_from_single(16.0, "recognition");
+        let from_obs = calculate_dori_from_single(32.0, "observation");
+        let from_det = calculate_dori_from_single(80.0, "detection");
+        
+        // All should produce the same DORI distances
+        assert!((from_id.identification_m - 8.0).abs() < 0.01);
+        assert!((from_rec.identification_m - 8.0).abs() < 0.01);
+        assert!((from_obs.identification_m - 8.0).abs() < 0.01);
+        assert!((from_det.identification_m - 8.0).abs() < 0.01);
+        
+        assert!((from_id.detection_m - 80.0).abs() < 0.01);
+        assert!((from_rec.detection_m - 80.0).abs() < 0.01);
+        assert!((from_obs.detection_m - 80.0).abs() < 0.01);
+        assert!((from_det.detection_m - 80.0).abs() < 0.01);
     }
 }

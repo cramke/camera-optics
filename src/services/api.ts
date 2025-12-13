@@ -43,3 +43,16 @@ export async function calculateDoriRanges(
     constraints,
   });
 }
+
+/**
+ * Calculate all DORI distances from a single distance input
+ */
+export async function calculateDoriFromSingleDistance(
+  distanceM: number,
+  doriType: "detection" | "observation" | "recognition" | "identification"
+): Promise<import("../core/types").DoriDistances> {
+  return await invoke("calculate_dori_from_single_distance", {
+    distanceM,
+    doriType,
+  });
+}
