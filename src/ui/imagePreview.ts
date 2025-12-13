@@ -8,6 +8,7 @@ import { calculateCameraFov } from "../services/api";
 let uploadedImage: HTMLImageElement | null = null;
 let currentCamera: CameraSystem | null = null;
 let currentDistance: number = 25;
+let imageRealWorldWidth: number = 1; // meters
 
 /**
  * Initialize the image preview functionality
@@ -18,8 +19,9 @@ export function initializeImagePreview(): void {
   const distanceSlider = document.getElementById("preview-distance-slider") as HTMLInputElement;
   const distanceValueSpan = document.getElementById("preview-distance-value");
   const mainDistanceInput = document.getElementById("distance") as HTMLInputElement;
+  const imageWidthInput = document.getElementById("preview-image-width") as HTMLInputElement;
 
-  if (!uploadInput || !applyBtn || !distanceSlider) return;
+  if (!uploadInput || !applyBtn || !distanceSlider || !imageWidthInput) return;
 
   // Sync initial values
   if (mainDistanceInput) {
@@ -31,6 +33,9 @@ export function initializeImagePreview(): void {
     }
     updateDistanceLabel(currentDistance);
   }
+
+  // Load default image
+  loadDefaultImage();
 
   // Handle image upload
   uploadInput.addEventListener("change", (e) => {
@@ -79,9 +84,15 @@ export function initializeImagePreview(): void {
     });
   }
 
+  // Handle image width change
+  imageWidthInput.addEventListener("input", () => {
+    imageRealWorldWidth = parseFloat(imageWidthInput.value) || 1;
+  });
+
   // Handle apply button
   applyBtn.addEventListener("click", async () => {
     if (!uploadedImage) return;
+    imageRealWorldWidth = parseFloat(imageWidthInput.value) || 1;
     await generatePreview();
   });
 
@@ -156,8 +167,8 @@ async function generatePreview(): Promise<void> {
     const ppmV = result.vertical_ppm;
 
     // Calculate how many real-world mm the image represents
-    // Assume the image represents 1 meter (1000mm) wide by default
-    const imageWidthMm = 1000;
+    // Use the user-specified real-world width
+    const imageWidthMm = imageRealWorldWidth * 1000;
     const imageHeightMm = (uploadedImage.height / uploadedImage.width) * imageWidthMm;
 
     // Calculate how many pixels the camera would capture for this area
@@ -239,4 +250,25 @@ function updateDistanceLabel(distance: number): void {
   if (label) {
     label.textContent = distance.toFixed(1);
   }
+}
+
+/**
+ * Load the default preview image
+ */
+function loadDefaultImage(): void {
+  const applyBtn = document.getElementById("preview-apply-btn") as HTMLButtonElement;
+  
+  const img = new Image();
+  img.onload = () => {
+    uploadedImage = img;
+    drawOriginalImage(img);
+    if (applyBtn) {
+      applyBtn.disabled = false;
+    }
+  };
+  img.onerror = () => {
+    console.error("Failed to load default image");
+  };
+  // Use direct path that Vite will resolve
+  img.src = new URL("../assets/pierre-person.jpeg", import.meta.url).href;
 }
