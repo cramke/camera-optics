@@ -261,15 +261,30 @@ pub fn calculate_dori_parameter_ranges(
                 max: MAX_PIXEL_WIDTH as f64,
             });
         }
-    } else if let Some(_pixels) = constraints.pixel_width {
-        // Only pixels are fixed - give ranges for focal and sensor
+    } else if let Some(pixels) = constraints.pixel_width {
+        // Only pixels are fixed - calculate constrained ranges for focal and sensor
+        // From: distance = (focal × pixels) / (sensor × px_per_m)
+        // We get: focal × pixels = distance × sensor × px_per_m
+        // Therefore: focal = (distance × sensor × px_per_m) / pixels
+        
+        // For minimum focal length, use minimum sensor width
+        let min_focal = (target_distance * MIN_SENSOR_WIDTH_MM * required_px_per_m) / pixels as f64;
+        // For maximum focal length, use maximum sensor width
+        let max_focal = (target_distance * MAX_SENSOR_WIDTH_MM * required_px_per_m) / pixels as f64;
+        
         ranges.focal_length_mm = Some(ParameterRange {
-            min: MIN_FOCAL_LENGTH_MM,
-            max: MAX_FOCAL_LENGTH_MM,
+            min: min_focal.max(MIN_FOCAL_LENGTH_MM),
+            max: max_focal.min(MAX_FOCAL_LENGTH_MM),
         });
+        
+        // For minimum sensor width, use minimum focal length
+        let min_sensor = (MIN_FOCAL_LENGTH_MM * pixels as f64) / (target_distance * required_px_per_m);
+        // For maximum sensor width, use maximum focal length
+        let max_sensor = (MAX_FOCAL_LENGTH_MM * pixels as f64) / (target_distance * required_px_per_m);
+        
         ranges.sensor_width_mm = Some(ParameterRange {
-            min: MIN_SENSOR_WIDTH_MM,
-            max: MAX_SENSOR_WIDTH_MM,
+            min: min_sensor.max(MIN_SENSOR_WIDTH_MM),
+            max: max_sensor.min(MAX_SENSOR_WIDTH_MM),
         });
     } else {
         // Nothing is fixed - give all ranges
