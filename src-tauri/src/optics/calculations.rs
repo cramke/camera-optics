@@ -20,8 +20,13 @@ pub fn calculate_fov(camera: &CameraSystem, distance_mm: f64) -> FovResult {
     let horizontal_fov_mm = 2.0 * distance_mm * (horizontal_fov_rad / 2.0).tan();
     let vertical_fov_mm = 2.0 * distance_mm * (vertical_fov_rad / 2.0).tan();
     
-    // Calculate spatial resolution (pixels per millimeter at the working distance)
-    let ppm = camera.pixel_width as f64 / horizontal_fov_mm;
+    // Convert FOV to meters
+    let horizontal_fov_m = horizontal_fov_mm / 1000.0;
+    let vertical_fov_m = vertical_fov_mm / 1000.0;
+    let distance_m = distance_mm / 1000.0;
+    
+    // Calculate spatial resolution (pixels per meter at the working distance)
+    let ppm = camera.pixel_width as f64 / horizontal_fov_m;
     
     // Calculate ground sample distance (millimeters per pixel)
     let gsd_mm = horizontal_fov_mm / camera.pixel_width as f64;
@@ -29,11 +34,11 @@ pub fn calculate_fov(camera: &CameraSystem, distance_mm: f64) -> FovResult {
     FovResult {
         horizontal_fov_deg,
         vertical_fov_deg,
-        horizontal_fov_mm,
-        vertical_fov_mm,
+        horizontal_fov_m,
+        vertical_fov_m,
         ppm,
         gsd_mm,
-        distance_mm,
+        distance_m,
     }
 }
 
@@ -88,8 +93,11 @@ mod tests {
         // Expected horizontal FOV for 50mm on full frame: ~39.6°
         assert!((result.horizontal_fov_deg - 39.6).abs() < 1.0);
         
-        // At 5m, should cover approximately 3600mm horizontally
-        assert!((result.horizontal_fov_mm - 3600.0).abs() < 100.0);
+        // At 5m, should cover approximately 3.6m horizontally
+        assert!((result.horizontal_fov_m - 3.6).abs() < 0.1);
+        
+        // Distance should be 5m
+        assert!((result.distance_m - 5.0).abs() < 0.01);
     }
 
     #[test]

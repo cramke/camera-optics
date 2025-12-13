@@ -12,11 +12,11 @@ interface CameraSystem {
 interface FovResult {
   horizontal_fov_deg: number;
   vertical_fov_deg: number;
-  horizontal_fov_mm: number;
-  vertical_fov_mm: number;
+  horizontal_fov_m: number;
+  vertical_fov_m: number;
   ppm: number;
   gsd_mm: number;
-  distance_mm: number;
+  distance_m: number;
 }
 
 interface CameraWithResult {
@@ -68,7 +68,8 @@ function getCameraFromForm(): CameraSystem {
 }
 
 function getDistance(): number {
-  return parseFloat((document.getElementById("distance") as HTMLInputElement).value);
+  // Convert meters to millimeters for the Rust backend
+  return parseFloat((document.getElementById("distance") as HTMLInputElement).value) * 1000;
 }
 
 // Calculate FOV for current form values
@@ -126,14 +127,14 @@ function displaySingleResult(camera: CameraSystem, result: FovResult) {
         <p>Focal Length: ${camera.focal_length_mm} mm</p>
       </div>
       <div class="result-section">
-        <h4>Field of View @ ${(result.distance_mm / 1000).toFixed(2)} m</h4>
+        <h4>Field of View @ ${result.distance_m.toFixed(2)} m</h4>
         <p>Angular FOV: ${result.horizontal_fov_deg.toFixed(2)}° × ${result.vertical_fov_deg.toFixed(2)}°</p>
-        <p>Linear FOV: ${result.horizontal_fov_mm.toFixed(2)} × ${result.vertical_fov_mm.toFixed(2)} mm</p>
-        <p>Linear FOV: ${(result.horizontal_fov_mm / 1000).toFixed(3)} × ${(result.vertical_fov_mm / 1000).toFixed(3)} m</p>
+        <p>Linear FOV: ${result.horizontal_fov_m.toFixed(3)} × ${result.vertical_fov_m.toFixed(3)} m</p>
+        <p>Linear FOV: ${(result.horizontal_fov_m * 1000).toFixed(2)} × ${(result.vertical_fov_m * 1000).toFixed(2)} mm</p>
       </div>
       <div class="result-section">
         <h4>Spatial Resolution</h4>
-        <p>Pixels per mm: ${result.ppm.toFixed(3)} ppm</p>
+        <p>Pixels per meter: ${result.ppm.toFixed(1)} px/m</p>
         <p>Ground Sample Distance: ${result.gsd_mm.toFixed(3)} mm/pixel</p>
       </div>
     </div>
@@ -192,9 +193,9 @@ function drawVisualization(systems: CameraWithResult[]) {
     return;
   }
 
-  // Find max FOV for scaling
-  const maxFovH = Math.max(...systems.map((s) => s.result.horizontal_fov_mm));
-  const maxFovV = Math.max(...systems.map((s) => s.result.vertical_fov_mm));
+  // Find max FOV for scaling (convert to mm for canvas)
+  const maxFovH = Math.max(...systems.map((s) => s.result.horizontal_fov_m * 1000));
+  const maxFovV = Math.max(...systems.map((s) => s.result.vertical_fov_m * 1000));
   const maxFov = Math.max(maxFovH, maxFovV);
   
   const padding = 40;
@@ -222,8 +223,8 @@ function drawVisualization(systems: CameraWithResult[]) {
   // Draw each FOV
   systems.forEach((system, index) => {
     const color = getColor(index);
-    const width = system.result.horizontal_fov_mm * scale;
-    const height = system.result.vertical_fov_mm * scale;
+    const width = system.result.horizontal_fov_m * 1000 * scale;
+    const height = system.result.vertical_fov_m * 1000 * scale;
     const x = centerX - width / 2;
     const y = centerY - height / 2;
 
@@ -251,7 +252,7 @@ function drawVisualization(systems: CameraWithResult[]) {
       <div class="legend-item">
         <span class="legend-color" style="background: ${getColor(index)}"></span>
         <span>${system.camera.name || `System ${index + 1}`}</span>
-        <span class="legend-specs">${system.result.horizontal_fov_mm.toFixed(0)}×${system.result.vertical_fov_mm.toFixed(0)}mm</span>
+        <span class="legend-specs">${system.result.horizontal_fov_m.toFixed(2)}×${system.result.vertical_fov_m.toFixed(2)}m</span>
       </div>
     `
       )
