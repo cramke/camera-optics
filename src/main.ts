@@ -1,4 +1,5 @@
 import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "./core/constants";
+import type { CameraWithResult } from "./core/types";
 import { calculateCameraFov } from "./services/api";
 import { store } from "./services/store";
 import { drawVisualization } from "./ui/visualization";
@@ -12,6 +13,9 @@ let selectedSystemIndex: number | null = null;
 
 // Track if we're in edit mode and which index is being edited
 let editingIndex: number | null = null;
+
+// Track the currently displayed systems for visualization
+let currentDisplayedSystems: CameraWithResult[] = [];
 
 // Update UI to show edit mode
 function setEditMode(index: number | null): void {
@@ -43,7 +47,8 @@ async function calculateFov(exitEditMode: boolean = false) {
     updateCalculatedFov(result.horizontal_fov_deg, result.vertical_fov_deg);
 
     displaySingleResult(camera, result);
-    drawVisualization([{ camera, result }]);
+    currentDisplayedSystems = [{ camera, result }];
+    drawVisualization(currentDisplayedSystems);
   } catch (error) {
     console.error("Error calculating FOV:", error);
     
@@ -51,7 +56,8 @@ async function calculateFov(exitEditMode: boolean = false) {
     showToast("Invalid value", "warning", 3000);
     
     // Clear visualization and show error in results
-    drawVisualization([]);
+    currentDisplayedSystems = [];
+    drawVisualization(currentDisplayedSystems);
     displayCalculationError();
   }
 }
@@ -108,7 +114,8 @@ async function addToComparison() {
     }
     
     updateSystemsList();
-    drawVisualization(store.getCameraSystems());
+    currentDisplayedSystems = store.getCameraSystems();
+    drawVisualization(currentDisplayedSystems);
     
     // Display the system in results tab
     displaySingleResult(camera, result, selectedSystemIndex);
@@ -172,7 +179,8 @@ function updateSystemsList() {
       displaySingleResult(system.camera, system.result, index);
       
       // Update visualization to highlight the selected system
-      drawVisualization(store.getCameraSystems());
+      currentDisplayedSystems = store.getCameraSystems();
+      drawVisualization(currentDisplayedSystems);
       
       // Don't switch tabs - stay on current tab
     });
@@ -225,7 +233,8 @@ function updateSystemsList() {
       }
       
       updateSystemsList();
-      drawVisualization(store.getCameraSystems());
+      currentDisplayedSystems = store.getCameraSystems();
+      drawVisualization(currentDisplayedSystems);
       
       // Update results tab to show the selected system if available
       const updatedSystems = store.getCameraSystems();
@@ -254,7 +263,7 @@ function switchTab(tabName: string) {
   
   // Redraw visualization when switching to visualization tab
   if (tabName === "visualization") {
-    drawVisualization(store.getCameraSystems());
+    drawVisualization(currentDisplayedSystems);
   }
 }
 
@@ -371,7 +380,7 @@ window.addEventListener("DOMContentLoaded", () => {
     
     // Add change listener
     refSelect.addEventListener("change", () => {
-      drawVisualization(store.getCameraSystems());
+      drawVisualization(currentDisplayedSystems);
     });
   }
 
