@@ -269,11 +269,19 @@ async function exportToComparison(): Promise<void> {
     const constraints = getConstraints();
 
     // Build camera system using fixed values or midpoints of ranges
+    const sensorWidth = constraints.sensor_width_mm || getMidpoint(lastCalculatedRanges.sensor_width_mm);
+    const pixelWidth = Math.round(constraints.pixel_width || getMidpoint(lastCalculatedRanges.pixel_width));
+    
+    // Calculate height based on standard 4:3 aspect ratio if not specified
+    const aspectRatio = 4 / 3; // Standard aspect ratio
+    const sensorHeight = constraints.sensor_height_mm || getMidpoint(lastCalculatedRanges.sensor_height_mm) || (sensorWidth / aspectRatio);
+    const pixelHeight = Math.round(constraints.pixel_height || getMidpoint(lastCalculatedRanges.pixel_height) || (pixelWidth / aspectRatio));
+    
     const camera: CameraSystem = {
-      sensor_width_mm: constraints.sensor_width_mm || getMidpoint(lastCalculatedRanges.sensor_width_mm),
-      sensor_height_mm: constraints.sensor_height_mm || getMidpoint(lastCalculatedRanges.sensor_height_mm),
-      pixel_width: Math.round(constraints.pixel_width || getMidpoint(lastCalculatedRanges.pixel_width)),
-      pixel_height: Math.round(constraints.pixel_height || getMidpoint(lastCalculatedRanges.pixel_height)),
+      sensor_width_mm: sensorWidth,
+      sensor_height_mm: sensorHeight,
+      pixel_width: pixelWidth,
+      pixel_height: pixelHeight,
       focal_length_mm: constraints.focal_length_mm || getMidpoint(lastCalculatedRanges.focal_length_mm),
     };
 
