@@ -28,10 +28,10 @@ pub struct FovResult {
     pub horizontal_fov_m: f64,
     /// Vertical field of view at specified distance in meters
     pub vertical_fov_m: f64,
-    /// Pixels per meter at specified distance (spatial resolution)
-    pub ppm: f64,
-    /// Ground sample distance in millimeters per pixel
-    pub gsd_mm: f64,
+    /// Horizontal pixels per meter at specified distance
+    pub horizontal_ppm: f64,
+    /// Vertical pixels per meter at specified distance
+    pub vertical_ppm: f64,
     /// Distance at which calculation was performed in meters
     pub distance_m: f64,
     /// DORI distances (Detection, Observation, Recognition, Identification)
@@ -358,16 +358,16 @@ impl FovResult {
             });
         }
 
-        // Check GSD (typical range: 0.001-1000 mm/px)
-        if self.gsd_mm < 0.001 {
+        // Check for unrealistic PPM values
+        if self.horizontal_ppm > 100000.0 || self.vertical_ppm > 100000.0 {
             warnings.push(ValidationWarning {
-                message: format!("Ground Sample Distance ({:.6} mm/px) is unrealistically small", self.gsd_mm),
+                message: format!("Pixels per meter ({:.1} × {:.1} px/m) is unrealistically high", self.horizontal_ppm, self.vertical_ppm),
                 severity: ValidationSeverity::Warning,
             });
         }
-        if self.gsd_mm > 1000.0 {
+        if self.horizontal_ppm < 0.001 || self.vertical_ppm < 0.001 {
             warnings.push(ValidationWarning {
-                message: format!("Ground Sample Distance ({:.1} mm/px) is extremely large", self.gsd_mm),
+                message: format!("Pixels per meter ({:.6} × {:.6} px/m) is unrealistically low", self.horizontal_ppm, self.vertical_ppm),
                 severity: ValidationSeverity::Warning,
             });
         }
@@ -411,14 +411,14 @@ impl std::fmt::Display for FovResult {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(
             f,
-            "FOV: {:.2}° × {:.2}° ({:.3} × {:.3} m @ {:.2} m)\nResolution: {:.3} px/m, GSD: {:.3} mm/px",
+            "FOV: {:.2}° × {:.2}° ({:.3} × {:.3} m @ {:.2} m)\nResolution: {:.1} × {:.1} px/m",
             self.horizontal_fov_deg,
             self.vertical_fov_deg,
             self.horizontal_fov_m,
             self.vertical_fov_m,
             self.distance_m,
-            self.ppm,
-            self.gsd_mm
+            self.horizontal_ppm,
+            self.vertical_ppm
         )
     }
 }

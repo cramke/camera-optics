@@ -16,8 +16,8 @@ export interface FovResult {
   vertical_fov_deg: number;
   horizontal_fov_m: number;
   vertical_fov_m: number;
-  ppm: number;
-  gsd_mm: number;
+  horizontal_ppm: number;
+  vertical_ppm: number;
   distance_m: number;
   dori?: DoriDistances;
 }

@@ -42,8 +42,8 @@ export function renderSingleResult(camera: CameraSystem, result: FovResult, syst
       </div>
       <div class="result-section">
         <h4>Spatial Resolution</h4>
-        <p>Pixels per meter: ${result.ppm.toFixed(1)} px/m</p>
-        <p>Ground Sample Distance: ${result.gsd_mm.toFixed(3)} mm/pixel</p>
+        <p>Pixels per meter: ${result.horizontal_ppm.toFixed(1)} × ${result.vertical_ppm.toFixed(1)} px/m</p>
+        <p>Ground Sample Distance: ${(1000 / result.horizontal_ppm).toFixed(3)} × ${(1000 / result.vertical_ppm).toFixed(3)} mm/pixel</p>
       </div>
       ${doriSection}
     </div>

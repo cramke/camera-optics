@@ -8,6 +8,7 @@ import { calculateFocalLengthFromFov } from "./services/api";
 import { displaySingleResult } from "./ui/results";
 import { showToast } from "./ui/toast";
 import { initializeDoriDesigner } from "./ui/doriDesigner";
+import { initializeImagePreview, updatePreviewCamera } from "./ui/imagePreview";
 
 // Track the currently selected system index for highlighting
 let selectedSystemIndex: number | null = null;
@@ -46,6 +47,9 @@ async function calculateFov(exitEditMode: boolean = false) {
 
     // Update the calculated FOV values in the focal length section
     updateCalculatedFov(result.horizontal_fov_deg, result.vertical_fov_deg);
+
+    // Update image preview with current camera settings
+    updatePreviewCamera(camera, result);
 
     displaySingleResult(camera, result);
     currentDisplayedSystems = [{ camera, result }];
@@ -428,6 +432,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Initialize DORI Designer
   initializeDoriDesigner();
+
+  // Initialize Image Preview
+  initializeImagePreview();
 
   // Calculate FOV with default values on startup
   calculateFov();

@@ -26,10 +26,8 @@ pub fn calculate_fov(camera: &CameraSystem, distance_mm: f64) -> FovResult {
     let distance_m = distance_mm / 1000.0;
     
     // Calculate spatial resolution (pixels per meter at the working distance)
-    let ppm = camera.pixel_width as f64 / horizontal_fov_m;
-    
-    // Calculate ground sample distance (millimeters per pixel)
-    let gsd_mm = horizontal_fov_mm / camera.pixel_width as f64;
+    let horizontal_ppm = camera.pixel_width as f64 / horizontal_fov_m;
+    let vertical_ppm = camera.pixel_height as f64 / vertical_fov_m;
     
     // Calculate DORI distances
     let dori = calculate_dori_distances(camera);
@@ -39,8 +37,8 @@ pub fn calculate_fov(camera: &CameraSystem, distance_mm: f64) -> FovResult {
         vertical_fov_deg,
         horizontal_fov_m,
         vertical_fov_m,
-        ppm,
-        gsd_mm,
+        horizontal_ppm,
+        vertical_ppm,
         distance_m,
         dori: Some(dori),
     }
