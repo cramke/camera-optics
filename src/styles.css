@@ -1322,6 +1322,18 @@ button {
   color: #333;
 }
 
+/* Distance slider styling */
+.distance-slider {
+  width: 100%;
+  cursor: pointer;
+  accent-color: #2196F3;
+}
+
+#preview-distance-value {
+  font-weight: 600;
+  color: #2196F3;
+}
+
 /* Responsive adjustments for preview */
 @media (max-width: 1200px) {
   .preview-images {

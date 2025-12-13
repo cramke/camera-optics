@@ -15,9 +15,22 @@ let currentDistance: number = 25;
 export function initializeImagePreview(): void {
   const uploadInput = document.getElementById("preview-upload") as HTMLInputElement;
   const applyBtn = document.getElementById("preview-apply-btn") as HTMLButtonElement;
-  const distanceInput = document.getElementById("preview-distance") as HTMLInputElement;
+  const distanceSlider = document.getElementById("preview-distance-slider") as HTMLInputElement;
+  const distanceValueSpan = document.getElementById("preview-distance-value");
+  const mainDistanceInput = document.getElementById("distance") as HTMLInputElement;
 
-  if (!uploadInput || !applyBtn || !distanceInput) return;
+  if (!uploadInput || !applyBtn || !distanceSlider) return;
+
+  // Sync initial values
+  if (mainDistanceInput) {
+    const mainValue = parseFloat(mainDistanceInput.value) || 25;
+    distanceSlider.value = mainValue.toString();
+    currentDistance = mainValue;
+    if (distanceValueSpan) {
+      distanceValueSpan.textContent = mainValue.toFixed(1);
+    }
+    updateDistanceLabel(currentDistance);
+  }
 
   // Handle image upload
   uploadInput.addEventListener("change", (e) => {
@@ -37,11 +50,34 @@ export function initializeImagePreview(): void {
     reader.readAsDataURL(file);
   });
 
-  // Handle distance change
-  distanceInput.addEventListener("input", () => {
-    currentDistance = parseFloat(distanceInput.value) || 25;
+  // Handle slider change - update preview and sync to main form
+  distanceSlider.addEventListener("input", () => {
+    currentDistance = parseFloat(distanceSlider.value) || 25;
+    if (distanceValueSpan) {
+      distanceValueSpan.textContent = currentDistance.toFixed(1);
+    }
     updateDistanceLabel(currentDistance);
+    
+    // Sync to main distance field
+    if (mainDistanceInput) {
+      mainDistanceInput.value = currentDistance.toString();
+      // Trigger input event to recalculate FOV in main form
+      mainDistanceInput.dispatchEvent(new Event("input", { bubbles: true }));
+    }
   });
+
+  // Sync from main distance field to preview slider
+  if (mainDistanceInput) {
+    mainDistanceInput.addEventListener("input", () => {
+      const mainValue = parseFloat(mainDistanceInput.value) || 25;
+      currentDistance = mainValue;
+      distanceSlider.value = mainValue.toString();
+      if (distanceValueSpan) {
+        distanceValueSpan.textContent = mainValue.toFixed(1);
+      }
+      updateDistanceLabel(currentDistance);
+    });
+  }
 
   // Handle apply button
   applyBtn.addEventListener("click", async () => {
