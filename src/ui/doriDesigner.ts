@@ -46,23 +46,39 @@ async function autoCalculateDoriDistances(changedField: string, value: number): 
  * Initialize DORI Designer functionality
  */
 export function initializeDoriDesigner(): void {
-  // Enable/disable constraint inputs based on checkboxes
-  const constraints = [
-    { checkbox: "fix-sensor-width", input: "fixed-sensor-width" },
-    { checkbox: "fix-pixel-width", input: "fixed-pixel-width" },
-    { checkbox: "fix-focal-length", input: "fixed-focal-length" },
-    { checkbox: "fix-sensor-height", input: "fixed-sensor-height" },
+  // Set up input field listeners to show/hide clear buttons and ranges
+  const paramInputs = [
+    { input: "fixed-sensor-width", range: "range-sensor-width" },
+    { input: "fixed-pixel-width", range: "range-pixel-width" },
+    { input: "fixed-focal-length", range: "range-focal-length" },
+    { input: "fixed-sensor-height", range: "range-sensor-height" },
   ];
 
-  constraints.forEach(({ checkbox, input }) => {
-    const checkboxEl = document.getElementById(checkbox) as HTMLInputElement;
+  paramInputs.forEach(({ input, range }) => {
     const inputEl = document.getElementById(input) as HTMLInputElement;
+    const rangeEl = document.getElementById(range) as HTMLElement;
+    const clearBtn = document.querySelector(`[data-input="${input}"]`) as HTMLButtonElement;
 
-    checkboxEl?.addEventListener("change", () => {
-      inputEl.disabled = !checkboxEl.checked;
-      if (!checkboxEl.checked) {
-        inputEl.value = "";
+    if (!inputEl || !clearBtn) return;
+
+    // Show/hide clear button based on input value
+    const updateClearButton = () => {
+      if (inputEl.value) {
+        clearBtn.style.display = "flex";
+        rangeEl?.classList.remove("active");
+      } else {
+        clearBtn.style.display = "none";
       }
+    };
+
+    // Listen for input changes
+    inputEl.addEventListener("input", updateClearButton);
+
+    // Clear button click handler
+    clearBtn.addEventListener("click", () => {
+      inputEl.value = "";
+      clearBtn.style.display = "none";
+      // Range will be shown on next calculation
     });
   });
 
@@ -110,33 +126,30 @@ function getDoriTargets(): DoriTargets {
 
 /**
  * Gather fixed parameter constraints from inputs
+ * A parameter is fixed if it has a value, floating if empty
  */
 function getConstraints(): ParameterConstraint {
   const constraints: ParameterConstraint = {};
 
-  const fixSensorWidth = document.getElementById("fix-sensor-width") as HTMLInputElement;
-  const fixPixelWidth = document.getElementById("fix-pixel-width") as HTMLInputElement;
-  const fixFocalLength = document.getElementById("fix-focal-length") as HTMLInputElement;
-  const fixSensorHeight = document.getElementById("fix-sensor-height") as HTMLInputElement;
+  const sensorWidthEl = document.getElementById("fixed-sensor-width") as HTMLInputElement;
+  const pixelWidthEl = document.getElementById("fixed-pixel-width") as HTMLInputElement;
+  const focalLengthEl = document.getElementById("fixed-focal-length") as HTMLInputElement;
+  const sensorHeightEl = document.getElementById("fixed-sensor-height") as HTMLInputElement;
 
-  if (fixSensorWidth?.checked) {
-    const value = (document.getElementById("fixed-sensor-width") as HTMLInputElement).value;
-    if (value) constraints.sensor_width_mm = parseFloat(value);
+  if (sensorWidthEl?.value) {
+    constraints.sensor_width_mm = parseFloat(sensorWidthEl.value);
   }
 
-  if (fixPixelWidth?.checked) {
-    const value = (document.getElementById("fixed-pixel-width") as HTMLInputElement).value;
-    if (value) constraints.pixel_width = parseInt(value);
+  if (pixelWidthEl?.value) {
+    constraints.pixel_width = parseInt(pixelWidthEl.value);
   }
 
-  if (fixFocalLength?.checked) {
-    const value = (document.getElementById("fixed-focal-length") as HTMLInputElement).value;
-    if (value) constraints.focal_length_mm = parseFloat(value);
+  if (focalLengthEl?.value) {
+    constraints.focal_length_mm = parseFloat(focalLengthEl.value);
   }
 
-  if (fixSensorHeight?.checked) {
-    const value = (document.getElementById("fixed-sensor-height") as HTMLInputElement).value;
-    if (value) constraints.sensor_height_mm = parseFloat(value);
+  if (sensorHeightEl?.value) {
+    constraints.sensor_height_mm = parseFloat(sensorHeightEl.value);
   }
 
   return constraints;
@@ -168,72 +181,42 @@ async function calculateParameterRanges(): Promise<void> {
 }
 
 /**
- * Display parameter ranges in the UI
+ * Display parameter ranges in the UI (inline with parameters)
  */
 function displayParameterRanges(ranges: DoriParameterRanges): void {
-  const outputSection = document.getElementById("parameter-ranges-output");
-  const rangesContent = document.getElementById("ranges-content");
-
-  if (!outputSection || !rangesContent) return;
-
-  // Clear previous results
-  rangesContent.innerHTML = "";
-
-  // Display each parameter range
-  const parameterLabels: { [key: string]: { label: string; unit: string; help: string } } = {
-    sensor_width_mm: {
-      label: "Sensor Width",
-      unit: "mm",
-      help: "Horizontal sensor dimension",
-    },
-    sensor_height_mm: {
-      label: "Sensor Height",
-      unit: "mm",
-      help: "Vertical sensor dimension",
-    },
-    pixel_width: {
-      label: "Horizontal Resolution",
-      unit: "pixels",
-      help: "Number of pixels in horizontal direction",
-    },
-    pixel_height: {
-      label: "Vertical Resolution",
-      unit: "pixels",
-      help: "Number of pixels in vertical direction",
-    },
-    focal_length_mm: {
-      label: "Focal Length",
-      unit: "mm",
-      help: "Lens focal length",
-    },
+  // Map backend field names to UI element IDs
+  const parameterMapping: { [key: string]: { rangeId: string; inputId: string; unit: string } } = {
+    sensor_width_mm: { rangeId: "range-sensor-width", inputId: "fixed-sensor-width", unit: "mm" },
+    sensor_height_mm: { rangeId: "range-sensor-height", inputId: "fixed-sensor-height", unit: "mm" },
+    pixel_width: { rangeId: "range-pixel-width", inputId: "fixed-pixel-width", unit: "px" },
+    pixel_height: { rangeId: "range-pixel-height", inputId: "fixed-pixel-height", unit: "px" },
+    focal_length_mm: { rangeId: "range-focal-length", inputId: "fixed-focal-length", unit: "mm" },
   };
 
-  // Create range items
+  // Update each parameter's range display
   Object.entries(ranges).forEach(([key, value]) => {
     if (key === "limiting_requirement" || !value) return;
 
     const range = value as { min: number; max: number };
-    const config = parameterLabels[key];
+    const mapping = parameterMapping[key];
 
-    if (!config) return;
+    if (!mapping) return;
 
-    const rangeItem = document.createElement("div");
-    rangeItem.className = "range-item";
+    const rangeEl = document.getElementById(mapping.rangeId);
+    const inputEl = document.getElementById(mapping.inputId) as HTMLInputElement;
+    
+    if (!rangeEl) return;
 
-    rangeItem.innerHTML = `
-      <h4>${config.label}</h4>
-      <div class="range-value">
-        ${range.min.toFixed(range.min < 10 ? 2 : 0)} – ${range.max.toFixed(range.max < 10 ? 2 : 0)} ${config.unit}
-      </div>
-      <span class="help-text">${config.help}</span>
-    `;
-
-    rangesContent.appendChild(rangeItem);
+    // Show range only if input is empty (floating mode)
+    if (!inputEl?.value) {
+      rangeEl.innerHTML = `
+        <span class="range-text">
+          ${range.min.toFixed(range.min < 10 ? 2 : 0)} – ${range.max.toFixed(range.max < 10 ? 2 : 0)} ${mapping.unit}
+        </span>
+      `;
+      rangeEl.classList.add("active");
+    } else {
+      rangeEl.classList.remove("active");
+    }
   });
-
-  // Show the output section
-  outputSection.style.display = "block";
-
-  // Scroll to results
-  outputSection.scrollIntoView({ behavior: "smooth", block: "nearest" });
 }

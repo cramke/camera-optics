@@ -154,52 +154,51 @@
               </div>
 
               <div class="designer-section">
-                <h3>Fixed Parameters</h3>
-                <p class="section-description">Lock specific parameters to narrow down options</p>
+                <h3>Camera Parameters</h3>
+                <p class="section-description">Enter a value to fix it, or leave empty to see calculated range</p>
                 
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>
-                      <input type="checkbox" id="fix-sensor-width" class="constraint-checkbox" />
-                      Sensor Width (mm)
-                    </label>
-                    <input type="number" id="fixed-sensor-width" placeholder="e.g., 6.4" step="0.1" disabled />
+                <div class="param-row">
+                  <div class="param-group">
+                    <label class="param-label">Sensor Width (mm)</label>
+                    <div class="param-input-wrapper">
+                      <input type="number" id="fixed-sensor-width" class="param-input" placeholder="Range: calculating..." step="0.1" />
+                      <button class="param-clear" data-input="fixed-sensor-width" style="display: none;">×</button>
+                    </div>
+                    <div id="range-sensor-width" class="param-range"></div>
                   </div>
                   
-                  <div class="form-group">
-                    <label>
-                      <input type="checkbox" id="fix-pixel-width" class="constraint-checkbox" />
-                      Pixel Width
-                    </label>
-                    <input type="number" id="fixed-pixel-width" placeholder="e.g., 1920" step="1" disabled />
+                  <div class="param-group">
+                    <label class="param-label">Pixel Width</label>
+                    <div class="param-input-wrapper">
+                      <input type="number" id="fixed-pixel-width" class="param-input" placeholder="Range: calculating..." step="1" />
+                      <button class="param-clear" data-input="fixed-pixel-width" style="display: none;">×</button>
+                    </div>
+                    <div id="range-pixel-width" class="param-range"></div>
                   </div>
                 </div>
                 
-                <div class="form-row">
-                  <div class="form-group">
-                    <label>
-                      <input type="checkbox" id="fix-focal-length" class="constraint-checkbox" />
-                      Focal Length (mm)
-                    </label>
-                    <input type="number" id="fixed-focal-length" placeholder="e.g., 4" step="0.1" disabled />
+                <div class="param-row">
+                  <div class="param-group">
+                    <label class="param-label">Focal Length (mm)</label>
+                    <div class="param-input-wrapper">
+                      <input type="number" id="fixed-focal-length" class="param-input" placeholder="Range: calculating..." step="0.1" />
+                      <button class="param-clear" data-input="fixed-focal-length" style="display: none;">×</button>
+                    </div>
+                    <div id="range-focal-length" class="param-range"></div>
                   </div>
                   
-                  <div class="form-group">
-                    <label>
-                      <input type="checkbox" id="fix-sensor-height" class="constraint-checkbox" />
-                      Sensor Height (mm)
-                    </label>
-                    <input type="number" id="fixed-sensor-height" placeholder="e.g., 4.8" step="0.1" disabled />
+                  <div class="param-group">
+                    <label class="param-label">Sensor Height (mm)</label>
+                    <div class="param-input-wrapper">
+                      <input type="number" id="fixed-sensor-height" class="param-input" placeholder="Range: calculating..." step="0.1" />
+                      <button class="param-clear" data-input="fixed-sensor-height" style="display: none;">×</button>
+                    </div>
+                    <div id="range-sensor-height" class="param-range"></div>
                   </div>
                 </div>
               </div>
 
               <button id="calculate-ranges-btn" class="secondary-btn full-width">Calculate Parameter Ranges</button>
-
-              <div id="parameter-ranges-output" class="designer-section" style="display: none;">
-                <h3>Possible Parameter Ranges</h3>
-                <div id="ranges-content"></div>
-              </div>
             </div>
           </div>
         </div>
