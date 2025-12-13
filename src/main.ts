@@ -4,24 +4,43 @@ import { store } from "./services/store";
 import { drawVisualization } from "./ui/visualization";
 import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToForm, loadPreset } from "./ui/form";
 import { displaySingleResult } from "./ui/results";
+import { showToast } from "./ui/toast";
 
 // Track the currently selected system index for highlighting
 let selectedSystemIndex: number | null = null;
 
 // Calculate FOV for current form values
 async function calculateFov() {
-  const camera = getCameraFromForm();
-  const distance = getDistance();
-
   try {
+    const camera = getCameraFromForm();
+    const distance = getDistance();
     const result = await calculateCameraFov(camera, distance);
 
     displaySingleResult(camera, result);
     drawVisualization([{ camera, result }]);
   } catch (error) {
     console.error("Error calculating FOV:", error);
-    alert(`Error: ${error}`);
+    
+    // Show non-intrusive toast warning
+    showToast("Invalid value", "warning", 3000);
+    
+    // Clear visualization and show error in results
+    drawVisualization([]);
+    displayCalculationError();
   }
+}
+
+// Display simple error message in results tab
+function displayCalculationError(): void {
+  const resultsOutput = document.getElementById("results-output");
+  if (!resultsOutput) return;
+  
+  resultsOutput.innerHTML = `
+    <div class="error-card">
+      <h3>Invalid value</h3>
+      <p class="error-hint">Please check that all input values are valid.</p>
+    </div>
+  `;
 }
 
 // Add current system to comparison list

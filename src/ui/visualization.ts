@@ -63,14 +63,25 @@ export function drawVisualization(systems: CameraWithResult[]): void {
  * Draw empty state message
  */
 function drawEmptyState(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
-  ctx.fillStyle = "#666";
-  ctx.font = "16px sans-serif";
+  ctx.fillStyle = "#999";
+  ctx.font = "18px sans-serif";
   ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
   ctx.fillText(
-    "Calculate or add camera systems to see visualization",
+    "Invalid value",
     canvas.width / 2,
-    canvas.height / 2
+    canvas.height / 2 - 10
   );
+  
+  ctx.fillStyle = "#666";
+  ctx.font = "14px sans-serif";
+  ctx.fillText(
+    "Enter valid values to see visualization",
+    canvas.width / 2,
+    canvas.height / 2 + 20
+  );
+  
+  ctx.textBaseline = "alphabetic";
 }
 
 /**

@@ -8,25 +8,57 @@ import { calculateFocalLengthFromFov } from "../services/api";
 import { store } from "../services/store";
 
 /**
+ * Validate a numeric field
+ * @throws Error with simple "Invalid value" message if field is invalid
+ */
+function validateField(value: string): number {
+  const parsed = parseFloat(value);
+
+  if (!value || value.trim() === "" || isNaN(parsed) || parsed <= 0) {
+    throw new Error("Invalid value");
+  }
+
+  return parsed;
+}
+
+/**
  * Get camera system data from form inputs
+ * @throws Error if any required field is invalid or missing
  */
 export function getCameraFromForm(): CameraSystem {
+  const sensorWidthInput = (document.getElementById("sensor-width") as HTMLInputElement).value;
+  const sensorHeightInput = (document.getElementById("sensor-height") as HTMLInputElement).value;
+  const pixelWidthInput = (document.getElementById("pixel-width") as HTMLInputElement).value;
+  const pixelHeightInput = (document.getElementById("pixel-height") as HTMLInputElement).value;
+  const focalLengthInput = (document.getElementById("focal-length") as HTMLInputElement).value;
+
+  // Validate all required fields
+  const sensorWidth = validateField(sensorWidthInput);
+  const sensorHeight = validateField(sensorHeightInput);
+  const pixelWidth = Math.round(validateField(pixelWidthInput));
+  const pixelHeight = Math.round(validateField(pixelHeightInput));
+  const focalLength = validateField(focalLengthInput);
+
   return {
-    sensor_width_mm: parseFloat((document.getElementById("sensor-width") as HTMLInputElement).value),
-    sensor_height_mm: parseFloat((document.getElementById("sensor-height") as HTMLInputElement).value),
-    pixel_width: parseInt((document.getElementById("pixel-width") as HTMLInputElement).value),
-    pixel_height: parseInt((document.getElementById("pixel-height") as HTMLInputElement).value),
-    focal_length_mm: parseFloat((document.getElementById("focal-length") as HTMLInputElement).value),
+    sensor_width_mm: sensorWidth,
+    sensor_height_mm: sensorHeight,
+    pixel_width: pixelWidth,
+    pixel_height: pixelHeight,
+    focal_length_mm: focalLength,
     name: (document.getElementById("name") as HTMLInputElement).value || undefined,
   };
 }
 
 /**
  * Get distance value from form (converts meters to millimeters)
+ * @throws Error if distance is invalid
  */
 export function getDistance(): number {
+  const distanceInput = (document.getElementById("distance") as HTMLInputElement).value;
+  const distance = validateField(distanceInput);
+  
   // Convert meters to millimeters for the Rust backend
-  return parseFloat((document.getElementById("distance") as HTMLInputElement).value) * 1000;
+  return distance * 1000;
 }
 
 /**
