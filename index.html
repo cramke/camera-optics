@@ -158,110 +158,140 @@
                 <p class="section-description">Enter a value to fix it, or leave empty to see calculated range</p>
                 
                 <div class="param-row">
-                  <div class="param-group">
-                    <label class="param-label">
-                      Sensor Width (mm)
-                      <span id="status-sensor-width" class="field-status-inline" style="display: none;"></span>
-                    </label>
-                    <div class="param-input-wrapper">
-                      <input type="number" id="fixed-sensor-width" class="param-input" placeholder="Fixed value or leave empty" step="0.1" />
-                      <button class="param-clear" data-input="fixed-sensor-width" style="display: none;">×</button>
+                  <div class="param-group" data-param="sensor-width">
+                    <div class="param-header">
+                      <label class="param-label">Sensor Width (mm)</label>
+                      <div id="range-sensor-width" class="param-range-inline"></div>
                     </div>
-                    <div class="param-range-inputs">
-                      <input type="number" id="min-sensor-width" class="param-range-input" placeholder="Min" step="0.1" />
-                      <span class="range-separator">–</span>
-                      <input type="number" id="max-sensor-width" class="param-range-input" placeholder="Max" step="0.1" />
+                    <div class="param-mode-control">
+                      <button class="mode-btn active" data-mode="float">Float</button>
+                      <button class="mode-btn" data-mode="fixed">Fixed</button>
+                      <button class="mode-btn" data-mode="range">Range</button>
                     </div>
-                    <div id="range-sensor-width" class="param-range"></div>
+                    <div class="param-input-container">
+                      <div class="param-input-wrapper mode-fixed" style="display: none;">
+                        <input type="number" id="fixed-sensor-width" class="param-input" placeholder="Enter value" step="0.1" />
+                      </div>
+                      <div class="param-range-inputs mode-range" style="display: none;">
+                        <input type="number" id="min-sensor-width" class="param-range-input" placeholder="Min" step="0.1" />
+                        <span class="range-separator">–</span>
+                        <input type="number" id="max-sensor-width" class="param-range-input" placeholder="Max" step="0.1" />
+                      </div>
+                    </div>
                   </div>
                   
-                  <div class="param-group">
-                    <label class="param-label">
-                      Pixel Width
-                      <span id="status-pixel-width" class="field-status-inline" style="display: none;"></span>
-                    </label>
-                    <div class="param-input-wrapper">
-                      <input type="number" id="fixed-pixel-width" class="param-input" placeholder="Fixed value or leave empty" step="1" />
-                      <button class="param-clear" data-input="fixed-pixel-width" style="display: none;">×</button>
+                  <div class="param-group" data-param="pixel-width">
+                    <div class="param-header">
+                      <label class="param-label">Pixel Width</label>
+                      <div id="range-pixel-width" class="param-range-inline"></div>
                     </div>
-                    <div class="param-range-inputs">
-                      <input type="number" id="min-pixel-width" class="param-range-input" placeholder="Min" step="1" />
-                      <span class="range-separator">–</span>
-                      <input type="number" id="max-pixel-width" class="param-range-input" placeholder="Max" step="1" />
+                    <div class="param-mode-control">
+                      <button class="mode-btn active" data-mode="float">Float</button>
+                      <button class="mode-btn" data-mode="fixed">Fixed</button>
+                      <button class="mode-btn" data-mode="range">Range</button>
                     </div>
-                    <div id="range-pixel-width" class="param-range"></div>
+                    <div class="param-input-container">
+                      <div class="param-input-wrapper mode-fixed" style="display: none;">
+                        <input type="number" id="fixed-pixel-width" class="param-input" placeholder="Enter value" step="1" />
+                      </div>
+                      <div class="param-range-inputs mode-range" style="display: none;">
+                        <input type="number" id="min-pixel-width" class="param-range-input" placeholder="Min" step="1" />
+                        <span class="range-separator">–</span>
+                        <input type="number" id="max-pixel-width" class="param-range-input" placeholder="Max" step="1" />
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
                 <div class="param-row">
-                  <div class="param-group">
-                    <label class="param-label">
-                      Focal Length (mm)
-                      <span id="status-focal-length" class="field-status-inline" style="display: none;"></span>
-                    </label>
-                    <div class="param-input-wrapper">
-                      <input type="number" id="fixed-focal-length" class="param-input" placeholder="Fixed value or leave empty" step="0.1" />
-                      <button class="param-clear" data-input="fixed-focal-length" style="display: none;">×</button>
+                  <div class="param-group" data-param="focal-length">
+                    <div class="param-header">
+                      <label class="param-label">Focal Length (mm)</label>
+                      <div id="range-focal-length" class="param-range-inline"></div>
                     </div>
-                    <div class="param-range-inputs">
-                      <input type="number" id="min-focal-length" class="param-range-input" placeholder="Min" step="0.1" />
-                      <span class="range-separator">–</span>
-                      <input type="number" id="max-focal-length" class="param-range-input" placeholder="Max" step="0.1" />
+                    <div class="param-mode-control">
+                      <button class="mode-btn active" data-mode="float">Float</button>
+                      <button class="mode-btn" data-mode="fixed">Fixed</button>
+                      <button class="mode-btn" data-mode="range">Range</button>
                     </div>
-                    <div id="range-focal-length" class="param-range"></div>
+                    <div class="param-input-container">
+                      <div class="param-input-wrapper mode-fixed" style="display: none;">
+                        <input type="number" id="fixed-focal-length" class="param-input" placeholder="Enter value" step="0.1" />
+                      </div>
+                      <div class="param-range-inputs mode-range" style="display: none;">
+                        <input type="number" id="min-focal-length" class="param-range-input" placeholder="Min" step="0.1" />
+                        <span class="range-separator">–</span>
+                        <input type="number" id="max-focal-length" class="param-range-input" placeholder="Max" step="0.1" />
+                      </div>
+                    </div>
                   </div>
                   
-                  <div class="param-group">
-                    <label class="param-label">
-                      Horizontal FOV (°)
-                      <span id="status-horizontal-fov" class="field-status-inline" style="display: none;"></span>
-                    </label>
-                    <div class="param-input-wrapper">
-                      <input type="number" id="fixed-horizontal-fov" class="param-input" placeholder="Fixed value or leave empty" step="0.1" />
-                      <button class="param-clear" data-input="fixed-horizontal-fov" style="display: none;">×</button>
+                  <div class="param-group" data-param="horizontal-fov">
+                    <div class="param-header">
+                      <label class="param-label">Horizontal FOV (°)</label>
+                      <div id="range-horizontal-fov" class="param-range-inline"></div>
                     </div>
-                    <div class="param-range-inputs">
-                      <input type="number" id="min-horizontal-fov" class="param-range-input" placeholder="Min" step="0.1" />
-                      <span class="range-separator">–</span>
-                      <input type="number" id="max-horizontal-fov" class="param-range-input" placeholder="Max" step="0.1" />
+                    <div class="param-mode-control">
+                      <button class="mode-btn active" data-mode="float">Float</button>
+                      <button class="mode-btn" data-mode="fixed">Fixed</button>
+                      <button class="mode-btn" data-mode="range">Range</button>
                     </div>
-                    <div id="range-horizontal-fov" class="param-range"></div>
+                    <div class="param-input-container">
+                      <div class="param-input-wrapper mode-fixed" style="display: none;">
+                        <input type="number" id="fixed-horizontal-fov" class="param-input" placeholder="Enter value" step="0.1" />
+                      </div>
+                      <div class="param-range-inputs mode-range" style="display: none;">
+                        <input type="number" id="min-horizontal-fov" class="param-range-input" placeholder="Min" step="0.1" />
+                        <span class="range-separator">–</span>
+                        <input type="number" id="max-horizontal-fov" class="param-range-input" placeholder="Max" step="0.1" />
+                      </div>
+                    </div>
                   </div>
                 </div>
                 
                 <div class="param-row">
-                  <div class="param-group">
-                    <label class="param-label">
-                      Sensor Height (mm)
-                      <span id="status-sensor-height" class="field-status-inline" style="display: none;"></span>
-                    </label>
-                    <div class="param-input-wrapper">
-                      <input type="number" id="fixed-sensor-height" class="param-input" placeholder="Fixed value or leave empty" step="0.1" />
-                      <button class="param-clear" data-input="fixed-sensor-height" style="display: none;">×</button>
+                  <div class="param-group" data-param="sensor-height">
+                    <div class="param-header">
+                      <label class="param-label">Sensor Height (mm)</label>
+                      <div id="range-sensor-height" class="param-range-inline"></div>
                     </div>
-                    <div class="param-range-inputs">
-                      <input type="number" id="min-sensor-height" class="param-range-input" placeholder="Min" step="0.1" />
-                      <span class="range-separator">–</span>
-                      <input type="number" id="max-sensor-height" class="param-range-input" placeholder="Max" step="0.1" />
+                    <div class="param-mode-control">
+                      <button class="mode-btn active" data-mode="float">Float</button>
+                      <button class="mode-btn" data-mode="fixed">Fixed</button>
+                      <button class="mode-btn" data-mode="range">Range</button>
                     </div>
-                    <div id="range-sensor-height" class="param-range"></div>
+                    <div class="param-input-container">
+                      <div class="param-input-wrapper mode-fixed" style="display: none;">
+                        <input type="number" id="fixed-sensor-height" class="param-input" placeholder="Enter value" step="0.1" />
+                      </div>
+                      <div class="param-range-inputs mode-range" style="display: none;">
+                        <input type="number" id="min-sensor-height" class="param-range-input" placeholder="Min" step="0.1" />
+                        <span class="range-separator">–</span>
+                        <input type="number" id="max-sensor-height" class="param-range-input" placeholder="Max" step="0.1" />
+                      </div>
+                    </div>
                   </div>
                   
-                  <div class="param-group">
-                    <label class="param-label">
-                      Pixel Height
-                      <span id="status-pixel-height" class="field-status-inline" style="display: none;"></span>
-                    </label>
-                    <div class="param-input-wrapper">
-                      <input type="number" id="fixed-pixel-height" class="param-input" placeholder="Fixed value or leave empty" step="1" />
-                      <button class="param-clear" data-input="fixed-pixel-height" style="display: none;">×</button>
+                  <div class="param-group" data-param="pixel-height">
+                    <div class="param-header">
+                      <label class="param-label">Pixel Height</label>
+                      <div id="range-pixel-height" class="param-range-inline"></div>
                     </div>
-                    <div class="param-range-inputs">
-                      <input type="number" id="min-pixel-height" class="param-range-input" placeholder="Min" step="1" />
-                      <span class="range-separator">–</span>
-                      <input type="number" id="max-pixel-height" class="param-range-input" placeholder="Max" step="1" />
+                    <div class="param-mode-control">
+                      <button class="mode-btn active" data-mode="float">Float</button>
+                      <button class="mode-btn" data-mode="fixed">Fixed</button>
+                      <button class="mode-btn" data-mode="range">Range</button>
                     </div>
-                    <div id="range-pixel-height" class="param-range"></div>
+                    <div class="param-input-container">
+                      <div class="param-input-wrapper mode-fixed" style="display: none;">
+                        <input type="number" id="fixed-pixel-height" class="param-input" placeholder="Enter value" step="1" />
+                      </div>
+                      <div class="param-range-inputs mode-range" style="display: none;">
+                        <input type="number" id="min-pixel-height" class="param-range-input" placeholder="Min" step="1" />
+                        <span class="range-separator">–</span>
+                        <input type="number" id="max-pixel-height" class="param-range-input" placeholder="Max" step="1" />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

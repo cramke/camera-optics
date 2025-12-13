@@ -124,74 +124,60 @@ export function initializeDoriDesigner(): void {
   constraintFields.forEach(fieldId => {
     const field = document.getElementById(fieldId) as HTMLInputElement;
     field?.addEventListener("input", () => {
-      // Manage mutual exclusivity between fixed and range inputs
-      if (fieldId.startsWith("fixed-")) {
-        const param = fieldId.replace("fixed-", "");
-        const minEl = document.getElementById(`min-${param}`) as HTMLInputElement;
-        const maxEl = document.getElementById(`max-${param}`) as HTMLInputElement;
-        if (field.value) {
-          minEl?.setAttribute("disabled", "true");
-          maxEl?.setAttribute("disabled", "true");
-        } else {
-          minEl?.removeAttribute("disabled");
-          maxEl?.removeAttribute("disabled");
-        }
-      } else if (fieldId.startsWith("min-") || fieldId.startsWith("max-")) {
-        const param = fieldId.replace(/^(min|max)-/, "");
-        const fixedEl = document.getElementById(`fixed-${param}`) as HTMLInputElement;
-        const minEl = document.getElementById(`min-${param}`) as HTMLInputElement;
-        const maxEl = document.getElementById(`max-${param}`) as HTMLInputElement;
-        if (minEl?.value || maxEl?.value) {
-          fixedEl?.setAttribute("disabled", "true");
-        } else {
-          fixedEl?.removeAttribute("disabled");
-        }
-      }
-
       // Auto-calculate ranges when constraint changes
       calculateParameterRanges();
     });
   });
 
-  // Clear button handlers
-  const clearButtons = document.querySelectorAll(".param-clear");
-  clearButtons.forEach(button => {
-    button.addEventListener("click", () => {
-      const inputId = button.getAttribute("data-input");
-      if (!inputId) return;
+  // Mode control (segmented control) handlers
+  document.querySelectorAll(".param-group").forEach(group => {
+    const modeButtons = group.querySelectorAll(".mode-btn");
+    const fixedWrapper = group.querySelector(".mode-fixed") as HTMLElement;
+    const rangeWrapper = group.querySelector(".mode-range") as HTMLElement;
+    const param = group.getAttribute("data-param");
 
-      const inputEl = document.getElementById(inputId) as HTMLInputElement;
-      if (inputEl) {
-        inputEl.value = "";
-        button.setAttribute("style", "display: none;");
+    modeButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const mode = btn.getAttribute("data-mode");
+        
+        // Update active state
+        modeButtons.forEach(b => b.classList.remove("active"));
+        btn.classList.add("active");
 
-        // Re-enable range inputs
-        const param = inputId.replace("fixed-", "");
-        const minEl = document.getElementById(`min-${param}`) as HTMLInputElement;
-        const maxEl = document.getElementById(`max-${param}`) as HTMLInputElement;
-        minEl?.removeAttribute("disabled");
-        maxEl?.removeAttribute("disabled");
-
-        // Re-calculate to update status and ranges
-        calculateParameterRanges();
-      }
-    });
-  });
-
-  // Show/hide clear buttons based on input
-  constraintFields.forEach(fieldId => {
-    if (fieldId.startsWith("fixed-")) {
-      const field = document.getElementById(fieldId) as HTMLInputElement;
-      const clearBtn = document.querySelector(`[data-input="${fieldId}"]`) as HTMLButtonElement;
-      
-      field?.addEventListener("input", () => {
-        if (field.value) {
-          clearBtn?.setAttribute("style", "display: block;");
-        } else {
-          clearBtn?.setAttribute("style", "display: none;");
+        // Show/hide appropriate inputs
+        if (mode === "float") {
+          if (fixedWrapper) fixedWrapper.style.display = "none";
+          if (rangeWrapper) rangeWrapper.style.display = "none";
+          
+          // Clear inputs when switching to float
+          const fixedInput = group.querySelector(`#fixed-${param}`) as HTMLInputElement;
+          const minInput = group.querySelector(`#min-${param}`) as HTMLInputElement;
+          const maxInput = group.querySelector(`#max-${param}`) as HTMLInputElement;
+          if (fixedInput) fixedInput.value = "";
+          if (minInput) minInput.value = "";
+          if (maxInput) maxInput.value = "";
+        } else if (mode === "fixed") {
+          if (fixedWrapper) fixedWrapper.style.display = "block";
+          if (rangeWrapper) rangeWrapper.style.display = "none";
+          
+          // Clear range inputs
+          const minInput = group.querySelector(`#min-${param}`) as HTMLInputElement;
+          const maxInput = group.querySelector(`#max-${param}`) as HTMLInputElement;
+          if (minInput) minInput.value = "";
+          if (maxInput) maxInput.value = "";
+        } else if (mode === "range") {
+          if (fixedWrapper) fixedWrapper.style.display = "none";
+          if (rangeWrapper) rangeWrapper.style.display = "block";
+          
+          // Clear fixed input
+          const fixedInput = group.querySelector(`#fixed-${param}`) as HTMLInputElement;
+          if (fixedInput) fixedInput.value = "";
         }
+
+        // Trigger recalculation
+        calculateParameterRanges();
       });
-    }
+    });
   });
 
   // Export to comparison button
@@ -319,65 +305,69 @@ async function calculateParameterRanges(): Promise<void> {
  * Display parameter ranges in the UI (inline with parameters)
  */
 function displayParameterRanges(ranges: DoriParameterRanges): void {
-  // Map backend field names to UI element IDs
-  const parameterMapping: { [key: string]: { rangeId: string; inputId: string; statusId: string; unit: string; label: string } } = {
-    sensor_width_mm: { rangeId: "range-sensor-width", inputId: "fixed-sensor-width", statusId: "status-sensor-width", unit: "mm", label: "Sensor Width" },
-    sensor_height_mm: { rangeId: "range-sensor-height", inputId: "fixed-sensor-height", statusId: "status-sensor-height", unit: "mm", label: "Sensor Height" },
-    pixel_width: { rangeId: "range-pixel-width", inputId: "fixed-pixel-width", statusId: "status-pixel-width", unit: "px", label: "Pixel Width" },
-    pixel_height: { rangeId: "range-pixel-height", inputId: "fixed-pixel-height", statusId: "status-pixel-height", unit: "px", label: "Pixel Height" },
-    focal_length_mm: { rangeId: "range-focal-length", inputId: "fixed-focal-length", statusId: "status-focal-length", unit: "mm", label: "Focal Length" },
-    horizontal_fov_deg: { rangeId: "range-horizontal-fov", inputId: "fixed-horizontal-fov", statusId: "status-horizontal-fov", unit: "°", label: "Horizontal FOV" },
+  // Map backend field names to UI element IDs and parameter names
+  const parameterMapping: { [key: string]: { rangeId: string; param: string; unit: string; label: string } } = {
+    sensor_width_mm: { rangeId: "range-sensor-width", param: "sensor-width", unit: "mm", label: "Sensor Width" },
+    sensor_height_mm: { rangeId: "range-sensor-height", param: "sensor-height", unit: "mm", label: "Sensor Height" },
+    pixel_width: { rangeId: "range-pixel-width", param: "pixel-width", unit: "px", label: "Pixel Width" },
+    pixel_height: { rangeId: "range-pixel-height", param: "pixel-height", unit: "px", label: "Pixel Height" },
+    focal_length_mm: { rangeId: "range-focal-length", param: "focal-length", unit: "mm", label: "Focal Length" },
+    horizontal_fov_deg: { rangeId: "range-horizontal-fov", param: "horizontal-fov", unit: "°", label: "Horizontal FOV" },
   };
 
-  // Update each parameter's range display and validation status
+  // Update each parameter's inline range display with color-coded validation
   Object.entries(parameterMapping).forEach(([key, mapping]) => {
     const rangeEl = document.getElementById(mapping.rangeId);
-    const inputEl = document.getElementById(mapping.inputId) as HTMLInputElement;
-    const statusEl = document.getElementById(mapping.statusId);
-    
-    if (!rangeEl || !statusEl) return;
+    if (!rangeEl) return;
 
-    const isFixed = inputEl?.value && inputEl.value.trim() !== "";
+    // Determine current mode
+    const paramGroup = document.querySelector(`[data-param="${mapping.param}"]`);
+    const activeBtn = paramGroup?.querySelector('.mode-btn.active');
+    const currentMode = activeBtn?.getAttribute('data-mode') || 'float';
+
+    // Get input values
+    const fixedInput = document.getElementById(`fixed-${mapping.param}`) as HTMLInputElement;
+    const minInput = document.getElementById(`min-${mapping.param}`) as HTMLInputElement;
+    const maxInput = document.getElementById(`max-${mapping.param}`) as HTMLInputElement;
+
     const rangeData = ranges[key as keyof DoriParameterRanges];
     
     // Check if this parameter has a calculated range
     if (rangeData && typeof rangeData === 'object' && 'min' in rangeData && 'max' in rangeData) {
       const range = rangeData as { min: number; max: number };
       const isSingleValue = Math.abs(range.max - range.min) < 0.01; // Tolerance for floating point
-      const isComplete = isFixed || isSingleValue;
-
-      // Update status indicator in label
-      if (isComplete) {
-        statusEl.innerHTML = '✓';
-        statusEl.className = 'field-status-inline complete';
-        statusEl.style.display = 'inline-flex';
+      
+      if (isSingleValue) {
+        // Single value (green)
+        rangeEl.textContent = `${range.min.toFixed(range.min < 10 ? 2 : 0)} ${mapping.unit}`;
+        rangeEl.className = 'param-range-inline complete-state';
       } else {
-        statusEl.innerHTML = '•';
-        statusEl.className = 'field-status-inline incomplete';
-        statusEl.style.display = 'inline-flex';
+        // Range of values (blue)
+        rangeEl.textContent = `${range.min.toFixed(range.min < 10 ? 2 : 0)} – ${range.max.toFixed(range.max < 10 ? 2 : 0)} ${mapping.unit}`;
+        rangeEl.className = 'param-range-inline range-state';
       }
-
-      // Show range only if input is empty (floating mode)
-      if (!inputEl?.value) {
-        rangeEl.innerHTML = `
-          <span class="range-text">
-            ${range.min.toFixed(range.min < 10 ? 2 : 0)} – ${range.max.toFixed(range.max < 10 ? 2 : 0)} ${mapping.unit}
-          </span>
-        `;
-        rangeEl.classList.add("active");
-      } else {
-        rangeEl.classList.remove("active");
+    } else if (currentMode === 'fixed' && fixedInput?.value) {
+      // Fixed mode with value (green)
+      const value = parseFloat(fixedInput.value);
+      rangeEl.textContent = `${value.toFixed(value < 10 ? 2 : 0)} ${mapping.unit}`;
+      rangeEl.className = 'param-range-inline complete-state';
+    } else if (currentMode === 'range' && (minInput?.value || maxInput?.value)) {
+      // Range mode with constraints (blue)
+      const hasMin = minInput?.value && minInput.value.trim() !== "";
+      const hasMax = maxInput?.value && maxInput.value.trim() !== "";
+      
+      if (hasMin && hasMax) {
+        rangeEl.textContent = `${minInput.value} – ${maxInput.value} ${mapping.unit}`;
+      } else if (hasMin) {
+        rangeEl.textContent = `≥ ${minInput.value} ${mapping.unit}`;
+      } else if (hasMax) {
+        rangeEl.textContent = `≤ ${maxInput.value} ${mapping.unit}`;
       }
-    } else if (isFixed) {
-      // Parameter is fixed by user but not in ranges (it's a constraint)
-      statusEl.innerHTML = '✓';
-      statusEl.className = 'field-status-inline complete';
-      statusEl.style.display = 'inline-flex';
-      rangeEl.classList.remove("active");
+      rangeEl.className = 'param-range-inline range-state';
     } else {
-      // No range data and not fixed - hide status
-      statusEl.style.display = 'none';
-      rangeEl.classList.remove("active");
+      // No data - clear the display
+      rangeEl.textContent = '';
+      rangeEl.className = 'param-range-inline';
     }
   });
 }
