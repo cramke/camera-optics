@@ -1,9 +1,9 @@
-import type { CameraSystem, FovResult } from "./types";
 import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "./constants";
 import { calculateCameraFov } from "./api";
 import { store } from "./store";
 import { drawVisualization } from "./visualization";
 import { getCameraFromForm, getDistance, calculateFocalLength, loadSystemToForm, loadPreset } from "./form";
+import { displaySingleResult } from "./results";
 
 // Calculate FOV for current form values
 async function calculateFov() {
@@ -36,36 +36,6 @@ async function addToComparison() {
     console.error("Error adding system:", error);
     alert(`Error: ${error}`);
   }
-}
-
-// Display single result in results tab
-function displaySingleResult(camera: CameraSystem, result: FovResult) {
-  const resultsOutput = document.getElementById("results-output")!;
-  const pixelPitch = (camera.sensor_width_mm * 1000) / camera.pixel_width;
-  
-  resultsOutput.innerHTML = `
-    <div class="result-card">
-      <h3>${camera.name || "Camera System"}</h3>
-      <div class="result-section">
-        <h4>Camera Specifications</h4>
-        <p>Sensor: ${camera.sensor_width_mm} × ${camera.sensor_height_mm} mm</p>
-        <p>Resolution: ${camera.pixel_width} × ${camera.pixel_height} pixels</p>
-        <p>Pixel Pitch: ${pixelPitch.toFixed(2)} µm</p>
-        <p>Focal Length: ${camera.focal_length_mm} mm</p>
-      </div>
-      <div class="result-section">
-        <h4>Field of View @ ${result.distance_m.toFixed(2)} m</h4>
-        <p>Angular FOV: ${result.horizontal_fov_deg.toFixed(2)}° × ${result.vertical_fov_deg.toFixed(2)}°</p>
-        <p>Linear FOV: ${result.horizontal_fov_m.toFixed(3)} × ${result.vertical_fov_m.toFixed(3)} m</p>
-        <p>Linear FOV: ${(result.horizontal_fov_m * 1000).toFixed(2)} × ${(result.vertical_fov_m * 1000).toFixed(2)} mm</p>
-      </div>
-      <div class="result-section">
-        <h4>Spatial Resolution</h4>
-        <p>Pixels per meter: ${result.ppm.toFixed(1)} px/m</p>
-        <p>Ground Sample Distance: ${result.gsd_mm.toFixed(3)} mm/pixel</p>
-      </div>
-    </div>
-  `;
 }
 
 // Update systems comparison list
