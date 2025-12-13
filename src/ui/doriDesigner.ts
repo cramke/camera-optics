@@ -113,17 +113,41 @@ export function initializeDoriDesigner(): void {
 
   // Auto-calculate ranges when any parameter constraint changes
   const constraintFields = [
-    "fixed-sensor-width",
-    "fixed-pixel-width",
-    "fixed-focal-length",
-    "fixed-horizontal-fov",
-    "fixed-sensor-height",
-    "fixed-pixel-height"
+    "fixed-sensor-width", "min-sensor-width", "max-sensor-width",
+    "fixed-sensor-height", "min-sensor-height", "max-sensor-height",
+    "fixed-pixel-width", "min-pixel-width", "max-pixel-width",
+    "fixed-pixel-height", "min-pixel-height", "max-pixel-height",
+    "fixed-focal-length", "min-focal-length", "max-focal-length",
+    "fixed-horizontal-fov", "min-horizontal-fov", "max-horizontal-fov"
   ];
 
   constraintFields.forEach(fieldId => {
     const field = document.getElementById(fieldId) as HTMLInputElement;
     field?.addEventListener("input", () => {
+      // Manage mutual exclusivity between fixed and range inputs
+      if (fieldId.startsWith("fixed-")) {
+        const param = fieldId.replace("fixed-", "");
+        const minEl = document.getElementById(`min-${param}`) as HTMLInputElement;
+        const maxEl = document.getElementById(`max-${param}`) as HTMLInputElement;
+        if (field.value) {
+          minEl?.setAttribute("disabled", "true");
+          maxEl?.setAttribute("disabled", "true");
+        } else {
+          minEl?.removeAttribute("disabled");
+          maxEl?.removeAttribute("disabled");
+        }
+      } else if (fieldId.startsWith("min-") || fieldId.startsWith("max-")) {
+        const param = fieldId.replace(/^(min|max)-/, "");
+        const fixedEl = document.getElementById(`fixed-${param}`) as HTMLInputElement;
+        const minEl = document.getElementById(`min-${param}`) as HTMLInputElement;
+        const maxEl = document.getElementById(`max-${param}`) as HTMLInputElement;
+        if (minEl?.value || maxEl?.value) {
+          fixedEl?.setAttribute("disabled", "true");
+        } else {
+          fixedEl?.removeAttribute("disabled");
+        }
+      }
+
       // Auto-calculate ranges when constraint changes
       calculateParameterRanges();
     });
@@ -156,40 +180,61 @@ function getDoriTargets(): DoriTargets {
 /**
  * Gather fixed parameter constraints from inputs
  * A parameter is fixed if it has a value, floating if empty
+ * Priority: fixed value > range constraints (min/max)
  */
 function getConstraints(): ParameterConstraint {
   const constraints: ParameterConstraint = {};
 
-  const sensorWidthEl = document.getElementById("fixed-sensor-width") as HTMLInputElement;
-  const pixelWidthEl = document.getElementById("fixed-pixel-width") as HTMLInputElement;
-  const focalLengthEl = document.getElementById("fixed-focal-length") as HTMLInputElement;
-  const horizontalFovEl = document.getElementById("fixed-horizontal-fov") as HTMLInputElement;
-  const sensorHeightEl = document.getElementById("fixed-sensor-height") as HTMLInputElement;
-  const pixelHeightEl = document.getElementById("fixed-pixel-height") as HTMLInputElement;
+  // Helper to get constraint value (fixed or range)
+  const getConstraintValue = (fixedId: string, minId: string, maxId: string, isInteger = false) => {
+    const fixedEl = document.getElementById(fixedId) as HTMLInputElement;
+    const minEl = document.getElementById(minId) as HTMLInputElement;
+    const maxEl = document.getElementById(maxId) as HTMLInputElement;
 
-  if (sensorWidthEl?.value) {
-    constraints.sensor_width_mm = parseFloat(sensorWidthEl.value);
-  }
+    // Fixed value takes priority
+    if (fixedEl?.value) {
+      return isInteger ? parseInt(fixedEl.value) : parseFloat(fixedEl.value);
+    }
 
-  if (pixelWidthEl?.value) {
-    constraints.pixel_width = parseInt(pixelWidthEl.value);
-  }
+    // Check for range constraints
+    const hasMin = minEl?.value && minEl.value.trim() !== "";
+    const hasMax = maxEl?.value && maxEl.value.trim() !== "";
 
-  if (focalLengthEl?.value) {
-    constraints.focal_length_mm = parseFloat(focalLengthEl.value);
-  }
+    if (hasMin && hasMax) {
+      const min = isInteger ? parseInt(minEl.value) : parseFloat(minEl.value);
+      const max = isInteger ? parseInt(maxEl.value) : parseFloat(maxEl.value);
+      // If min equals max, treat as fixed value
+      if (min === max) return min;
+      // For now, use midpoint as fixed value (backend doesn't support ranges yet)
+      return (min + max) / 2;
+    } else if (hasMin) {
+      // Only min specified - use as lower bound (for now treat as fixed)
+      return isInteger ? parseInt(minEl.value) : parseFloat(minEl.value);
+    } else if (hasMax) {
+      // Only max specified - use as upper bound (for now treat as fixed)
+      return isInteger ? parseInt(maxEl.value) : parseFloat(maxEl.value);
+    }
 
-  if (horizontalFovEl?.value) {
-    constraints.horizontal_fov_deg = parseFloat(horizontalFovEl.value);
-  }
+    return null;
+  };
 
-  if (sensorHeightEl?.value) {
-    constraints.sensor_height_mm = parseFloat(sensorHeightEl.value);
-  }
+  const sensorWidth = getConstraintValue("fixed-sensor-width", "min-sensor-width", "max-sensor-width");
+  if (sensorWidth !== null) constraints.sensor_width_mm = sensorWidth;
 
-  if (pixelHeightEl?.value) {
-    constraints.pixel_height = parseInt(pixelHeightEl.value);
-  }
+  const sensorHeight = getConstraintValue("fixed-sensor-height", "min-sensor-height", "max-sensor-height");
+  if (sensorHeight !== null) constraints.sensor_height_mm = sensorHeight;
+
+  const pixelWidth = getConstraintValue("fixed-pixel-width", "min-pixel-width", "max-pixel-width", true);
+  if (pixelWidth !== null) constraints.pixel_width = pixelWidth;
+
+  const pixelHeight = getConstraintValue("fixed-pixel-height", "min-pixel-height", "max-pixel-height", true);
+  if (pixelHeight !== null) constraints.pixel_height = pixelHeight;
+
+  const focalLength = getConstraintValue("fixed-focal-length", "min-focal-length", "max-focal-length");
+  if (focalLength !== null) constraints.focal_length_mm = focalLength;
+
+  const horizontalFov = getConstraintValue("fixed-horizontal-fov", "min-horizontal-fov", "max-horizontal-fov");
+  if (horizontalFov !== null) constraints.horizontal_fov_deg = horizontalFov;
 
   return constraints;
 }
