@@ -260,9 +260,13 @@ pub fn calculate_dori_parameter_ranges(
             // Substitute: distance = (focal × pixels) / (2 × focal × tan(FOV/2) × px_per_m)
             // Simplify: distance = pixels / (2 × tan(FOV/2) × px_per_m)
             // This means focal cancels out, so we can pick focal range and derive sensor
+            // But we need to constrain focal so sensor stays within physical limits
             
-            let min_focal = MIN_FOCAL_LENGTH_MM;
-            let max_focal = MAX_FOCAL_LENGTH_MM;
+            let min_focal_for_min_sensor = MIN_SENSOR_WIDTH_MM / (2.0 * tan_half_fov);
+            let max_focal_for_max_sensor = MAX_SENSOR_WIDTH_MM / (2.0 * tan_half_fov);
+            
+            let min_focal = min_focal_for_min_sensor.max(MIN_FOCAL_LENGTH_MM);
+            let max_focal = max_focal_for_max_sensor.min(MAX_FOCAL_LENGTH_MM);
             
             ranges.focal_length_mm = Some(ParameterRange {
                 min: min_focal,
@@ -274,25 +278,34 @@ pub fn calculate_dori_parameter_ranges(
             let max_sensor = 2.0 * max_focal * tan_half_fov;
             
             ranges.sensor_width_mm = Some(ParameterRange {
-                min: min_sensor.max(MIN_SENSOR_WIDTH_MM),
-                max: max_sensor.min(MAX_SENSOR_WIDTH_MM),
+                min: min_sensor,
+                max: max_sensor,
             });
         } else {
             // Only FOV is fixed - give ranges for focal, sensor follows from FOV
-            let min_focal = MIN_FOCAL_LENGTH_MM;
-            let max_focal = MAX_FOCAL_LENGTH_MM;
+            // We need to constrain focal so that sensor stays within physical limits
+            // sensor = 2 × focal × tan(FOV/2)
+            // Therefore: focal = sensor / (2 × tan(FOV/2))
+            
+            let min_focal_for_min_sensor = MIN_SENSOR_WIDTH_MM / (2.0 * tan_half_fov);
+            let max_focal_for_max_sensor = MAX_SENSOR_WIDTH_MM / (2.0 * tan_half_fov);
+            
+            // Constrain focal range to stay within both focal and sensor limits
+            let min_focal = min_focal_for_min_sensor.max(MIN_FOCAL_LENGTH_MM);
+            let max_focal = max_focal_for_max_sensor.min(MAX_FOCAL_LENGTH_MM);
             
             ranges.focal_length_mm = Some(ParameterRange {
                 min: min_focal,
                 max: max_focal,
             });
             
+            // Now sensor is correctly determined by constrained focal and FOV
             let min_sensor = 2.0 * min_focal * tan_half_fov;
             let max_sensor = 2.0 * max_focal * tan_half_fov;
             
             ranges.sensor_width_mm = Some(ParameterRange {
-                min: min_sensor.max(MIN_SENSOR_WIDTH_MM),
-                max: max_sensor.min(MAX_SENSOR_WIDTH_MM),
+                min: min_sensor,
+                max: max_sensor,
             });
             
             ranges.pixel_width = Some(ParameterRange {
@@ -676,8 +689,8 @@ mod tests {
             let fov_at_max = 2.0 * (sensor_range.max / (2.0 * focal_range.max)).atan().to_degrees();
             
             // Both should be close to 60 degrees
-            assert!((fov_at_min - 60.0).abs() < 1.0);
-            assert!((fov_at_max - 60.0).abs() < 1.0);
+            assert!((fov_at_min - 60.0).abs() < 1.0, "FOV at min is {}, expected 60", fov_at_min);
+            assert!((fov_at_max - 60.0).abs() < 1.0, "FOV at max is {}, expected 60", fov_at_max);
         }
     }
 
