@@ -105,13 +105,29 @@ export function initializeDoriDesigner(): void {
       const value = parseFloat(field.value);
       if (value > 0) {
         autoCalculateDoriDistances(name, value);
+        // Auto-calculate ranges when DORI target changes
+        calculateParameterRanges();
       }
     });
   });
 
-  // Calculate ranges button
-  const calculateBtn = document.getElementById("calculate-ranges-btn");
-  calculateBtn?.addEventListener("click", calculateParameterRanges);
+  // Auto-calculate ranges when any parameter constraint changes
+  const constraintFields = [
+    "fixed-sensor-width",
+    "fixed-pixel-width",
+    "fixed-focal-length",
+    "fixed-horizontal-fov",
+    "fixed-sensor-height",
+    "fixed-pixel-height"
+  ];
+
+  constraintFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId) as HTMLInputElement;
+    field?.addEventListener("input", () => {
+      // Auto-calculate ranges when constraint changes
+      calculateParameterRanges();
+    });
+  });
 
   // Export to comparison button
   const exportBtn = document.getElementById("export-to-comparison-btn");
