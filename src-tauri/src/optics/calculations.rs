@@ -335,6 +335,39 @@ pub fn calculate_dori_parameter_ranges(
             });
         }
         
+        // Calculate height dimensions before returning (FOV branch exits early)
+        const STANDARD_ASPECT_RATIO: f64 = 4.0 / 3.0;
+        
+        if constraints.sensor_height_mm.is_none() {
+            if let Some(sensor_width_range) = &ranges.sensor_width_mm {
+                ranges.sensor_height_mm = Some(ParameterRange {
+                    min: sensor_width_range.min / STANDARD_ASPECT_RATIO,
+                    max: sensor_width_range.max / STANDARD_ASPECT_RATIO,
+                });
+            } else if let Some(sensor_w) = constraints.sensor_width_mm {
+                let sensor_h = sensor_w / STANDARD_ASPECT_RATIO;
+                ranges.sensor_height_mm = Some(ParameterRange {
+                    min: sensor_h,
+                    max: sensor_h,
+                });
+            }
+        }
+        
+        if constraints.pixel_height.is_none() {
+            if let Some(pixel_width_range) = &ranges.pixel_width {
+                ranges.pixel_height = Some(ParameterRange {
+                    min: pixel_width_range.min / STANDARD_ASPECT_RATIO,
+                    max: pixel_width_range.max / STANDARD_ASPECT_RATIO,
+                });
+            } else if let Some(pixels_w) = constraints.pixel_width {
+                let pixels_h = pixels_w as f64 / STANDARD_ASPECT_RATIO;
+                ranges.pixel_height = Some(ParameterRange {
+                    min: pixels_h,
+                    max: pixels_h,
+                });
+            }
+        }
+        
         return ranges; // FOV is fixed, so we handle it completely here
     }
     
@@ -956,6 +989,24 @@ mod tests {
             assert!((focal.min - expected_focal).abs() < 0.1, "Min focal should be ~30mm");
             assert!((focal.max - expected_focal).abs() < 0.1, "Max focal should be ~30mm");
             assert!((focal.min - focal.max).abs() < 0.01, "Min and max should be the same (determined value)");
+        }
+        
+        // Height dimensions should also be calculated with 4:3 aspect ratio
+        assert!(ranges.sensor_height_mm.is_some(), "Sensor height should be calculated");
+        assert!(ranges.pixel_height.is_some(), "Pixel height should be calculated");
+        
+        if let Some(sensor_h) = &ranges.sensor_height_mm {
+            let expected_height = 4.2 / (4.0 / 3.0); // 3.15mm
+            println!("Expected sensor height: {}, Got: min={}, max={}", expected_height, sensor_h.min, sensor_h.max);
+            assert!((sensor_h.min - expected_height).abs() < 0.01, "Sensor height should be 3.15mm");
+            assert!((sensor_h.max - expected_height).abs() < 0.01, "Sensor height should be 3.15mm");
+        }
+        
+        if let Some(pixel_h) = &ranges.pixel_height {
+            let expected_height = 6000.0 / (4.0 / 3.0); // 4500
+            println!("Expected pixel height: {}, Got: min={}, max={}", expected_height, pixel_h.min, pixel_h.max);
+            assert!((pixel_h.min - expected_height).abs() < 0.01, "Pixel height should be 4500");
+            assert!((pixel_h.max - expected_height).abs() < 0.01, "Pixel height should be 4500");
         }
     }
 
