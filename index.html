@@ -128,31 +128,28 @@
           <div id="dori-designer-tab" class="tab-content">
             <div class="dori-designer-content">
               <div class="designer-section">
-                <h3>Target DORI Distances</h3>
-                <p class="section-description">Enter any one distance - the others will be calculated automatically based on standard DORI ratios</p>
+                <h3>Target DORI Distances (m)</h3>
                 
-                <div class="form-group">
-                  <label for="target-detection">Detection Distance (m)</label>
-                  <input type="number" id="target-detection" placeholder="e.g., 50" step="0.1" />
-                  <span class="help-text">Identify that an object is present (25 px/m)</span>
-                </div>
-                
-                <div class="form-group">
-                  <label for="target-observation">Observation Distance (m)</label>
-                  <input type="number" id="target-observation" placeholder="e.g., 20" step="0.1" />
-                  <span class="help-text">Determine general characteristics (62.5 px/m)</span>
-                </div>
-                
-                <div class="form-group">
-                  <label for="target-recognition">Recognition Distance (m)</label>
-                  <input type="number" id="target-recognition" placeholder="e.g., 10" step="0.1" />
-                  <span class="help-text">Recognize familiar person/object (125 px/m)</span>
-                </div>
-                
-                <div class="form-group">
-                  <label for="target-identification">Identification Distance (m)</label>
-                  <input type="number" id="target-identification" placeholder="e.g., 5" step="0.1" />
-                  <span class="help-text">Identify specific person (250 px/m)</span>
+                <div class="dori-grid">
+                  <div class="dori-input-group">
+                    <label for="target-detection">Detection <span class="dori-spec">(25 px/m)</span></label>
+                    <input type="number" id="target-detection" placeholder="50" step="0.1" />
+                  </div>
+                  
+                  <div class="dori-input-group">
+                    <label for="target-observation">Observation <span class="dori-spec">(62.5 px/m)</span></label>
+                    <input type="number" id="target-observation" placeholder="20" step="0.1" />
+                  </div>
+                  
+                  <div class="dori-input-group">
+                    <label for="target-recognition">Recognition <span class="dori-spec">(125 px/m)</span></label>
+                    <input type="number" id="target-recognition" placeholder="10" step="0.1" />
+                  </div>
+                  
+                  <div class="dori-input-group">
+                    <label for="target-identification">Identification <span class="dori-spec">(250 px/m)</span></label>
+                    <input type="number" id="target-identification" placeholder="5" step="0.1" />
+                  </div>
                 </div>
               </div>
 

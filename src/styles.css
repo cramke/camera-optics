@@ -849,3 +849,35 @@ button {
 .limiting-requirement strong {
   color: #856404;
 }
+
+/* DORI Grid Layout - Compact 2x2 */
+.dori-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.dori-input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.dori-input-group label {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+  color: #333;
+}
+
+.dori-spec {
+  font-size: 0.8rem;
+  color: #888;
+  font-weight: normal;
+}
+
+.dori-input-group input {
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
