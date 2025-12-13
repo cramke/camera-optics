@@ -288,6 +288,11 @@ function switchTab(tabName: string) {
   document.querySelectorAll(".tab-content").forEach((content) => {
     content.classList.toggle("active", content.id === `${tabName}-tab`);
   });
+  
+  // Redraw visualization when switching to visualization tab
+  if (tabName === "visualization") {
+    drawVisualization(cameraSystems);
+  }
 }
 
 // Initialize app
