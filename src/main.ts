@@ -1,9 +1,7 @@
 import type { CameraSystem, FovResult, CameraWithResult, ReferenceObject } from "./types";
 import { REFERENCE_OBJECTS, CAMERA_PRESETS, SYSTEM_COLORS } from "./constants";
 import { calculateCameraFov, calculateFocalLengthFromFov } from "./api";
-
-// Store camera systems for comparison
-const cameraSystems: CameraWithResult[] = [];
+import { store } from "./store";
 
 // Get form values
 function getCameraFromForm(): CameraSystem {
@@ -90,9 +88,9 @@ async function addToComparison() {
   try {
     const result = await calculateCameraFov(camera, distance);
 
-    cameraSystems.push({ camera, result });
+    store.addCameraSystem({ camera, result });
     updateSystemsList();
-    drawVisualization(cameraSystems);
+    drawVisualization(store.getCameraSystems());
   } catch (error) {
     console.error("Error adding system:", error);
     alert(`Error: ${error}`);
@@ -132,6 +130,7 @@ function displaySingleResult(camera: CameraSystem, result: FovResult) {
 // Update systems comparison list
 function updateSystemsList() {
   const systemsItems = document.getElementById("systems-items")!;
+  const cameraSystems = store.getCameraSystems();
   
   if (cameraSystems.length === 0) {
     systemsItems.innerHTML = '<p class="empty-message">No systems added yet</p>';
@@ -177,16 +176,16 @@ function updateSystemsList() {
     btn.addEventListener("click", (e) => {
       e.stopPropagation();
       const index = parseInt((e.target as HTMLElement).dataset.index!);
-      cameraSystems.splice(index, 1);
+      store.removeCameraSystem(index);
       updateSystemsList();
-      drawVisualization(cameraSystems);
+      drawVisualization(store.getCameraSystems());
     });
   });
 }
 
 // Load a system from the comparison list into the form
 function loadSystemToForm(index: number) {
-  const system = cameraSystems[index];
+  const system = store.getCameraSystem(index);
   if (!system) return;
 
   (document.getElementById("sensor-width") as HTMLInputElement).value = system.camera.sensor_width_mm.toString();
@@ -198,9 +197,9 @@ function loadSystemToForm(index: number) {
   (document.getElementById("name") as HTMLInputElement).value = system.camera.name || "";
 
   // Remove the system from the list so it can be re-added after editing
-  cameraSystems.splice(index, 1);
+  store.removeCameraSystem(index);
   updateSystemsList();
-  drawVisualization(cameraSystems);
+  drawVisualization(store.getCameraSystems());
 
   // Scroll to the form
   document.querySelector(".camera-form")?.scrollIntoView({ behavior: "smooth" });
@@ -393,7 +392,7 @@ function switchTab(tabName: string) {
   
   // Redraw visualization when switching to visualization tab
   if (tabName === "visualization") {
-    drawVisualization(cameraSystems);
+    drawVisualization(store.getCameraSystems());
   }
 }
 
@@ -437,7 +436,7 @@ window.addEventListener("DOMContentLoaded", () => {
     
     // Add change listener
     refSelect.addEventListener("change", () => {
-      drawVisualization(cameraSystems);
+      drawVisualization(store.getCameraSystems());
     });
   }
 
