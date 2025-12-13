@@ -159,7 +159,10 @@
                 
                 <div class="param-row">
                   <div class="param-group">
-                    <label class="param-label">Sensor Width (mm)</label>
+                    <label class="param-label">
+                      Sensor Width (mm)
+                      <span id="status-sensor-width" class="field-status-inline" style="display: none;"></span>
+                    </label>
                     <div class="param-input-wrapper">
                       <input type="number" id="fixed-sensor-width" class="param-input" placeholder="Range: calculating..." step="0.1" />
                       <button class="param-clear" data-input="fixed-sensor-width" style="display: none;">×</button>
@@ -168,7 +171,10 @@
                   </div>
                   
                   <div class="param-group">
-                    <label class="param-label">Pixel Width</label>
+                    <label class="param-label">
+                      Pixel Width
+                      <span id="status-pixel-width" class="field-status-inline" style="display: none;"></span>
+                    </label>
                     <div class="param-input-wrapper">
                       <input type="number" id="fixed-pixel-width" class="param-input" placeholder="Range: calculating..." step="1" />
                       <button class="param-clear" data-input="fixed-pixel-width" style="display: none;">×</button>
@@ -179,7 +185,10 @@
                 
                 <div class="param-row">
                   <div class="param-group">
-                    <label class="param-label">Focal Length (mm)</label>
+                    <label class="param-label">
+                      Focal Length (mm)
+                      <span id="status-focal-length" class="field-status-inline" style="display: none;"></span>
+                    </label>
                     <div class="param-input-wrapper">
                       <input type="number" id="fixed-focal-length" class="param-input" placeholder="Range: calculating..." step="0.1" />
                       <button class="param-clear" data-input="fixed-focal-length" style="display: none;">×</button>
@@ -188,7 +197,10 @@
                   </div>
                   
                   <div class="param-group">
-                    <label class="param-label">Horizontal FOV (°)</label>
+                    <label class="param-label">
+                      Horizontal FOV (°)
+                      <span id="status-horizontal-fov" class="field-status-inline" style="display: none;"></span>
+                    </label>
                     <div class="param-input-wrapper">
                       <input type="number" id="fixed-horizontal-fov" class="param-input" placeholder="Range: calculating..." step="0.1" />
                       <button class="param-clear" data-input="fixed-horizontal-fov" style="display: none;">×</button>
@@ -199,7 +211,10 @@
                 
                 <div class="param-row">
                   <div class="param-group">
-                    <label class="param-label">Sensor Height (mm)</label>
+                    <label class="param-label">
+                      Sensor Height (mm)
+                      <span id="status-sensor-height" class="field-status-inline" style="display: none;"></span>
+                    </label>
                     <div class="param-input-wrapper">
                       <input type="number" id="fixed-sensor-height" class="param-input" placeholder="Range: calculating..." step="0.1" />
                       <button class="param-clear" data-input="fixed-sensor-height" style="display: none;">×</button>
@@ -208,7 +223,10 @@
                   </div>
                   
                   <div class="param-group">
-                    <label class="param-label">Pixel Height</label>
+                    <label class="param-label">
+                      Pixel Height
+                      <span id="status-pixel-height" class="field-status-inline" style="display: none;"></span>
+                    </label>
                     <div class="param-input-wrapper">
                       <input type="number" id="fixed-pixel-height" class="param-input" placeholder="Range: calculating..." step="1" />
                       <button class="param-clear" data-input="fixed-pixel-height" style="display: none;">×</button>
@@ -220,11 +238,6 @@
 
               <div class="button-row">
                 <button id="export-to-comparison-btn" class="primary-btn" style="display: none;">Add to Comparison</button>
-              </div>
-
-              <div id="validation-indicator" class="validation-indicator" style="display: none;">
-                <span class="validation-icon"></span>
-                <span class="validation-text"></span>
               </div>
             </div>
           </div>

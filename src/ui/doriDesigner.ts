@@ -234,16 +234,16 @@ async function calculateParameterRanges(): Promise<void> {
  */
 function displayParameterRanges(ranges: DoriParameterRanges): void {
   // Map backend field names to UI element IDs
-  const parameterMapping: { [key: string]: { rangeId: string; inputId: string; unit: string; label: string } } = {
-    sensor_width_mm: { rangeId: "range-sensor-width", inputId: "fixed-sensor-width", unit: "mm", label: "Sensor Width" },
-    sensor_height_mm: { rangeId: "range-sensor-height", inputId: "fixed-sensor-height", unit: "mm", label: "Sensor Height" },
-    pixel_width: { rangeId: "range-pixel-width", inputId: "fixed-pixel-width", unit: "px", label: "Pixel Width" },
-    pixel_height: { rangeId: "range-pixel-height", inputId: "fixed-pixel-height", unit: "px", label: "Pixel Height" },
-    focal_length_mm: { rangeId: "range-focal-length", inputId: "fixed-focal-length", unit: "mm", label: "Focal Length" },
-    horizontal_fov_deg: { rangeId: "range-horizontal-fov", inputId: "fixed-horizontal-fov", unit: "°", label: "Horizontal FOV" },
+  const parameterMapping: { [key: string]: { rangeId: string; inputId: string; statusId: string; unit: string; label: string } } = {
+    sensor_width_mm: { rangeId: "range-sensor-width", inputId: "fixed-sensor-width", statusId: "status-sensor-width", unit: "mm", label: "Sensor Width" },
+    sensor_height_mm: { rangeId: "range-sensor-height", inputId: "fixed-sensor-height", statusId: "status-sensor-height", unit: "mm", label: "Sensor Height" },
+    pixel_width: { rangeId: "range-pixel-width", inputId: "fixed-pixel-width", statusId: "status-pixel-width", unit: "px", label: "Pixel Width" },
+    pixel_height: { rangeId: "range-pixel-height", inputId: "fixed-pixel-height", statusId: "status-pixel-height", unit: "px", label: "Pixel Height" },
+    focal_length_mm: { rangeId: "range-focal-length", inputId: "fixed-focal-length", statusId: "status-focal-length", unit: "mm", label: "Focal Length" },
+    horizontal_fov_deg: { rangeId: "range-horizontal-fov", inputId: "fixed-horizontal-fov", statusId: "status-horizontal-fov", unit: "°", label: "Horizontal FOV" },
   };
 
-  // Update each parameter's range display
+  // Update each parameter's range display and validation status
   Object.entries(ranges).forEach(([key, value]) => {
     if (key === "limiting_requirement" || !value) return;
 
@@ -254,8 +254,24 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
 
     const rangeEl = document.getElementById(mapping.rangeId);
     const inputEl = document.getElementById(mapping.inputId) as HTMLInputElement;
+    const statusEl = document.getElementById(mapping.statusId);
     
-    if (!rangeEl) return;
+    if (!rangeEl || !statusEl) return;
+
+    const isFixed = inputEl?.value && inputEl.value.trim() !== "";
+    const isSingleValue = Math.abs(range.max - range.min) < 0.01; // Tolerance for floating point
+    const isComplete = isFixed || isSingleValue;
+
+    // Update status indicator in label
+    if (isComplete) {
+      statusEl.innerHTML = '✓';
+      statusEl.className = 'field-status-inline complete';
+      statusEl.style.display = 'inline-flex';
+    } else {
+      statusEl.innerHTML = '•';
+      statusEl.className = 'field-status-inline incomplete';
+      statusEl.style.display = 'inline-flex';
+    }
 
     // Show range only if input is empty (floating mode)
     if (!inputEl?.value) {
@@ -269,62 +285,6 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
       rangeEl.classList.remove("active");
     }
   });
-
-  // Check if system is fully determined (all parameters are fixed or single values)
-  updateValidationIndicator(ranges, parameterMapping);
-}
-
-/**
- * Check if all parameters are determined and update the validation indicator
- * A parameter is "determined" if it's either:
- * - Fixed (provided as input), OR
- * - Calculated as a single value (min == max)
- */
-function updateValidationIndicator(
-  ranges: DoriParameterRanges,
-  parameterMapping: { [key: string]: { rangeId: string; inputId: string; unit: string; label: string } }
-): void {
-  const indicatorEl = document.getElementById("validation-indicator");
-  if (!indicatorEl) return;
-
-  const undeterminedParams: string[] = [];
-
-  // Check each parameter
-  Object.entries(parameterMapping).forEach(([key, mapping]) => {
-    const inputEl = document.getElementById(mapping.inputId) as HTMLInputElement;
-    const isFixed = inputEl?.value && inputEl.value.trim() !== "";
-    
-    if (!isFixed) {
-      // Check if calculated as single value
-      const range = ranges[key as keyof DoriParameterRanges];
-      if (range && typeof range === 'object' && 'min' in range && 'max' in range) {
-        const isSingleValue = Math.abs(range.max - range.min) < 0.01; // Tolerance for floating point
-        if (!isSingleValue) {
-          undeterminedParams.push(mapping.label);
-        }
-      } else if (!range) {
-        // Parameter is missing entirely
-        undeterminedParams.push(mapping.label);
-      }
-    }
-  });
-
-  // Update indicator and make it visible
-  indicatorEl.style.display = "flex";
-  
-  if (undeterminedParams.length === 0) {
-    indicatorEl.innerHTML = `
-      <span class="validation-icon">✓</span>
-      <span class="validation-text">System fully determined</span>
-    `;
-    indicatorEl.className = "validation-indicator valid";
-  } else {
-    indicatorEl.innerHTML = `
-      <span class="validation-icon">⚠</span>
-      <span class="validation-text">Undetermined: ${undeterminedParams.join(", ")}</span>
-    `;
-    indicatorEl.className = "validation-indicator incomplete";
-  }
 }
 
 /**
