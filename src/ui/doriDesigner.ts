@@ -234,13 +234,13 @@ async function calculateParameterRanges(): Promise<void> {
  */
 function displayParameterRanges(ranges: DoriParameterRanges): void {
   // Map backend field names to UI element IDs
-  const parameterMapping: { [key: string]: { rangeId: string; inputId: string; unit: string } } = {
-    sensor_width_mm: { rangeId: "range-sensor-width", inputId: "fixed-sensor-width", unit: "mm" },
-    sensor_height_mm: { rangeId: "range-sensor-height", inputId: "fixed-sensor-height", unit: "mm" },
-    pixel_width: { rangeId: "range-pixel-width", inputId: "fixed-pixel-width", unit: "px" },
-    pixel_height: { rangeId: "range-pixel-height", inputId: "fixed-pixel-height", unit: "px" },
-    focal_length_mm: { rangeId: "range-focal-length", inputId: "fixed-focal-length", unit: "mm" },
-    horizontal_fov_deg: { rangeId: "range-horizontal-fov", inputId: "fixed-horizontal-fov", unit: "°" },
+  const parameterMapping: { [key: string]: { rangeId: string; inputId: string; unit: string; label: string } } = {
+    sensor_width_mm: { rangeId: "range-sensor-width", inputId: "fixed-sensor-width", unit: "mm", label: "Sensor Width" },
+    sensor_height_mm: { rangeId: "range-sensor-height", inputId: "fixed-sensor-height", unit: "mm", label: "Sensor Height" },
+    pixel_width: { rangeId: "range-pixel-width", inputId: "fixed-pixel-width", unit: "px", label: "Pixel Width" },
+    pixel_height: { rangeId: "range-pixel-height", inputId: "fixed-pixel-height", unit: "px", label: "Pixel Height" },
+    focal_length_mm: { rangeId: "range-focal-length", inputId: "fixed-focal-length", unit: "mm", label: "Focal Length" },
+    horizontal_fov_deg: { rangeId: "range-horizontal-fov", inputId: "fixed-horizontal-fov", unit: "°", label: "Horizontal FOV" },
   };
 
   // Update each parameter's range display
@@ -269,6 +269,62 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
       rangeEl.classList.remove("active");
     }
   });
+
+  // Check if system is fully determined (all parameters are fixed or single values)
+  updateValidationIndicator(ranges, parameterMapping);
+}
+
+/**
+ * Check if all parameters are determined and update the validation indicator
+ * A parameter is "determined" if it's either:
+ * - Fixed (provided as input), OR
+ * - Calculated as a single value (min == max)
+ */
+function updateValidationIndicator(
+  ranges: DoriParameterRanges,
+  parameterMapping: { [key: string]: { rangeId: string; inputId: string; unit: string; label: string } }
+): void {
+  const indicatorEl = document.getElementById("validation-indicator");
+  if (!indicatorEl) return;
+
+  const undeterminedParams: string[] = [];
+
+  // Check each parameter
+  Object.entries(parameterMapping).forEach(([key, mapping]) => {
+    const inputEl = document.getElementById(mapping.inputId) as HTMLInputElement;
+    const isFixed = inputEl?.value && inputEl.value.trim() !== "";
+    
+    if (!isFixed) {
+      // Check if calculated as single value
+      const range = ranges[key as keyof DoriParameterRanges];
+      if (range && typeof range === 'object' && 'min' in range && 'max' in range) {
+        const isSingleValue = Math.abs(range.max - range.min) < 0.01; // Tolerance for floating point
+        if (!isSingleValue) {
+          undeterminedParams.push(mapping.label);
+        }
+      } else if (!range) {
+        // Parameter is missing entirely
+        undeterminedParams.push(mapping.label);
+      }
+    }
+  });
+
+  // Update indicator and make it visible
+  indicatorEl.style.display = "flex";
+  
+  if (undeterminedParams.length === 0) {
+    indicatorEl.innerHTML = `
+      <span class="validation-icon">✓</span>
+      <span class="validation-text">System fully determined</span>
+    `;
+    indicatorEl.className = "validation-indicator valid";
+  } else {
+    indicatorEl.innerHTML = `
+      <span class="validation-icon">⚠</span>
+      <span class="validation-text">Undetermined: ${undeterminedParams.join(", ")}</span>
+    `;
+    indicatorEl.className = "validation-indicator incomplete";
+  }
 }
 
 /**
