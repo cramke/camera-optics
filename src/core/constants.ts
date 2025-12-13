@@ -14,6 +14,7 @@ export const REFERENCE_OBJECTS: ReferenceObject[] = [
     color: "#ff6b6b",
     label: "👤",
     description: "1.75m tall",
+    iconPath: "/src/assets/unisex-male-and-female-icon.svg",
   },
   {
     id: "tanker",
@@ -23,6 +24,7 @@ export const REFERENCE_OBJECTS: ReferenceObject[] = [
     color: "#4a5568",
     label: "🚢",
     description: "330m long",
+    iconPath: "/src/assets/ship-trawler-icon.svg",
   },
   {
     id: "drone",
