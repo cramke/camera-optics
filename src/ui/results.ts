@@ -9,7 +9,6 @@ import type { CameraSystem, FovResult } from "../core/types";
  */
 export function renderSingleResult(camera: CameraSystem, result: FovResult, systemNumber?: number): string {
   const pixelPitch = (camera.sensor_width_mm * 1000) / camera.pixel_width;
-  const title = camera.name || (systemNumber !== undefined ? `System ${systemNumber + 1}` : "Camera System");
   
   // DORI section (only if available)
   const doriSection = result.dori ? `
@@ -24,7 +23,10 @@ export function renderSingleResult(camera: CameraSystem, result: FovResult, syst
   
   return `
     <div class="result-card">
-      <h2 class="result-title">${title}</h2>
+      <div class="result-section">
+      <h4>Metadata</h4>
+       <p>Name: ${camera.name || (systemNumber !== undefined ? `System ${systemNumber + 1}` : "Camera System")}</p>
+      </div>
       <div class="result-section">
         <h4>Camera Specifications</h4>
         <p>Sensor: ${camera.sensor_width_mm} × ${camera.sensor_height_mm} mm</p>
