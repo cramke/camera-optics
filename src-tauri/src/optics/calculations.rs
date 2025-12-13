@@ -97,6 +97,153 @@ pub fn calculate_dori_distances(camera: &CameraSystem) -> DoriDistances {
     }
 }
 
+/// Calculate ranges of camera parameters that satisfy given DORI distance requirements
+/// 
+/// This is the inverse of calculate_dori_distances - given target distances, find what
+/// camera parameters can achieve them.
+/// 
+/// # Formula (rearranged from DORI calculation)
+/// From: distance = (focal_length × pixel_width) / (sensor_width × required_px_per_m)
+/// 
+/// # Arguments
+/// * `targets` - Target DORI distances (at least one must be specified)
+/// * `constraints` - Fixed parameters that narrow the solution space
+/// 
+/// # Returns
+/// Ranges for unconstrained parameters that satisfy the requirements
+pub fn calculate_dori_parameter_ranges(
+    targets: &super::types::DoriTargets,
+    constraints: &super::types::ParameterConstraint,
+) -> super::types::DoriParameterRanges {
+    use super::types::{DoriParameterRanges, ParameterRange};
+    
+    // Standard DORI pixel density requirements
+    const DETECTION_PX_PER_M: f64 = 25.0;
+    const OBSERVATION_PX_PER_M: f64 = 62.5;
+    const RECOGNITION_PX_PER_M: f64 = 125.0;
+    const IDENTIFICATION_PX_PER_M: f64 = 250.0;
+    
+    // Reasonable parameter bounds
+    const MIN_PIXEL_WIDTH: u32 = 640;
+    const MAX_PIXEL_WIDTH: u32 = 8192;
+    const MIN_SENSOR_WIDTH_MM: f64 = 3.0;
+    const MAX_SENSOR_WIDTH_MM: f64 = 50.0;
+    const MIN_FOCAL_LENGTH_MM: f64 = 2.0;
+    const MAX_FOCAL_LENGTH_MM: f64 = 400.0;
+    
+    // Find the most restrictive DORI requirement (highest px/m at longest distance)
+    let (target_distance, required_px_per_m, limiting_req) = [
+        (targets.identification_m, IDENTIFICATION_PX_PER_M, "Identification"),
+        (targets.recognition_m, RECOGNITION_PX_PER_M, "Recognition"),
+        (targets.observation_m, OBSERVATION_PX_PER_M, "Observation"),
+        (targets.detection_m, DETECTION_PX_PER_M, "Detection"),
+    ]
+    .iter()
+    .filter_map(|(dist, px_m, name)| dist.map(|d| (d, *px_m, *name)))
+    .max_by(|a, b| (a.0 * a.1).partial_cmp(&(b.0 * b.1)).unwrap())
+    .expect("At least one DORI target must be specified");
+    
+    // Calculate ranges based on what's constrained
+    let mut ranges = DoriParameterRanges {
+        sensor_width_mm: None,
+        sensor_height_mm: None,
+        pixel_width: None,
+        pixel_height: None,
+        focal_length_mm: None,
+        limiting_requirement: limiting_req.to_string(),
+    };
+    
+    // If focal length is fixed, calculate pixel width and sensor width ranges
+    if let Some(focal) = constraints.focal_length_mm {
+        if let Some(sensor_w) = constraints.sensor_width_mm {
+            // Both focal and sensor are fixed - calculate pixel width range
+            let required_product = target_distance * sensor_w * required_px_per_m / focal;
+            let min_pixels = required_product.max(MIN_PIXEL_WIDTH as f64);
+            let max_pixels = MAX_PIXEL_WIDTH as f64;
+            
+            ranges.pixel_width = Some(ParameterRange {
+                min: min_pixels,
+                max: max_pixels,
+            });
+            
+            // Calculate aspect ratio constraint for pixel height
+            if let Some(sensor_h) = constraints.sensor_height_mm {
+                let aspect = sensor_h / sensor_w;
+                ranges.pixel_height = Some(ParameterRange {
+                    min: min_pixels * aspect,
+                    max: max_pixels * aspect,
+                });
+            }
+        } else if let Some(pixels) = constraints.pixel_width {
+            // Focal and pixels are fixed - calculate sensor width range
+            let min_sensor = (focal * pixels as f64) / (target_distance * required_px_per_m * MAX_PIXEL_WIDTH as f64);
+            let max_sensor = (focal * pixels as f64) / (target_distance * required_px_per_m * MIN_PIXEL_WIDTH as f64);
+            
+            ranges.sensor_width_mm = Some(ParameterRange {
+                min: min_sensor.max(MIN_SENSOR_WIDTH_MM),
+                max: max_sensor.min(MAX_SENSOR_WIDTH_MM),
+            });
+        } else {
+            // Only focal is fixed - give ranges for both sensor and pixels
+            ranges.sensor_width_mm = Some(ParameterRange {
+                min: MIN_SENSOR_WIDTH_MM,
+                max: MAX_SENSOR_WIDTH_MM,
+            });
+            ranges.pixel_width = Some(ParameterRange {
+                min: MIN_PIXEL_WIDTH as f64,
+                max: MAX_PIXEL_WIDTH as f64,
+            });
+        }
+    } else if let Some(sensor_w) = constraints.sensor_width_mm {
+        // Sensor width is fixed but focal isn't
+        if let Some(pixels) = constraints.pixel_width {
+            // Sensor and pixels are fixed - calculate focal length range
+            let min_focal = (target_distance * sensor_w * required_px_per_m) / pixels as f64;
+            
+            ranges.focal_length_mm = Some(ParameterRange {
+                min: min_focal.max(MIN_FOCAL_LENGTH_MM),
+                max: MAX_FOCAL_LENGTH_MM,
+            });
+        } else {
+            // Only sensor is fixed - give ranges for focal and pixels
+            ranges.focal_length_mm = Some(ParameterRange {
+                min: MIN_FOCAL_LENGTH_MM,
+                max: MAX_FOCAL_LENGTH_MM,
+            });
+            ranges.pixel_width = Some(ParameterRange {
+                min: MIN_PIXEL_WIDTH as f64,
+                max: MAX_PIXEL_WIDTH as f64,
+            });
+        }
+    } else if let Some(_pixels) = constraints.pixel_width {
+        // Only pixels are fixed - give ranges for focal and sensor
+        ranges.focal_length_mm = Some(ParameterRange {
+            min: MIN_FOCAL_LENGTH_MM,
+            max: MAX_FOCAL_LENGTH_MM,
+        });
+        ranges.sensor_width_mm = Some(ParameterRange {
+            min: MIN_SENSOR_WIDTH_MM,
+            max: MAX_SENSOR_WIDTH_MM,
+        });
+    } else {
+        // Nothing is fixed - give all ranges
+        ranges.focal_length_mm = Some(ParameterRange {
+            min: MIN_FOCAL_LENGTH_MM,
+            max: MAX_FOCAL_LENGTH_MM,
+        });
+        ranges.sensor_width_mm = Some(ParameterRange {
+            min: MIN_SENSOR_WIDTH_MM,
+            max: MAX_SENSOR_WIDTH_MM,
+        });
+        ranges.pixel_width = Some(ParameterRange {
+            min: MIN_PIXEL_WIDTH as f64,
+            max: MAX_PIXEL_WIDTH as f64,
+        });
+    }
+    
+    ranges
+}
+
 /// Calculate FOV for multiple camera systems
 pub fn calculate_multiple_fov(cameras: &[CameraSystem], distance_mm: f64) -> Vec<FovResult> {
     cameras.iter()

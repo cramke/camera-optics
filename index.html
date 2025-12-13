@@ -105,6 +105,7 @@
           <div class="tabs">
             <button class="tab-btn active" data-tab="visualization">Visualization</button>
             <button class="tab-btn" data-tab="results">Results</button>
+            <button class="tab-btn" data-tab="dori-designer">DORI Designer</button>
           </div>
 
           <div id="visualization-tab" class="tab-content active">
@@ -122,6 +123,87 @@
 
           <div id="results-tab" class="tab-content">
             <div id="results-output"></div>
+          </div>
+
+          <div id="dori-designer-tab" class="tab-content">
+            <div class="dori-designer-content">
+              <div class="designer-section">
+                <h3>Target DORI Distances</h3>
+                <p class="section-description">Specify your required surveillance distances</p>
+                
+                <div class="form-group">
+                  <label for="target-detection">Detection Distance (m)</label>
+                  <input type="number" id="target-detection" placeholder="e.g., 50" step="1" />
+                  <span class="help-text">Identify that an object is present (25 px/m)</span>
+                </div>
+                
+                <div class="form-group">
+                  <label for="target-observation">Observation Distance (m)</label>
+                  <input type="number" id="target-observation" placeholder="e.g., 20" step="1" />
+                  <span class="help-text">Determine general characteristics (62.5 px/m)</span>
+                </div>
+                
+                <div class="form-group">
+                  <label for="target-recognition">Recognition Distance (m)</label>
+                  <input type="number" id="target-recognition" placeholder="e.g., 10" step="1" />
+                  <span class="help-text">Recognize familiar person/object (125 px/m)</span>
+                </div>
+                
+                <div class="form-group">
+                  <label for="target-identification">Identification Distance (m)</label>
+                  <input type="number" id="target-identification" placeholder="e.g., 5" step="1" />
+                  <span class="help-text">Identify specific person (250 px/m)</span>
+                </div>
+              </div>
+
+              <div class="designer-section">
+                <h3>Fixed Parameters</h3>
+                <p class="section-description">Lock specific parameters to narrow down options</p>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>
+                      <input type="checkbox" id="fix-sensor-width" class="constraint-checkbox" />
+                      Sensor Width (mm)
+                    </label>
+                    <input type="number" id="fixed-sensor-width" placeholder="e.g., 6.4" step="0.1" disabled />
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>
+                      <input type="checkbox" id="fix-pixel-width" class="constraint-checkbox" />
+                      Pixel Width
+                    </label>
+                    <input type="number" id="fixed-pixel-width" placeholder="e.g., 1920" step="1" disabled />
+                  </div>
+                </div>
+                
+                <div class="form-row">
+                  <div class="form-group">
+                    <label>
+                      <input type="checkbox" id="fix-focal-length" class="constraint-checkbox" />
+                      Focal Length (mm)
+                    </label>
+                    <input type="number" id="fixed-focal-length" placeholder="e.g., 4" step="0.1" disabled />
+                  </div>
+                  
+                  <div class="form-group">
+                    <label>
+                      <input type="checkbox" id="fix-sensor-height" class="constraint-checkbox" />
+                      Sensor Height (mm)
+                    </label>
+                    <input type="number" id="fixed-sensor-height" placeholder="e.g., 4.8" step="0.1" disabled />
+                  </div>
+                </div>
+              </div>
+
+              <button id="calculate-ranges-btn" class="secondary-btn full-width">Calculate Parameter Ranges</button>
+
+              <div id="parameter-ranges-output" class="designer-section" style="display: none;">
+                <h3>Possible Parameter Ranges</h3>
+                <div id="ranges-content"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>

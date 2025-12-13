@@ -7,6 +7,7 @@ import { getCameraFromForm, getDistance, loadSystemToView, loadPreset } from "./
 import { calculateFocalLengthFromFov } from "./services/api";
 import { displaySingleResult } from "./ui/results";
 import { showToast } from "./ui/toast";
+import { initializeDoriDesigner } from "./ui/doriDesigner";
 
 // Track the currently selected system index for highlighting
 let selectedSystemIndex: number | null = null;
@@ -424,6 +425,9 @@ window.addEventListener("DOMContentLoaded", () => {
 
   // Initialize with focal length method active
   switchInputMethod('focal');
+
+  // Initialize DORI Designer
+  initializeDoriDesigner();
 
   // Calculate FOV with default values on startup
   calculateFov();

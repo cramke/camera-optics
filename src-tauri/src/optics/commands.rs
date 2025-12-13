@@ -46,3 +46,12 @@ pub fn calculate_depth_of_field(
 pub fn calculate_focal_length_from_fov_command(sensor_size_mm: f64, fov_deg: f64) -> f64 {
     calculate_focal_length_from_fov(sensor_size_mm, fov_deg)
 }
+
+/// Tauri command to calculate parameter ranges for given DORI requirements
+#[tauri::command]
+pub fn calculate_dori_ranges(
+    targets: DoriTargets,
+    constraints: ParameterConstraint,
+) -> DoriParameterRanges {
+    calculate_dori_parameter_ranges(&targets, &constraints)
+}

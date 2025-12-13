@@ -30,3 +30,16 @@ export async function calculateFocalLengthFromFov(
     fovDeg,
   });
 }
+
+/**
+ * Calculate parameter ranges for given DORI requirements
+ */
+export async function calculateDoriRanges(
+  targets: import("../core/types").DoriTargets,
+  constraints: import("../core/types").ParameterConstraint
+): Promise<import("../core/types").DoriParameterRanges> {
+  return await invoke("calculate_dori_ranges", {
+    targets,
+    constraints,
+  });
+}

@@ -60,6 +60,53 @@ pub struct CameraWithResult {
     pub result: FovResult,
 }
 
+/// Target DORI distances for inverse calculation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DoriTargets {
+    /// Target detection distance in meters (optional)
+    pub detection_m: Option<f64>,
+    /// Target observation distance in meters (optional)
+    pub observation_m: Option<f64>,
+    /// Target recognition distance in meters (optional)
+    pub recognition_m: Option<f64>,
+    /// Target identification distance in meters (optional)
+    pub identification_m: Option<f64>,
+}
+
+/// Range of possible values for a parameter
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParameterRange {
+    pub min: f64,
+    pub max: f64,
+}
+
+/// Fixed constraint for a parameter
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ParameterConstraint {
+    pub sensor_width_mm: Option<f64>,
+    pub sensor_height_mm: Option<f64>,
+    pub pixel_width: Option<u32>,
+    pub pixel_height: Option<u32>,
+    pub focal_length_mm: Option<f64>,
+}
+
+/// Ranges of camera parameters that satisfy DORI requirements
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DoriParameterRanges {
+    /// Range for sensor width in mm (if not constrained)
+    pub sensor_width_mm: Option<ParameterRange>,
+    /// Range for sensor height in mm (if not constrained)
+    pub sensor_height_mm: Option<ParameterRange>,
+    /// Range for horizontal pixel count (if not constrained)
+    pub pixel_width: Option<ParameterRange>,
+    /// Range for vertical pixel count (if not constrained)
+    pub pixel_height: Option<ParameterRange>,
+    /// Range for focal length in mm (if not constrained)
+    pub focal_length_mm: Option<ParameterRange>,
+    /// The DORI target that was used (the most restrictive one)
+    pub limiting_requirement: String,
+}
+
 impl CameraSystem {
     /// Create a new camera system
     pub fn new(
