@@ -183,6 +183,67 @@ export function initializeDoriDesigner(): void {
   // Export to comparison button
   const exportBtn = document.getElementById("export-to-comparison-btn");
   exportBtn?.addEventListener("click", exportToComparison);
+
+  // Reset button
+  const resetBtn = document.getElementById("reset-dori-designer-btn");
+  resetBtn?.addEventListener("click", resetDoriDesigner);
+}
+
+/**
+ * Reset all DORI Designer parameters and controls to default state
+ */
+function resetDoriDesigner(): void {
+  // Clear DORI target inputs
+  const targetIds = ["target-detection", "target-observation", "target-recognition", "target-identification"];
+  targetIds.forEach(id => {
+    const input = document.getElementById(id) as HTMLInputElement;
+    if (input) input.value = "";
+  });
+
+  // Reset all parameter groups
+  document.querySelectorAll(".param-group").forEach(group => {
+    const param = group.getAttribute("data-param");
+    const modeButtons = group.querySelectorAll(".mode-btn");
+    const fixedWrapper = group.querySelector(".mode-fixed") as HTMLElement;
+    const rangeWrapper = group.querySelector(".mode-range") as HTMLElement;
+
+    // Set to float mode
+    modeButtons.forEach(b => b.classList.remove("active"));
+    const floatBtn = group.querySelector('[data-mode="float"]');
+    if (floatBtn) floatBtn.classList.add("active");
+
+    // Hide inputs
+    if (fixedWrapper) fixedWrapper.style.display = "none";
+    if (rangeWrapper) rangeWrapper.style.display = "none";
+
+    // Clear fixed input
+    const fixedInput = group.querySelector(`#fixed-${param}`) as HTMLInputElement;
+    if (fixedInput) fixedInput.value = "";
+
+    // Reset sliders to full range
+    const minSlider = group.querySelector(`#min-${param}`) as HTMLInputElement;
+    const maxSlider = group.querySelector(`#max-${param}`) as HTMLInputElement;
+    const minValue = group.querySelector(".range-value-min") as HTMLElement;
+    const maxValue = group.querySelector(".range-value-max") as HTMLElement;
+
+    if (minSlider && maxSlider && minValue && maxValue) {
+      minSlider.value = minSlider.min;
+      maxSlider.value = maxSlider.max;
+      minValue.textContent = minSlider.min;
+      maxValue.textContent = maxSlider.max;
+    }
+
+    // Clear inline range display
+    const rangeInline = group.querySelector(".param-range-inline") as HTMLElement;
+    if (rangeInline) {
+      rangeInline.textContent = "";
+      rangeInline.className = "param-range-inline";
+    }
+  });
+
+  // Hide export button
+  const exportBtn = document.getElementById("export-to-comparison-btn") as HTMLButtonElement;
+  if (exportBtn) exportBtn.style.display = "none";
 }
 
 /**
