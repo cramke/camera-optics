@@ -263,7 +263,7 @@ function drawVisualization(systems: CameraWithResult[]) {
   ctx.lineTo(canvas.width - padding, centerY);
   ctx.stroke();
 
-  // Draw each FOV
+  // Draw each FOV with dimension labels
   systems.forEach((system, index) => {
     const color = getColor(index);
     const width = system.result.horizontal_fov_m * 1000 * scale;
@@ -284,6 +284,24 @@ function drawVisualization(systems: CameraWithResult[]) {
     ctx.fillStyle = color;
     ctx.font = "bold 12px sans-serif";
     ctx.fillText(system.camera.name || `System ${index + 1}`, x + 5, y + 15);
+
+    // Draw dimension labels for this FOV
+    ctx.font = "11px sans-serif";
+    ctx.textAlign = "center";
+    
+    // Horizontal FOV label (bottom)
+    const hfovLabel = `${system.result.horizontal_fov_m.toFixed(2)}m`;
+    ctx.fillText(hfovLabel, centerX, y + height + 15);
+    
+    // Vertical FOV label (right side)
+    ctx.save();
+    ctx.translate(x + width + 15, centerY);
+    ctx.rotate(-Math.PI / 2);
+    const vfovLabel = `${system.result.vertical_fov_m.toFixed(2)}m`;
+    ctx.fillText(vfovLabel, 0, 0);
+    ctx.restore();
+    
+    ctx.textAlign = "left";
   });
 
   // Update legend
