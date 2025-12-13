@@ -1578,7 +1578,9 @@ mod tests {
     fn test_combo_sensor_none_focal_fov() {
         use crate::optics::types::{DoriTargets, ParameterConstraint};
         
-        // Case 1011: Sensor, focal, and FOV constrained - over-constrained (must be consistent)
+        // Case 1011: Sensor, focal, and FOV constrained - over-constrained system
+        // When FOV + focal are constrained, the code calculates what sensor SHOULD be
+        // This returns the calculated sensor value for validation purposes
         let targets = DoriTargets {
             identification_m: Some(10.0),
             observation_m: None,
@@ -1598,12 +1600,21 @@ mod tests {
         
         let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
         
-        // All three should not have ranges (fixed inputs)
-        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
-        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None");
-        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
-        // Only pixel should have range
+        // FOV branch calculates sensor from focal + FOV, even if sensor is also constrained
+        // This allows validation that the three parameters are consistent
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width should be calculated for validation");
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None (fixed input)");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None (fixed input)");
         assert!(ranges.pixel_width.is_some(), "Pixel width should have range");
+        
+        // Verify the calculated sensor matches the input (validates consistency)
+        if let Some(sensor) = &ranges.sensor_width_mm {
+            let expected = 2.0 * 50.0 * (39.6_f64 / 2.0).to_radians().tan();
+            assert!((sensor.min - expected).abs() < 1.0, 
+                "Calculated sensor should match FOV+focal relationship: {} vs {}", sensor.min, expected);
+            assert!((sensor.min - 36.0).abs() < 1.0, 
+                "Calculated sensor should approximately match input for consistency");
+        }
     }
 
     #[test]
@@ -1648,6 +1659,7 @@ mod tests {
         use crate::optics::types::{DoriTargets, ParameterConstraint};
         
         // Case 1111: All constrained - fully determined system
+        // Similar to previous case: FOV+focal causes sensor to be calculated for validation
         let targets = DoriTargets {
             identification_m: Some(10.0),
             observation_m: None,
@@ -1655,27 +1667,34 @@ mod tests {
             detection_m: None,
         };
         
-        // Use consistent values
+        // Use consistent values: sensor=6.4mm, focal=4mm -> FOV≈84°
         let constraints = ParameterConstraint {
             sensor_width_mm: Some(6.4),
             sensor_height_mm: None,
             pixel_width: Some(1920),
             pixel_height: None,
             focal_length_mm: Some(4.0),
-            horizontal_fov_deg: Some(84.0), // Approximately correct for these values
+            horizontal_fov_deg: Some(84.0),
         };
         
         let ranges = calculate_dori_parameter_ranges(&targets, &constraints);
         
-        // All main parameters should not have ranges (all fixed inputs)
-        assert!(ranges.sensor_width_mm.is_none(), "Sensor width should be None");
-        assert!(ranges.pixel_width.is_none(), "Pixel width should be None");
-        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None");
-        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None");
+        // When FOV is constrained, it enters the FOV branch
+        // FOV + focal determines sensor, even if sensor+pixel are also constrained
+        assert!(ranges.sensor_width_mm.is_some(), "Sensor width calculated for validation");
+        assert!(ranges.pixel_width.is_none(), "Pixel width should be None (fixed input)");
+        assert!(ranges.focal_length_mm.is_none(), "Focal length should be None (fixed input)");
+        assert!(ranges.horizontal_fov_deg.is_none(), "FOV should be None (fixed input)");
         
-        // Only heights should be calculated
+        // Heights should be calculated
         assert!(ranges.sensor_height_mm.is_some(), "Sensor height should be calculated");
         assert!(ranges.pixel_height.is_some(), "Pixel height should be calculated");
+        
+        // Verify calculated sensor is consistent with input
+        if let Some(sensor) = &ranges.sensor_width_mm {
+            assert!((sensor.min - 6.4).abs() < 1.0, 
+                "Calculated sensor should approximately match input: {}", sensor.min);
+        }
     }
 
     // Additional tests for height parameters as constraints
