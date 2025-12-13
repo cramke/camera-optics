@@ -1,4 +1,4 @@
-use super::types::{CameraSystem, FovResult};
+use super::types::{CameraSystem, DoriDistances, FovResult};
 
 /// Calculate field of view and spatial resolution for a camera system at a given distance
 /// 
@@ -31,6 +31,9 @@ pub fn calculate_fov(camera: &CameraSystem, distance_mm: f64) -> FovResult {
     // Calculate ground sample distance (millimeters per pixel)
     let gsd_mm = horizontal_fov_mm / camera.pixel_width as f64;
     
+    // Calculate DORI distances
+    let dori = calculate_dori_distances(camera);
+    
     FovResult {
         horizontal_fov_deg,
         vertical_fov_deg,
@@ -39,6 +42,58 @@ pub fn calculate_fov(camera: &CameraSystem, distance_mm: f64) -> FovResult {
         ppm,
         gsd_mm,
         distance_m,
+        dori: Some(dori),
+    }
+}
+
+/// Calculate DORI (Detection, Observation, Recognition, Identification) distances
+/// 
+/// DORI is a standard metric for surveillance camera performance evaluation based on
+/// the pixel density required for each task:
+/// - Detection: 25 px/m (identify that an object is present)
+/// - Observation: 62.5 px/m (determine general characteristics like clothing color)
+/// - Recognition: 125 px/m (recognize a familiar person or known vehicle)
+/// - Identification: 250 px/m (identify a specific person beyond reasonable doubt)
+/// 
+/// # Formula
+/// Distance = (focal_length × pixel_width) / (sensor_width × required_px_per_m)
+/// 
+/// This is derived from the relationship:
+/// px/m = pixel_width / horizontal_fov_m
+/// horizontal_fov_m = (sensor_width × distance) / focal_length
+/// 
+/// # Arguments
+/// * `camera` - The camera system specification
+/// 
+/// # Returns
+/// DORI distances in meters for each surveillance task
+pub fn calculate_dori_distances(camera: &CameraSystem) -> DoriDistances {
+    // Standard DORI pixel density requirements (pixels per meter)
+    const DETECTION_PX_PER_M: f64 = 25.0;
+    const OBSERVATION_PX_PER_M: f64 = 62.5;
+    const RECOGNITION_PX_PER_M: f64 = 125.0;
+    const IDENTIFICATION_PX_PER_M: f64 = 250.0;
+    
+    // Formula: distance = (focal_length × pixel_width) / (sensor_width × required_px_per_m)
+    // This gives the maximum distance at which the required pixel density is achieved
+    
+    let detection_m = (camera.focal_length_mm * camera.pixel_width as f64) 
+        / (camera.sensor_width_mm * DETECTION_PX_PER_M);
+    
+    let observation_m = (camera.focal_length_mm * camera.pixel_width as f64) 
+        / (camera.sensor_width_mm * OBSERVATION_PX_PER_M);
+    
+    let recognition_m = (camera.focal_length_mm * camera.pixel_width as f64) 
+        / (camera.sensor_width_mm * RECOGNITION_PX_PER_M);
+    
+    let identification_m = (camera.focal_length_mm * camera.pixel_width as f64) 
+        / (camera.sensor_width_mm * IDENTIFICATION_PX_PER_M);
+    
+    DoriDistances {
+        detection_m,
+        observation_m,
+        recognition_m,
+        identification_m,
     }
 }
 
@@ -146,5 +201,34 @@ mod tests {
         
         // Should match original FOV within tolerance
         assert!((result.horizontal_fov_deg - original_fov).abs() < 0.1);
+    }
+
+    #[test]
+    fn test_dori_calculation() {
+        // 1/2.8" sensor (6.4x4.8mm), 1920x1080, 4mm lens (typical CCTV camera)
+        let camera = CameraSystem::new(6.4, 4.8, 1920, 1080, 4.0);
+        let dori = calculate_dori_distances(&camera);
+        
+        // At 25 px/m (detection), should be able to detect at ~48m
+        assert!((dori.detection_m - 48.0).abs() < 1.0);
+        
+        // At 250 px/m (identification), should be ~4.8m
+        assert!((dori.identification_m - 4.8).abs() < 0.1);
+        
+        // DORI distances should be in descending order
+        assert!(dori.detection_m > dori.observation_m);
+        assert!(dori.observation_m > dori.recognition_m);
+        assert!(dori.recognition_m > dori.identification_m);
+    }
+
+    #[test]
+    fn test_dori_with_longer_focal_length() {
+        // Same sensor but with 12mm lens (3x telephoto)
+        let camera = CameraSystem::new(6.4, 4.8, 1920, 1080, 12.0);
+        let dori = calculate_dori_distances(&camera);
+        
+        // With 3x the focal length, all DORI distances should be ~3x farther
+        assert!((dori.detection_m - 144.0).abs() < 2.0);
+        assert!((dori.identification_m - 14.4).abs() < 0.2);
     }
 }

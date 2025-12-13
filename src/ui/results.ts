@@ -11,6 +11,17 @@ export function renderSingleResult(camera: CameraSystem, result: FovResult, syst
   const pixelPitch = (camera.sensor_width_mm * 1000) / camera.pixel_width;
   const title = camera.name || (systemNumber !== undefined ? `System ${systemNumber + 1}` : "Camera System");
   
+  // DORI section (only if available)
+  const doriSection = result.dori ? `
+    <div class="result-section">
+      <h4>DORI Distances (Surveillance Performance)</h4>
+      <p><strong>Detection</strong> (25 px/m): ${result.dori.detection_m.toFixed(2)} m — Identify that an object is present</p>
+      <p><strong>Observation</strong> (62.5 px/m): ${result.dori.observation_m.toFixed(2)} m — Determine general characteristics</p>
+      <p><strong>Recognition</strong> (125 px/m): ${result.dori.recognition_m.toFixed(2)} m — Recognize a familiar person or object</p>
+      <p><strong>Identification</strong> (250 px/m): ${result.dori.identification_m.toFixed(2)} m — Identify a specific person beyond reasonable doubt</p>
+    </div>
+  ` : '';
+  
   return `
     <div class="result-card">
       <h2 class="result-title">${title}</h2>
@@ -32,6 +43,7 @@ export function renderSingleResult(camera: CameraSystem, result: FovResult, syst
         <p>Pixels per meter: ${result.ppm.toFixed(1)} px/m</p>
         <p>Ground Sample Distance: ${result.gsd_mm.toFixed(3)} mm/pixel</p>
       </div>
+      ${doriSection}
     </div>
   `;
 }

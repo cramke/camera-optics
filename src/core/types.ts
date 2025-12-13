@@ -19,6 +19,14 @@ export interface FovResult {
   ppm: number;
   gsd_mm: number;
   distance_m: number;
+  dori?: DoriDistances;
+}
+
+export interface DoriDistances {
+  detection_m: number;
+  observation_m: number;
+  recognition_m: number;
+  identification_m: number;
 }
 
 export interface CameraWithResult {

@@ -34,6 +34,23 @@ pub struct FovResult {
     pub gsd_mm: f64,
     /// Distance at which calculation was performed in meters
     pub distance_m: f64,
+    /// DORI distances (Detection, Observation, Recognition, Identification)
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub dori: Option<DoriDistances>,
+}
+
+/// DORI (Detection, Observation, Recognition, Identification) distances
+/// Standard for surveillance camera performance evaluation
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DoriDistances {
+    /// Detection distance: identify that an object is present (25 px/m)
+    pub detection_m: f64,
+    /// Observation distance: determine general characteristics (62.5 px/m)
+    pub observation_m: f64,
+    /// Recognition distance: recognize familiar person/object (125 px/m)
+    pub recognition_m: f64,
+    /// Identification distance: identify specific person beyond reasonable doubt (250 px/m)
+    pub identification_m: f64,
 }
 
 /// Combined camera system with its calculated FOV result
