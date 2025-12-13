@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/core";
 import type { CameraSystem, FovResult, CameraWithResult, ReferenceObject } from "./types";
 import { REFERENCE_OBJECTS, CAMERA_PRESETS, SYSTEM_COLORS } from "./constants";
+import { calculateCameraFov, calculateFocalLengthFromFov } from "./api";
 
 // Store camera systems for comparison
 const cameraSystems: CameraWithResult[] = [];
@@ -52,10 +52,7 @@ async function calculateFocalLength() {
   }
 
   try {
-    const focalLength: number = await invoke("calculate_focal_length_from_fov_command", {
-      sensorSizeMm: sensorSize,
-      fovDeg: fovDeg,
-    });
+    const focalLength = await calculateFocalLengthFromFov(sensorSize, fovDeg);
 
     // Update focal length field
     (document.getElementById("focal-length") as HTMLInputElement).value = focalLength.toFixed(2);
@@ -75,10 +72,7 @@ async function calculateFov() {
   const distance = getDistance();
 
   try {
-    const result: FovResult = await invoke("calculate_camera_fov", {
-      camera,
-      distanceMm: distance,
-    });
+    const result = await calculateCameraFov(camera, distance);
 
     displaySingleResult(camera, result);
     drawVisualization([{ camera, result }]);
@@ -94,10 +88,7 @@ async function addToComparison() {
   const distance = getDistance();
 
   try {
-    const result: FovResult = await invoke("calculate_camera_fov", {
-      camera,
-      distanceMm: distance,
-    });
+    const result = await calculateCameraFov(camera, distance);
 
     cameraSystems.push({ camera, result });
     updateSystemsList();
