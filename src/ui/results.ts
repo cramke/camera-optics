@@ -53,9 +53,25 @@ export function renderSingleResult(camera: CameraSystem, result: FovResult, syst
 /**
  * Display a single result in the results tab
  */
-export function displaySingleResult(camera: CameraSystem, result: FovResult, systemNumber?: number): void {
+export async function displaySingleResult(camera: CameraSystem, result: FovResult, systemNumber?: number): Promise<void> {
   const resultsOutput = document.getElementById("results-output");
   if (!resultsOutput) return;
+  
+  // Validate using Rust backend
+  try {
+    const { validateCameraSystem } = await import('../services/api');
+    const { showToast } = await import('./toast');
+    
+    const warnings = await validateCameraSystem(camera, result);
+    
+    // Show warnings/errors as toasts
+    warnings.forEach(warning => {
+      const toastType = warning.severity === "Error" ? "error" : "warning";
+      showToast(warning.message, toastType);
+    });
+  } catch (error) {
+    console.error("Error validating camera system:", error);
+  }
   
   resultsOutput.innerHTML = renderSingleResult(camera, result, systemNumber);
 }

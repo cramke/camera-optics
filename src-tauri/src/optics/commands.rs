@@ -7,6 +7,13 @@ pub fn calculate_camera_fov(camera: CameraSystem, distance_mm: f64) -> FovResult
     calculate_fov(&camera, distance_mm)
 }
 
+/// Tauri command to validate a camera system and its result
+#[tauri::command]
+pub fn validate_camera_system(camera: CameraSystem, result: FovResult) -> Vec<ValidationWarning> {
+    let camera_with_result = CameraWithResult { camera, result };
+    camera_with_result.validate()
+}
+
 /// Tauri command to calculate FOV for multiple camera systems
 #[tauri::command]
 pub fn compare_camera_systems(cameras: Vec<CameraSystem>, distance_mm: f64) -> Vec<CameraWithResult> {

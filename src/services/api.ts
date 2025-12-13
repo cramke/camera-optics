@@ -56,3 +56,16 @@ export async function calculateDoriFromSingleDistance(
     doriType,
   });
 }
+
+/**
+ * Validate a camera system and its calculated result
+ */
+export async function validateCameraSystem(
+  camera: CameraSystem,
+  result: FovResult
+): Promise<import("../core/types").ValidationWarning[]> {
+  return await invoke("validate_camera_system", {
+    camera,
+    result,
+  });
+}

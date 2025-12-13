@@ -60,6 +60,16 @@ pub struct CameraWithResult {
     pub result: FovResult,
 }
 
+impl CameraWithResult {
+    /// Validate both the camera system and result, returning all warnings
+    pub fn validate(&self) -> Vec<ValidationWarning> {
+        let mut warnings = Vec::new();
+        warnings.extend(self.camera.validate());
+        warnings.extend(self.result.validate());
+        warnings
+    }
+}
+
 /// Target DORI distances for inverse calculation
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DoriTargets {
@@ -110,6 +120,20 @@ pub struct DoriParameterRanges {
     pub limiting_requirement: String,
 }
 
+/// Validation warning for camera system
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ValidationWarning {
+    pub message: String,
+    pub severity: ValidationSeverity,
+}
+
+/// Severity level of validation warnings
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub enum ValidationSeverity {
+    Warning,
+    Error,
+}
+
 impl CameraSystem {
     /// Create a new camera system
     pub fn new(
@@ -141,6 +165,146 @@ impl CameraSystem {
         let v_pitch = (self.sensor_height_mm * 1000.0) / self.pixel_height as f64;
         (h_pitch, v_pitch)
     }
+
+    /// Validate the camera system configuration and return any warnings
+    pub fn validate(&self) -> Vec<ValidationWarning> {
+        let mut warnings = Vec::new();
+
+        // Check sensor dimensions (typical range: 1-100mm)
+        if self.sensor_width_mm < 1.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Sensor width ({:.2} mm) is unrealistically small", self.sensor_width_mm),
+                severity: ValidationSeverity::Error,
+            });
+        }
+        if self.sensor_width_mm > 100.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Sensor width ({:.2} mm) is unrealistically large", self.sensor_width_mm),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        if self.sensor_height_mm < 1.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Sensor height ({:.2} mm) is unrealistically small", self.sensor_height_mm),
+                severity: ValidationSeverity::Error,
+            });
+        }
+        if self.sensor_height_mm > 100.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Sensor height ({:.2} mm) is unrealistically large", self.sensor_height_mm),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        // Check focal length (typical range: 1-2000mm)
+        if self.focal_length_mm < 1.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Focal length ({:.2} mm) is unrealistically short", self.focal_length_mm),
+                severity: ValidationSeverity::Error,
+            });
+        }
+        if self.focal_length_mm > 2000.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Focal length ({:.0} mm) is extremely long", self.focal_length_mm),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        // Check resolution (typical range: 100-50000 pixels)
+        if self.pixel_width < 100 {
+            warnings.push(ValidationWarning {
+                message: format!("Pixel width ({} px) is unrealistically low", self.pixel_width),
+                severity: ValidationSeverity::Error,
+            });
+        }
+        if self.pixel_width > 50000 {
+            warnings.push(ValidationWarning {
+                message: format!("Pixel width ({} px) is unrealistically high", self.pixel_width),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        if self.pixel_height < 100 {
+            warnings.push(ValidationWarning {
+                message: format!("Pixel height ({} px) is unrealistically low", self.pixel_height),
+                severity: ValidationSeverity::Error,
+            });
+        }
+        if self.pixel_height > 50000 {
+            warnings.push(ValidationWarning {
+                message: format!("Pixel height ({} px) is unrealistically high", self.pixel_height),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        // Check pixel pitch (typical range: 0.5-20 µm)
+        let (h_pitch, v_pitch) = self.pixel_pitch_um();
+        if h_pitch < 0.5 {
+            warnings.push(ValidationWarning {
+                message: format!("Horizontal pixel pitch ({:.2} µm) is unrealistically small", h_pitch),
+                severity: ValidationSeverity::Error,
+            });
+        }
+        if h_pitch > 20.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Horizontal pixel pitch ({:.2} µm) is unusually large", h_pitch),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        if v_pitch < 0.5 {
+            warnings.push(ValidationWarning {
+                message: format!("Vertical pixel pitch ({:.2} µm) is unrealistically small", v_pitch),
+                severity: ValidationSeverity::Error,
+            });
+        }
+        if v_pitch > 20.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Vertical pixel pitch ({:.2} µm) is unusually large", v_pitch),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        // Check aspect ratio consistency (sensor vs pixel)
+        let sensor_aspect = self.sensor_width_mm / self.sensor_height_mm;
+        let pixel_aspect = self.pixel_width as f64 / self.pixel_height as f64;
+        
+        // Allow 5% tolerance for aspect ratio mismatch
+        let aspect_tolerance = 0.05;
+        let aspect_diff_percent = ((sensor_aspect - pixel_aspect).abs() / sensor_aspect) * 100.0;
+        
+        if (sensor_aspect - pixel_aspect).abs() / sensor_aspect > aspect_tolerance {
+            warnings.push(ValidationWarning {
+                message: format!(
+                    "Sensor aspect ratio ({:.3}:1) doesn't match pixel aspect ratio ({:.3}:1) - difference: {:.1}%",
+                    sensor_aspect, pixel_aspect, aspect_diff_percent
+                ),
+                severity: ValidationSeverity::Error,
+            });
+        }
+
+        // Check that pixel pitch is consistent in both dimensions (square pixels)
+        let pitch_diff_percent = ((h_pitch - v_pitch).abs() / h_pitch) * 100.0;
+        if pitch_diff_percent > 5.0 {
+            warnings.push(ValidationWarning {
+                message: format!(
+                    "Pixels are not square: horizontal pitch ({:.2} µm) differs from vertical pitch ({:.2} µm) by {:.1}%",
+                    h_pitch, v_pitch, pitch_diff_percent
+                ),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        warnings
+    }
+
+    /// Get aspect ratio (width / height)
+    pub fn aspect_ratio(&self) -> (f64, f64) {
+        let sensor_aspect = self.sensor_width_mm / self.sensor_height_mm;
+        let pixel_aspect = self.pixel_width as f64 / self.pixel_height as f64;
+        (sensor_aspect, pixel_aspect)
+    }
 }
 
 impl std::fmt::Display for CameraSystem {
@@ -159,6 +323,87 @@ impl std::fmt::Display for CameraSystem {
             v_pitch,
             self.focal_length_mm
         )
+    }
+}
+
+impl FovResult {
+    /// Validate the FOV result and return any warnings
+    pub fn validate(&self) -> Vec<ValidationWarning> {
+        let mut warnings = Vec::new();
+
+        // Check FOV angles (should be between 0 and 180 degrees)
+        if self.horizontal_fov_deg > 180.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Horizontal FOV ({:.1}°) exceeds 180° - physically impossible", self.horizontal_fov_deg),
+                severity: ValidationSeverity::Error,
+            });
+        }
+        if self.horizontal_fov_deg < 0.1 {
+            warnings.push(ValidationWarning {
+                message: format!("Horizontal FOV ({:.2}°) is extremely narrow - may be unrealistic", self.horizontal_fov_deg),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        if self.vertical_fov_deg > 180.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Vertical FOV ({:.1}°) exceeds 180° - physically impossible", self.vertical_fov_deg),
+                severity: ValidationSeverity::Error,
+            });
+        }
+        if self.vertical_fov_deg < 0.1 {
+            warnings.push(ValidationWarning {
+                message: format!("Vertical FOV ({:.2}°) is extremely narrow - may be unrealistic", self.vertical_fov_deg),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        // Check GSD (typical range: 0.001-1000 mm/px)
+        if self.gsd_mm < 0.001 {
+            warnings.push(ValidationWarning {
+                message: format!("Ground Sample Distance ({:.6} mm/px) is unrealistically small", self.gsd_mm),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+        if self.gsd_mm > 1000.0 {
+            warnings.push(ValidationWarning {
+                message: format!("Ground Sample Distance ({:.1} mm/px) is extremely large", self.gsd_mm),
+                severity: ValidationSeverity::Warning,
+            });
+        }
+
+        // Check DORI distances if available
+        if let Some(dori) = &self.dori {
+            // Detection distance should be reasonable (0.1m - 10,000m)
+            if dori.detection_m < 0.1 || dori.detection_m > 10000.0 {
+                warnings.push(ValidationWarning {
+                    message: format!("Detection distance ({:.0} m) seems unrealistic", dori.detection_m),
+                    severity: ValidationSeverity::Warning,
+                });
+            }
+
+            // DORI distances should be in descending order (D > O > R > I)
+            if dori.detection_m < dori.observation_m {
+                warnings.push(ValidationWarning {
+                    message: "Detection distance should be greater than Observation distance".to_string(),
+                    severity: ValidationSeverity::Error,
+                });
+            }
+            if dori.observation_m < dori.recognition_m {
+                warnings.push(ValidationWarning {
+                    message: "Observation distance should be greater than Recognition distance".to_string(),
+                    severity: ValidationSeverity::Error,
+                });
+            }
+            if dori.recognition_m < dori.identification_m {
+                warnings.push(ValidationWarning {
+                    message: "Recognition distance should be greater than Identification distance".to_string(),
+                    severity: ValidationSeverity::Error,
+                });
+            }
+        }
+
+        warnings
     }
 }
 

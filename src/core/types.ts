@@ -34,6 +34,11 @@ export interface CameraWithResult {
   result: FovResult;
 }
 
+export interface ValidationWarning {
+  message: string;
+  severity: "Warning" | "Error";
+}
+
 export interface ReferenceObject {
   id: string;
   name: string;
