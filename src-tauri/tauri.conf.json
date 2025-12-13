@@ -13,9 +13,11 @@
     "withGlobalTauri": true,
     "windows": [
       {
-        "title": "tauri-app",
-        "width": 800,
-        "height": 600
+        "title": "Camera Optics Calculator",
+        "width": 1400,
+        "height": 1100,
+        "minWidth": 1200,
+        "minHeight": 700
       }
     ],
     "security": {
