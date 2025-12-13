@@ -104,7 +104,10 @@ async function addToComparison() {
       
       showToast("Changes saved", "success", 2000);
     } else {
-      // Add new system
+      // Add new system - if no name provided, assign default name
+      if (!camera.name) {
+        camera.name = `System ${store.getCameraSystems().length + 1}`;
+      }
       store.addCameraSystem({ camera, result });
       
       // Set the newly added system as selected
