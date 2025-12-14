@@ -417,12 +417,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const systems = store.getCameraSystems();
     const indexToDelete = editingIndex; // Capture current value
     const systemName = systems[indexToDelete].camera.name || `System ${indexToDelete + 1}`;
-    
-    // Confirm before deleting
-    if (!confirm(`Delete "${systemName}"? This cannot be undone.`)) {
-      return;
-    }
-    
+
     // Clear editing state BEFORE deletion to prevent stale index
     clearEditingState();
     
@@ -577,13 +572,7 @@ window.addEventListener("DOMContentLoaded", () => {
       if (target.classList.contains("remove-btn")) {
         e.stopPropagation();
         const index = parseInt(target.dataset.index!);
-        const systemName = cameraSystems[index]?.camera.name || `System ${index + 1}`;
-        
-        // Confirm before removing
-        if (!confirm(`Remove "${systemName}" from comparison list?`)) {
-          return;
-        }
-        
+
         store.removeCameraSystem(index);
         
         // Adjust selected index after removal
