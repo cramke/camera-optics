@@ -92,6 +92,20 @@ function checkForChanges(): void {
   }
 }
 
+// Validate that an index is within valid range of current systems
+function isValidIndex(index: number | null): boolean {
+  if (index === null) return false;
+  const systems = store.getCameraSystems();
+  return index >= 0 && index < systems.length;
+}
+
+// Safely clear editing and selection state
+function clearEditingState(): void {
+  editingIndex = null;
+  selectedSystemIndex = null;
+  setEditMode(null);
+}
+
 // Calculate FOV for current form values
 async function calculateFov(exitEditMode: boolean = false) {
   try {
@@ -191,11 +205,25 @@ async function saveChanges() {
     return;
   }
 
+  // Validate that the editing index is still valid
+  if (!isValidIndex(editingIndex)) {
+    showToast("System no longer exists. Changes cannot be saved.", "error", 3000);
+    clearEditingState();
+    return;
+  }
+
   const camera = getCameraFromForm();
   const distance = getDistance();
 
   try {
     const result = await calculateCameraFov(camera, distance);
+
+    // Revalidate index before update (in case of concurrent operations)
+    if (!isValidIndex(editingIndex)) {
+      showToast("System was deleted. Changes cannot be saved.", "error", 3000);
+      clearEditingState();
+      return;
+    }
 
     // Update existing system
     store.updateCameraSystem(editingIndex, { camera, result });
@@ -359,39 +387,57 @@ window.addEventListener("DOMContentLoaded", () => {
   
   // Discard changes button
   document.getElementById("discard-changes-btn")?.addEventListener("click", () => {
-    if (editingIndex !== null) {
-      // Reload the original system values from the store
-      loadSystemToView(editingIndex);
-      // Update button visibility after discarding
-      checkForChanges();
-      showToast("Changes discarded", "info", 2000);
+    if (editingIndex === null) return;
+    
+    // Validate index is still valid
+    if (!isValidIndex(editingIndex)) {
+      showToast("System no longer exists", "error", 2000);
+      clearEditingState();
+      return;
     }
+    
+    // Reload the original system values from the store
+    loadSystemToView(editingIndex);
+    // Update button visibility after discarding
+    checkForChanges();
+    showToast("Changes discarded", "info", 2000);
   });
   
   // Delete system button
   document.getElementById("delete-system-btn")?.addEventListener("click", () => {
-    if (editingIndex !== null) {
-      const systems = store.getCameraSystems();
-      const systemName = systems[editingIndex]?.camera.name || `System ${editingIndex + 1}`;
-      
-      // Remove the system
-      store.removeCameraSystem(editingIndex);
-      
-      // Exit edit mode and clear selection
-      setEditMode(null);
-      selectedSystemIndex = null;
-      editingIndex = null;
-      
-      // Update the UI
-      updateSystemsList();
-      currentDisplayedSystems = store.getCameraSystems();
-      drawVisualization(currentDisplayedSystems);
-      
-      // Clear the form
-      (document.getElementById("name") as HTMLInputElement).value = "";
-      
-      showToast(`${systemName} deleted`, "success", 2000);
+    if (editingIndex === null) return;
+    
+    // Validate index before deletion
+    if (!isValidIndex(editingIndex)) {
+      showToast("System no longer exists", "error", 2000);
+      clearEditingState();
+      return;
     }
+    
+    const systems = store.getCameraSystems();
+    const indexToDelete = editingIndex; // Capture current value
+    const systemName = systems[indexToDelete].camera.name || `System ${indexToDelete + 1}`;
+    
+    // Confirm before deleting
+    if (!confirm(`Delete "${systemName}"? This cannot be undone.`)) {
+      return;
+    }
+    
+    // Clear editing state BEFORE deletion to prevent stale index
+    clearEditingState();
+    
+    // Remove the system
+    store.removeCameraSystem(indexToDelete);
+    
+    // Update the UI
+    updateSystemsList();
+    currentDisplayedSystems = store.getCameraSystems();
+    drawVisualization(currentDisplayedSystems);
+    
+    // Clear the form
+    (document.getElementById("name") as HTMLInputElement).value = "";
+    
+    showToast(`${systemName} deleted`, "success", 2000);
   });
   
   // Add new system button (+ button in comparison list)
