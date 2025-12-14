@@ -8,14 +8,49 @@ import { calculateFocalLengthFromFov } from "../services/api";
 import { store } from "../services/store";
 
 /**
- * Validate a numeric field
- * @throws Error with simple "Invalid value" message if field is invalid
+ * Validation constraints for camera system parameters
  */
-function validateField(value: string): number {
+const VALIDATION_CONSTRAINTS = {
+  sensorWidth: { min: 0.1, max: 200, name: 'Sensor Width', unit: 'mm' },
+  sensorHeight: { min: 0.1, max: 200, name: 'Sensor Height', unit: 'mm' },
+  pixelWidth: { min: 10, max: 100000, name: 'Pixel Width', unit: 'pixels' },
+  pixelHeight: { min: 10, max: 100000, name: 'Pixel Height', unit: 'pixels' },
+  focalLength: { min: 0.1, max: 10000, name: 'Focal Length', unit: 'mm' },
+  distance: { min: 0.01, max: 100000, name: 'Working Distance', unit: 'm' },
+};
+
+/**
+ * Validate a numeric field with range constraints
+ * @throws Error with descriptive message if field is invalid
+ */
+function validateField(
+  value: string,
+  constraint: { min: number; max: number; name: string; unit: string }
+): number {
   const parsed = parseFloat(value);
 
-  if (!value || value.trim() === "" || isNaN(parsed) || parsed <= 0) {
-    throw new Error("Invalid value");
+  if (!value || value.trim() === "") {
+    throw new Error(`${constraint.name} is required`);
+  }
+
+  if (isNaN(parsed)) {
+    throw new Error(`${constraint.name} must be a valid number`);
+  }
+
+  if (parsed <= 0) {
+    throw new Error(`${constraint.name} must be greater than zero`);
+  }
+
+  if (parsed < constraint.min) {
+    throw new Error(
+      `${constraint.name} must be at least ${constraint.min}${constraint.unit}`
+    );
+  }
+
+  if (parsed > constraint.max) {
+    throw new Error(
+      `${constraint.name} cannot exceed ${constraint.max}${constraint.unit}`
+    );
   }
 
   return parsed;
@@ -32,12 +67,12 @@ export function getCameraFromForm(): CameraSystem {
   const pixelHeightInput = (document.getElementById("pixel-height") as HTMLInputElement).value;
   const focalLengthInput = (document.getElementById("focal-length") as HTMLInputElement).value;
 
-  // Validate all required fields
-  const sensorWidth = validateField(sensorWidthInput);
-  const sensorHeight = validateField(sensorHeightInput);
-  const pixelWidth = Math.round(validateField(pixelWidthInput));
-  const pixelHeight = Math.round(validateField(pixelHeightInput));
-  const focalLength = validateField(focalLengthInput);
+  // Validate all required fields with constraints
+  const sensorWidth = validateField(sensorWidthInput, VALIDATION_CONSTRAINTS.sensorWidth);
+  const sensorHeight = validateField(sensorHeightInput, VALIDATION_CONSTRAINTS.sensorHeight);
+  const pixelWidth = Math.round(validateField(pixelWidthInput, VALIDATION_CONSTRAINTS.pixelWidth));
+  const pixelHeight = Math.round(validateField(pixelHeightInput, VALIDATION_CONSTRAINTS.pixelHeight));
+  const focalLength = validateField(focalLengthInput, VALIDATION_CONSTRAINTS.focalLength);
 
   return {
     sensor_width_mm: sensorWidth,
@@ -55,7 +90,7 @@ export function getCameraFromForm(): CameraSystem {
  */
 export function getDistance(): number {
   const distanceInput = (document.getElementById("distance") as HTMLInputElement).value;
-  const distance = validateField(distanceInput);
+  const distance = validateField(distanceInput, VALIDATION_CONSTRAINTS.distance);
   
   // Convert meters to millimeters for the Rust backend
   return distance * 1000;

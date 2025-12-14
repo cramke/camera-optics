@@ -25,6 +25,19 @@ let currentDisplayedSystems: CameraWithResult[] = [];
 // Optimal balance between responsiveness and performance
 const AUTO_CALCULATE_DEBOUNCE_MS = 300;
 
+/**
+ * Escape HTML special characters to prevent XSS injection
+ * Converts potentially dangerous characters to HTML entities
+ */
+function escapeHtml(unsafe: string): string {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // Check if form values differ from stored system
 function hasFormChanges(): boolean {
   if (editingIndex === null) return false;
@@ -275,16 +288,18 @@ export function updateSystemsList() {
         const editBtnTitle = isEditing ? 'Save' : 'Edit';
         const editBtnClass = isEditing ? 'edit-btn save-mode' : 'edit-btn';
         const systemName = item.camera.name || `System ${index + 1}`;
-        const editAriaLabel = isEditing ? `Save changes to ${systemName}` : `Edit ${systemName}`;
-        const removeAriaLabel = `Remove ${systemName} from comparison list`;
+        const safeSystemName = escapeHtml(systemName); // Escape HTML to prevent XSS
+        const safeEditAriaLabel = escapeHtml(isEditing ? `Save changes to ${systemName}` : `Edit ${systemName}`);
+        const safeRemoveAriaLabel = escapeHtml(`Remove ${systemName} from comparison list`);
+        const safeSelectAriaLabel = escapeHtml(`Select ${systemName}`);
         
         return `
-      <div class="system-item ${index === selectedSystemIndex ? 'selected' : ''}" data-index="${index}" style="border-left: 4px solid ${getColor(index)}; cursor: pointer;" role="button" tabindex="0" aria-label="Select ${systemName}">
+      <div class="system-item ${index === selectedSystemIndex ? 'selected' : ''}" data-index="${index}" style="border-left: 4px solid ${getColor(index)}; cursor: pointer;" role="button" tabindex="0" aria-label="${safeSelectAriaLabel}">
         <div class="system-header">
-          <strong class="system-name">${systemName}</strong>
+          <strong class="system-name">${safeSystemName}</strong>
           <div class="system-actions">
-            <button class="${editBtnClass}" data-index="${index}" title="${editBtnTitle}" aria-label="${editAriaLabel}">${editBtnIcon}</button>
-            <button class="remove-btn" data-index="${index}" title="Remove" aria-label="${removeAriaLabel}">×</button>
+            <button class="${editBtnClass}" data-index="${index}" title="${editBtnTitle}" aria-label="${safeEditAriaLabel}">${editBtnIcon}</button>
+            <button class="remove-btn" data-index="${index}" title="Remove" aria-label="${safeRemoveAriaLabel}">×</button>
           </div>
         </div>
         <div class="system-info">
