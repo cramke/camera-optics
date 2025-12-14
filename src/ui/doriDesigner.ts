@@ -350,7 +350,7 @@ function getConstraints(): ParameterConstraint {
     'fixed-pixel-width',
     'min-pixel-width',
     'max-pixel-width',
-    true
+    true // isInteger
   );
   if (pixelWidth !== null) constraints.pixel_width = pixelWidth;
 
@@ -358,7 +358,7 @@ function getConstraints(): ParameterConstraint {
     'fixed-pixel-height',
     'min-pixel-height',
     'max-pixel-height',
-    true
+    true // isInteger
   );
   if (pixelHeight !== null) constraints.pixel_height = pixelHeight;
 

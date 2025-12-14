@@ -195,7 +195,6 @@ pub fn calculate_dori_parameter_ranges(
         pixel_height: None,
         focal_length_mm: None,
         horizontal_fov_deg: None,
-        limiting_requirement: String::new(), // No longer needed but kept for API compatibility
     };
 
     // Helper function to calculate FOV from sensor width and focal length

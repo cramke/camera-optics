@@ -115,9 +115,7 @@ pub struct DoriParameterRanges {
     /// Range for focal length in mm (if not constrained)
     pub focal_length_mm: Option<ParameterRange>,
     /// Range for horizontal FOV in degrees (if not constrained)
-    pub horizontal_fov_deg: Option<ParameterRange>,
-    /// The DORI target that was used (the most restrictive one)
-    pub limiting_requirement: String,
+    pub horizontal_fov_deg: Option<ParameterRange>
 }
 
 /// Validation warning for camera system

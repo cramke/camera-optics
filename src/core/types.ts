@@ -79,5 +79,4 @@ export interface DoriParameterRanges {
   pixel_height?: ParameterRange;
   focal_length_mm?: ParameterRange;
   horizontal_fov_deg?: ParameterRange;
-  limiting_requirement: string;
 }
