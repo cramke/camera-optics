@@ -1,8 +1,12 @@
 # Camera Optics Calculator
 
+[![Documentation](https://img.shields.io/badge/docs-mdBook-blue)](https://cramke.github.io/camera-optics/)
+
 A dual-interface application for calculating and visualizing camera system performance (lens + sensor). Calculate field of view (FOV), spatial resolution (pixels per mm), and depth of field for various camera configurations.
 
 Built with Tauri (Rust backend) + Vanilla TypeScript frontend.
+
+📚 **[Read the full documentation](https://cramke.github.io/camera-optics/)**
 
 ## Features
 
@@ -107,9 +111,10 @@ This ensures consistency between interfaces and leverages Rust's performance for
 
 ## Documentation
 
-See [OPTICS_GUIDE.md](./OPTICS_GUIDE.md) for:
-- Detailed CLI usage
+📚 **[Read the full documentation](https://cramke.github.io/camera-optics/)** for:
+- Detailed CLI usage guide
+- GUI interface tutorial
 - Tauri command API reference
 - Optical formulas explained
 - Common sensor size reference table
-- Development tips
+- Development and contribution guidelines

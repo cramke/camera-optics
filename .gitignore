@@ -12,6 +12,9 @@ dist
 dist-ssr
 *.local
 
+# mdBook documentation build
+docs/book/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

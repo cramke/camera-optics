@@ -6,3 +6,4 @@ dist/
 *.min.css
 pnpm-lock.yaml
 Cargo.lock
+docs/book/

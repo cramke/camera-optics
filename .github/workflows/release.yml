@@ -1,0 +1,235 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: 'Version bump type'
+        required: true
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+        default: patch
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-linux:
+    name: Build Linux (deb)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            libwebkit2gtk-4.1-dev \
+            libappindicator3-dev \
+            librsvg2-dev \
+            patchelf
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install
+
+      - name: Build Tauri app
+        run: pnpm tauri:build
+
+      - name: Upload deb package
+        uses: actions/upload-artifact@v4
+        with:
+          name: camera-optics-linux-deb
+          path: src-tauri/target/release/bundle/deb/*.deb
+          retention-days: 1
+
+  build-docs:
+    name: Build Documentation
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Install mdBook
+        run: cargo install mdbook --locked
+
+      - name: Build documentation
+        run: cd docs && mdbook build
+
+      - name: Create docs archive
+        run: cd docs/book && tar -czf ../../camera-optics-docs.tar.gz .
+
+      - name: Upload docs archive
+        uses: actions/upload-artifact@v4
+        with:
+          name: camera-optics-docs
+          path: camera-optics-docs.tar.gz
+          retention-days: 1
+
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [build-linux, build-docs]
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get latest tag
+        id: get_latest_tag
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 2>/dev/null || echo "v0.0.0")
+          echo "latest_tag=$latest_tag" >> $GITHUB_OUTPUT
+          echo "Latest tag: $latest_tag"
+
+      - name: Calculate next version
+        id: next_version
+        run: |
+          latest_tag="${{ steps.get_latest_tag.outputs.latest_tag }}"
+          bump_type="${{ inputs.bump }}"
+          
+          # Remove 'v' prefix if present
+          version=${latest_tag#v}
+          
+          # Split version into major.minor.patch
+          IFS='.' read -r major minor patch <<< "$version"
+          
+          # Increment based on bump type
+          case $bump_type in
+            major)
+              major=$((major + 1))
+              minor=0
+              patch=0
+              ;;
+            minor)
+              minor=$((minor + 1))
+              patch=0
+              ;;
+            patch)
+              patch=$((patch + 1))
+              ;;
+          esac
+          
+          new_version="v${major}.${minor}.${patch}"
+          echo "new_version=$new_version" >> $GITHUB_OUTPUT
+          echo "New version: $new_version"
+
+      - name: Generate Changelog
+        id: changelog
+        run: |
+          latest_tag="${{ steps.get_latest_tag.outputs.latest_tag }}"
+          new_version="${{ steps.next_version.outputs.new_version }}"
+          
+          # Get commit range
+          if [ "$latest_tag" = "v0.0.0" ]; then
+            commit_range="HEAD"
+          else
+            commit_range="${latest_tag}..HEAD"
+          fi
+          
+          # Initialize changelog
+          cat > CHANGELOG.md << EOF
+          # Changelog
+          
+          ## ${new_version} ($(date +%Y-%m-%d))
+          
+          EOF
+          
+          # Parse commits by type
+          declare -A sections
+          sections[feat]="### Features"
+          sections[fix]="### Bug Fixes"
+          sections[docs]="### Documentation"
+          sections[style]="### Styles"
+          sections[refactor]="### Code Refactoring"
+          sections[perf]="### Performance Improvements"
+          sections[test]="### Tests"
+          sections[build]="### Build System"
+          sections[ci]="### CI/CD"
+          sections[chore]="### Chores"
+          
+          # Collect commits by type
+          for type in feat fix docs style refactor perf test build ci chore; do
+            commits=$(git log $commit_range --pretty=format:"%s" --grep="^${type}:" --grep="^${type}(.*):") || true
+            if [ -n "$commits" ]; then
+              echo "${sections[$type]}" >> CHANGELOG.md
+              echo "" >> CHANGELOG.md
+              while IFS= read -r commit; do
+                # Remove type prefix and format
+                msg=$(echo "$commit" | sed -E "s/^${type}(\([^)]+\))?:\s*//")
+                echo "- $msg" >> CHANGELOG.md
+              done <<< "$commits"
+              echo "" >> CHANGELOG.md
+            fi
+          done
+          
+          # Add breaking changes section
+          breaking=$(git log $commit_range --pretty=format:"%s%n%b" --grep="BREAKING CHANGE") || true
+          if [ -n "$breaking" ]; then
+            echo "### BREAKING CHANGES" >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+            echo "$breaking" | grep -A 10 "BREAKING CHANGE" | sed 's/BREAKING CHANGE: /- /' >> CHANGELOG.md
+            echo "" >> CHANGELOG.md
+          fi
+          
+          # Add all contributors
+          echo "### Contributors" >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          git log $commit_range --format='%aN' | sort -u | sed 's/^/- /' >> CHANGELOG.md
+          echo "" >> CHANGELOG.md
+          
+          # Add comparison link
+          if [ "$latest_tag" != "v0.0.0" ]; then
+            echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${latest_tag}...${new_version}" >> CHANGELOG.md
+          fi
+          
+          cat CHANGELOG.md
+
+      - name: Download Linux artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: camera-optics-linux-deb
+          path: ./release-artifacts/
+
+      - name: Download docs
+        uses: actions/download-artifact@v4
+        with:
+          name: camera-optics-docs
+          path: ./
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.next_version.outputs.new_version }}
+          name: Release ${{ steps.next_version.outputs.new_version }}
+          draft: false
+          prerelease: false
+          body_path: CHANGELOG.md
+          files: |
+            release-artifacts/*.deb
+            camera-optics-docs.tar.gz
+            CHANGELOG.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
