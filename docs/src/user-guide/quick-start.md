@@ -58,4 +58,4 @@ cargo run --bin camera-optics-cli -- fov \
 
 - Learn about the [GUI interface](./gui.md)
 - Explore [CLI commands](./cli.md)
-- Understand [optical calculations](../reference/optics-guide.md)
+- Understand [optical calculations](./optics-guide.md)

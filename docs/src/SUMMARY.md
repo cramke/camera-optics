@@ -8,10 +8,10 @@
 - [GUI Application](./user-guide/gui.md)
 - [CLI Tool](./user-guide/cli.md)
 - [System Comparison](./user-guide/comparison.md)
+- [Optics Guide](./user-guide/optics-guide.md)
 
 # Reference
 
-- [Optics Guide](./reference/optics-guide.md)
 - [FOV Parameters](./reference/fov-parameters.md)
 - [API Reference](./reference/api.md)
 
