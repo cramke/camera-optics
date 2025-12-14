@@ -21,6 +21,22 @@ let editingIndex: number | null = null;
 // Track the currently displayed systems for visualization
 let currentDisplayedSystems: CameraWithResult[] = [];
 
+// Tab switching function
+function switchTab(tabName: string) {
+  document.querySelectorAll(".tab-btn").forEach((btn) => {
+    const htmlBtn = btn as HTMLElement;
+    btn.classList.toggle("active", htmlBtn.dataset.tab === tabName);
+  });
+  document.querySelectorAll(".tab-content").forEach((content) => {
+    content.classList.toggle("active", content.id === `${tabName}-tab`);
+  });
+  
+  // Redraw visualization when switching to visualization tab
+  if (tabName === "visualization") {
+    drawVisualization(currentDisplayedSystems);
+  }
+}
+
 // Update UI to show edit mode
 function setEditMode(index: number | null): void {
   editingIndex = index;
@@ -218,8 +234,14 @@ export function updateSystemsList() {
         sysItem.classList.toggle("selected", i === index);
       });
       
-      // Scroll to the form
-      document.querySelector(".camera-form")?.scrollIntoView({ behavior: "smooth" });
+      // Switch to Camera Input tab
+      switchTab("camera-input");
+      
+      // Scroll to top of the tab content
+      const cameraInputTab = document.getElementById("camera-input-tab");
+      if (cameraInputTab) {
+        cameraInputTab.scrollTop = 0;
+      }
     });
   });
 
@@ -261,20 +283,9 @@ function getColor(index: number): string {
   return SYSTEM_COLORS[index % SYSTEM_COLORS.length];
 }
 
-// Tab switching
-function switchTab(tabName: string) {
-  document.querySelectorAll(".tab-btn").forEach((btn) => {
-    const htmlBtn = btn as HTMLElement;
-    btn.classList.toggle("active", htmlBtn.dataset.tab === tabName);
-  });
-  document.querySelectorAll(".tab-content").forEach((content) => {
-    content.classList.toggle("active", content.id === `${tabName}-tab`);
-  });
-  
-  // Redraw visualization when switching to visualization tab
-  if (tabName === "visualization") {
-    drawVisualization(currentDisplayedSystems);
-  }
+// Switch to Camera Input tab
+export function switchToCameraInput() {
+  switchTab("camera-input");
 }
 
 // Switch between focal length and FOV input methods

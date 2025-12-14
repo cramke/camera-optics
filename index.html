@@ -29,80 +29,6 @@
         <!-- Left Panel: Camera Systems -->
         <div class="panel systems-panel">
           <h2>Camera Systems</h2>
-          
-          <div class="camera-form">
-            <div class="form-group">
-              <label for="name">Name (optional)</label>
-              <input type="text" id="name" placeholder="e.g., Full Frame 50mm" />
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="sensor-width">Sensor Width (mm)</label>
-                <input type="number" id="sensor-width" value="36" step="0.1" />
-              </div>
-              <div class="form-group">
-                <label for="sensor-height">Sensor Height (mm)</label>
-                <input type="number" id="sensor-height" value="27" step="0.1" />
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="pixel-width">Pixel Width</label>
-                <input type="number" id="pixel-width" value="2000" step="1" />
-              </div>
-              <div class="form-group">
-                <label for="pixel-height">Pixel Height</label>
-                <input type="number" id="pixel-height" value="1500" step="1" />
-              </div>
-            </div>
-
-            <div class="input-method-selector">
-              <div class="input-method active" id="focal-method" data-method="focal">
-                <div class="method-radio"></div>
-                <div class="method-content">
-                  <label class="method-label">Focal Length</label>
-                  <div class="form-group">
-                    <input type="number" id="focal-length" value="50" step="0.1" placeholder="mm" />
-                  </div>
-                </div>
-              </div>
-
-              <div class="input-method" id="fov-method" data-method="fov">
-                <div class="method-radio"></div>
-                <div class="method-content">
-                  <label class="method-label">Field of View</label>
-                  <div class="form-row">
-                    <div class="form-group">
-                      <label for="hfov-deg">Horizontal (°)</label>
-                      <input type="number" id="hfov-deg" placeholder="e.g., 39.6" step="0.1" />
-                    </div>
-                    <div class="form-group">
-                      <label for="vfov-deg">Vertical (°)</label>
-                      <input type="number" id="vfov-deg" placeholder="e.g., 27" step="0.1" />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label for="distance">Working Distance (m)</label>
-              <input type="number" id="distance" value="25" step="0.1" />
-            </div>
-
-            <div class="button-row">
-              <button id="add-system-btn" class="secondary-btn full-width">Add to Comparison</button>
-            </div>
-          </div>
-
-          <div class="presets">
-            <h3>Quick Presets</h3>
-            <button class="preset-btn" data-preset="full-frame">Full Frame</button>
-            <button class="preset-btn" data-preset="aps-c">APS-C</button>
-            <button class="preset-btn" data-preset="micro43">Micro 4/3</button>
-          </div>
 
           <div id="systems-list" class="systems-list">
             <h3>Comparison List</h3>
@@ -113,13 +39,98 @@
         <!-- Right Panel: Visualization & Results -->
         <div class="panel results-panel">
           <div class="tabs">
-            <button class="tab-btn active" data-tab="visualization">Visualization</button>
+            <button class="tab-btn active" data-tab="camera-input">Camera Input</button>
+            <button class="tab-btn" data-tab="visualization">Visualization</button>
             <button class="tab-btn" data-tab="results">Results</button>
             <button class="tab-btn" data-tab="image-preview">Image Preview</button>
             <button class="tab-btn" data-tab="dori-designer">DORI Designer</button>
           </div>
 
-          <div id="visualization-tab" class="tab-content active">
+          <div id="camera-input-tab" class="tab-content active">
+            <div class="camera-input-layout">
+              <div class="camera-form-column">
+                <div class="camera-form">
+                  <h3>Camera System Configuration</h3>
+                  
+                  <div class="form-group">
+                    <label for="name">Name (optional)</label>
+                    <input type="text" id="name" placeholder="e.g., Full Frame 50mm" />
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="sensor-width">Sensor Width (mm)</label>
+                      <input type="number" id="sensor-width" value="36" step="0.1" />
+                    </div>
+                    <div class="form-group">
+                      <label for="sensor-height">Sensor Height (mm)</label>
+                      <input type="number" id="sensor-height" value="27" step="0.1" />
+                    </div>
+                  </div>
+
+                  <div class="form-row">
+                    <div class="form-group">
+                      <label for="pixel-width">Pixel Width</label>
+                      <input type="number" id="pixel-width" value="2000" step="1" />
+                    </div>
+                    <div class="form-group">
+                      <label for="pixel-height">Pixel Height</label>
+                      <input type="number" id="pixel-height" value="1500" step="1" />
+                    </div>
+                  </div>
+
+                  <div class="input-method-selector">
+                    <div class="input-method active" id="focal-method" data-method="focal">
+                      <div class="method-radio"></div>
+                      <div class="method-content">
+                        <label class="method-label">Focal Length</label>
+                        <div class="form-group">
+                          <input type="number" id="focal-length" value="50" step="0.1" placeholder="mm" />
+                        </div>
+                      </div>
+                    </div>
+
+                    <div class="input-method" id="fov-method" data-method="fov">
+                      <div class="method-radio"></div>
+                      <div class="method-content">
+                        <label class="method-label">Field of View</label>
+                        <div class="form-row">
+                          <div class="form-group">
+                            <label for="hfov-deg">Horizontal (°)</label>
+                            <input type="number" id="hfov-deg" placeholder="e.g., 39.6" step="0.1" />
+                          </div>
+                          <div class="form-group">
+                            <label for="vfov-deg">Vertical (°)</label>
+                            <input type="number" id="vfov-deg" placeholder="e.g., 27" step="0.1" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="form-group">
+                    <label for="distance">Working Distance (m)</label>
+                    <input type="number" id="distance" value="25" step="0.1" />
+                  </div>
+
+                  <div class="button-row">
+                    <button id="add-system-btn" class="secondary-btn full-width">Add to Comparison</button>
+                  </div>
+                </div>
+              </div>
+
+              <div class="presets-column">
+                <div class="presets">
+                  <h3>Quick Presets</h3>
+                  <button class="preset-btn" data-preset="full-frame">Full Frame</button>
+                  <button class="preset-btn" data-preset="aps-c">APS-C</button>
+                  <button class="preset-btn" data-preset="micro43">Micro 4/3</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div id="visualization-tab" class="tab-content">
             <div class="canvas-container">
               <canvas id="fov-canvas" width="600" height="600"></canvas>
               <div id="canvas-legend" class="legend"></div>
