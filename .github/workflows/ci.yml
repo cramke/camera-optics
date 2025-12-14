@@ -153,7 +153,7 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Install cargo-llvm-cov
-        run: cargo install cargo-llvm-cov --locked
+        run: cargo install cargo-llvm-cov --locked --force
 
       - name: Run Rust tests with coverage
         run: |
@@ -225,7 +225,7 @@ jobs:
             ${{ runner.os }}-cargo-audit-
 
       - name: Install cargo-audit
-        run: cargo install cargo-audit --locked
+        run: cargo install cargo-audit --locked  --force
 
       - name: Audit Rust dependencies for vulnerabilities
         run: cargo audit --file src-tauri/Cargo.lock
