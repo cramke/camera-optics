@@ -172,12 +172,17 @@ export function updateSystemsList() {
             </div>`
           : '';
         
+        const isEditing = editingIndex === index;
+        const editBtnIcon = isEditing ? '✔' : '✎';
+        const editBtnTitle = isEditing ? 'Save' : 'Edit';
+        const editBtnClass = isEditing ? 'edit-btn save-mode' : 'edit-btn';
+        
         return `
       <div class="system-item ${index === selectedSystemIndex ? 'selected' : ''}" data-index="${index}" style="border-left: 4px solid ${getColor(index)}; cursor: pointer;">
         <div class="system-header">
           <strong class="system-name">${item.camera.name || `System ${index + 1}`}</strong>
           <div class="system-actions">
-            <button class="edit-btn" data-index="${index}" title="Edit">✎</button>
+            <button class="${editBtnClass}" data-index="${index}" title="${editBtnTitle}">${editBtnIcon}</button>
             <button class="remove-btn" data-index="${index}" title="Remove">×</button>
           </div>
         </div>
@@ -232,35 +237,42 @@ export function updateSystemsList() {
     });
   });
 
-  // Add edit button listeners
+  // Add edit/save button listeners
   document.querySelectorAll(".edit-btn").forEach((btn) => {
-    btn.addEventListener("click", (e) => {
+    btn.addEventListener("click", async (e) => {
       e.stopPropagation();
       const index = parseInt((e.target as HTMLElement).dataset.index!);
       
-      // Load system values into form for editing
-      loadSystemToView(index);
-      
-      // Update calculated FOV values
-      const system = cameraSystems[index];
-      updateCalculatedFov(system.result.horizontal_fov_deg, system.result.vertical_fov_deg);
-      
-      // Enter edit mode
-      setEditMode(index);
-      selectedSystemIndex = index;
-      
-      // Update visual selection
-      document.querySelectorAll(".system-item").forEach((sysItem, i) => {
-        sysItem.classList.toggle("selected", i === index);
-      });
-      
-      // Switch to Camera Input tab
-      switchTab("camera-input");
-      
-      // Scroll to top of the tab content
-      const cameraInputTab = document.getElementById("camera-input-tab");
-      if (cameraInputTab) {
-        cameraInputTab.scrollTop = 0;
+      // Check if this system is currently being edited
+      if (editingIndex === index) {
+        // Save changes
+        await addToComparison();
+      } else {
+        // Enter edit mode
+        // Load system values into form for editing
+        loadSystemToView(index);
+        
+        // Update calculated FOV values
+        const system = cameraSystems[index];
+        updateCalculatedFov(system.result.horizontal_fov_deg, system.result.vertical_fov_deg);
+        
+        // Enter edit mode
+        setEditMode(index);
+        selectedSystemIndex = index;
+        
+        // Update visual selection
+        document.querySelectorAll(".system-item").forEach((sysItem, i) => {
+          sysItem.classList.toggle("selected", i === index);
+        });
+        
+        // Switch to Camera Input tab
+        switchTab("camera-input");
+        
+        // Scroll to top of the tab content
+        const cameraInputTab = document.getElementById("camera-input-tab");
+        if (cameraInputTab) {
+          cameraInputTab.scrollTop = 0;
+        }
       }
     });
   });

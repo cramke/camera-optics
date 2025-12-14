@@ -568,6 +568,14 @@ button {
   box-shadow: none;
 }
 
+.edit-btn.save-mode {
+  background: #10b981;
+}
+
+.edit-btn.save-mode:hover {
+  background: #059669;
+}
+
 .remove-btn {
   background: #ef4444;
   color: white;
