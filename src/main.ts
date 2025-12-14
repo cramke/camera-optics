@@ -21,6 +21,27 @@ let editingIndex: number | null = null;
 // Track the currently displayed systems for visualization
 let currentDisplayedSystems: CameraWithResult[] = [];
 
+// Check if form values differ from stored system
+function hasFormChanges(): boolean {
+  if (editingIndex === null) return false;
+  
+  const systems = store.getCameraSystems();
+  const storedSystem = systems[editingIndex];
+  if (!storedSystem) return false;
+  
+  const currentCamera = getCameraFromForm();
+  const stored = storedSystem.camera;
+  
+  return (
+    currentCamera.name !== stored.name ||
+    currentCamera.sensor_width_mm !== stored.sensor_width_mm ||
+    currentCamera.sensor_height_mm !== stored.sensor_height_mm ||
+    currentCamera.pixel_width !== stored.pixel_width ||
+    currentCamera.pixel_height !== stored.pixel_height ||
+    currentCamera.focal_length_mm !== stored.focal_length_mm
+  );
+}
+
 // Tab switching function
 function switchTab(tabName: string) {
   document.querySelectorAll(".tab-btn").forEach((btn) => {
@@ -38,16 +59,30 @@ function switchTab(tabName: string) {
 }
 
 // Update UI to show edit mode
-function setEditMode(index: number | null): void {
+function setEditMode(index: number | null, hasChanges: boolean = false): void {
   editingIndex = index;
   const saveBtn = document.getElementById("save-changes-btn") as HTMLButtonElement;
+  const discardBtn = document.getElementById("discard-changes-btn") as HTMLButtonElement;
+  const deleteBtn = document.getElementById("delete-system-btn") as HTMLButtonElement;
   
   if (index !== null) {
-    // Show save button when in edit mode
-    saveBtn.style.display = "block";
+    // Show/hide buttons based on whether there are changes
+    saveBtn.style.display = hasChanges ? "block" : "none";
+    discardBtn.style.display = hasChanges ? "block" : "none";
+    deleteBtn.style.display = "block"; // Always show delete when in edit mode
   } else {
-    // Hide save button when not in edit mode
+    // Hide all edit mode buttons
     saveBtn.style.display = "none";
+    discardBtn.style.display = "none";
+    deleteBtn.style.display = "none";
+  }
+}
+
+// Check for form changes and update button visibility
+function checkForChanges(): void {
+  if (editingIndex !== null) {
+    const hasChanges = hasFormChanges();
+    setEditMode(editingIndex, hasChanges);
   }
 }
 
@@ -237,8 +272,8 @@ export function updateSystemsList() {
       // Update selected index
       selectedSystemIndex = index;
       
-      // Enter edit mode when selecting a system
-      setEditMode(index);
+      // Enter edit mode when selecting a system (no changes yet)
+      setEditMode(index, false);
       
       // Update the visual selection by toggling the class
       document.querySelectorAll(".system-item").forEach((sysItem, i) => {
@@ -281,8 +316,8 @@ export function updateSystemsList() {
         const system = cameraSystems[index];
         updateCalculatedFov(system.result.horizontal_fov_deg, system.result.vertical_fov_deg);
         
-        // Enter edit mode
-        setEditMode(index);
+        // Enter edit mode (no changes yet)
+        setEditMode(index, false);
         selectedSystemIndex = index;
         
         // Update visual selection
@@ -420,6 +455,43 @@ window.addEventListener("DOMContentLoaded", () => {
   document.getElementById("add-system-btn")?.addEventListener("click", addToComparison);
   document.getElementById("save-changes-btn")?.addEventListener("click", saveChanges);
   
+  // Discard changes button
+  document.getElementById("discard-changes-btn")?.addEventListener("click", () => {
+    if (editingIndex !== null) {
+      // Reload the original system values from the store
+      loadSystemToView(editingIndex);
+      // Update button visibility after discarding
+      checkForChanges();
+      showToast("Changes discarded", "info", 2000);
+    }
+  });
+  
+  // Delete system button
+  document.getElementById("delete-system-btn")?.addEventListener("click", () => {
+    if (editingIndex !== null) {
+      const systems = store.getCameraSystems();
+      const systemName = systems[editingIndex]?.camera.name || `System ${editingIndex + 1}`;
+      
+      // Remove the system
+      store.removeCameraSystem(editingIndex);
+      
+      // Exit edit mode and clear selection
+      setEditMode(null);
+      selectedSystemIndex = null;
+      editingIndex = null;
+      
+      // Update the UI
+      updateSystemsList();
+      currentDisplayedSystems = store.getCameraSystems();
+      drawVisualization(currentDisplayedSystems);
+      
+      // Clear the form
+      (document.getElementById("name") as HTMLInputElement).value = "";
+      
+      showToast(`${systemName} deleted`, "success", 2000);
+    }
+  });
+  
   // Add new system button (+ button in comparison list)
   document.getElementById("add-new-system-btn")?.addEventListener("click", async () => {
     try {
@@ -439,7 +511,7 @@ window.addEventListener("DOMContentLoaded", () => {
       
       // Set the selected index and edit mode BEFORE updating the list
       selectedSystemIndex = newIndex;
-      setEditMode(newIndex);
+      setEditMode(newIndex, false);
       
       // Update the list (will use the selectedSystemIndex to apply the selected class)
       updateSystemsList();
@@ -489,6 +561,15 @@ window.addEventListener("DOMContentLoaded", () => {
     calculateFov();
     
     showToast("Form cleared", "info", 2000);
+  });
+
+  // Add change tracking to all form inputs
+  const formInputs = [
+    'name', 'sensor-width', 'sensor-height', 
+    'pixel-width', 'pixel-height', 'focal-length'
+  ];
+  formInputs.forEach(inputId => {
+    document.getElementById(inputId)?.addEventListener('input', checkForChanges);
   });
 
   // Input method selection
