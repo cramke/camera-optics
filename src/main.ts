@@ -163,18 +163,38 @@ export function updateSystemsList() {
 
   systemsItems.innerHTML = cameraSystems
     .map(
-      (item, index) => `
+      (item, index) => {
+        const dori = item.result.dori;
+        const doriInfo = dori 
+          ? `<div class="system-dori">
+              <span class="dori-label">DORI:</span>
+              <span class="dori-values">D:${dori.detection_m.toFixed(0)}m | O:${dori.observation_m.toFixed(0)}m | R:${dori.recognition_m.toFixed(0)}m | I:${dori.identification_m.toFixed(0)}m</span>
+            </div>`
+          : '';
+        
+        return `
       <div class="system-item ${index === selectedSystemIndex ? 'selected' : ''}" data-index="${index}" style="border-left: 4px solid ${getColor(index)}; cursor: pointer;">
-        <div class="system-info">
-          <strong>${item.camera.name || `System ${index + 1}`}</strong>
-          <span class="system-specs">${item.camera.sensor_width_mm}×${item.camera.sensor_height_mm}mm, ${item.camera.focal_length_mm}mm</span>
+        <div class="system-header">
+          <strong class="system-name">${item.camera.name || `System ${index + 1}`}</strong>
+          <div class="system-actions">
+            <button class="edit-btn" data-index="${index}" title="Edit">✎</button>
+            <button class="remove-btn" data-index="${index}" title="Remove">×</button>
+          </div>
         </div>
-        <div class="system-actions">
-          <button class="edit-btn" data-index="${index}" title="Edit">✎</button>
-          <button class="remove-btn" data-index="${index}" title="Remove">×</button>
+        <div class="system-info">
+          <div class="system-spec-row">
+            <span class="spec-label">Resolution:</span>
+            <span class="spec-value">${item.camera.pixel_width} x ${item.camera.pixel_height} px | ${item.camera.sensor_width_mm} x ${item.camera.sensor_height_mm} mm</span>
+          </div>
+          <div class="system-spec-row">
+            <span class="spec-label">HFOV:</span>
+            <span class="spec-value">${item.result.horizontal_fov_deg.toFixed(1)}° | <span class="spec-distance">@${item.result.distance_m.toFixed(0)}m</span> ${item.result.horizontal_fov_m.toFixed(1)}m</span>
+          </div>
+          ${doriInfo}
         </div>
       </div>
-    `
+    `;
+      }
     )
     .join("");
 
