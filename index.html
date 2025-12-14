@@ -16,7 +16,7 @@
             <h1>Camera Optics Calculator</h1>
           </div>
           <div class="header-menu">
-            <button id="menu-toggle-btn" class="menu-btn">⋮</button>
+            <button id="menu-toggle-btn" class="menu-btn" aria-label="Open menu" aria-expanded="false">⋮</button>
             <div id="menu-dropdown" class="menu-dropdown">
               <button id="settings-btn-mobile" class="dropdown-item">Settings</button>
               <button id="about-btn-mobile" class="dropdown-item">About</button>
@@ -31,7 +31,7 @@
           <div id="systems-list" class="systems-list">
             <div class="systems-list-header">
               <h3>Comparison List</h3>
-              <button id="add-new-system-btn" class="add-new-btn" title="Add new camera system">+</button>
+              <button id="add-new-system-btn" class="add-new-btn" title="Add new camera system" aria-label="Add new camera system">+</button>
             </div>
             <div id="systems-items"></div>
           </div>
@@ -136,7 +136,7 @@
 
           <div id="visualization-tab" class="tab-content">
             <div class="canvas-container">
-              <canvas id="fov-canvas" width="600" height="600"></canvas>
+              <canvas id="fov-canvas" width="600" height="600" role="img" aria-label="Field of view visualization showing camera system coverage areas"></canvas>
               <div id="canvas-legend" class="legend"></div>
             </div>
             <div class="reference-objects">
@@ -176,11 +176,11 @@
               <div class="preview-images">
                 <div class="preview-image-box">
                   <h4>Original Image</h4>
-                  <canvas id="original-canvas"></canvas>
+                  <canvas id="original-canvas" role="img" aria-label="Original uploaded image"></canvas>
                 </div>
                 <div class="preview-image-box">
                   <h4>Camera View (at <span id="preview-distance-label">25</span>m)</h4>
-                  <canvas id="preview-canvas"></canvas>
+                  <canvas id="preview-canvas" role="img" aria-label="Preview of how the camera will see the scene at the specified distance"></canvas>
                   <div class="preview-info">
                     <div id="preview-stats"></div>
                   </div>

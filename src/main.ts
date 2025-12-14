@@ -270,14 +270,17 @@ export function updateSystemsList() {
         const editBtnIcon = isEditing ? '✔' : '✎';
         const editBtnTitle = isEditing ? 'Save' : 'Edit';
         const editBtnClass = isEditing ? 'edit-btn save-mode' : 'edit-btn';
+        const systemName = item.camera.name || `System ${index + 1}`;
+        const editAriaLabel = isEditing ? `Save changes to ${systemName}` : `Edit ${systemName}`;
+        const removeAriaLabel = `Remove ${systemName} from comparison list`;
         
         return `
-      <div class="system-item ${index === selectedSystemIndex ? 'selected' : ''}" data-index="${index}" style="border-left: 4px solid ${getColor(index)}; cursor: pointer;">
+      <div class="system-item ${index === selectedSystemIndex ? 'selected' : ''}" data-index="${index}" style="border-left: 4px solid ${getColor(index)}; cursor: pointer;" role="button" tabindex="0" aria-label="Select ${systemName}">
         <div class="system-header">
-          <strong class="system-name">${item.camera.name || `System ${index + 1}`}</strong>
+          <strong class="system-name">${systemName}</strong>
           <div class="system-actions">
-            <button class="${editBtnClass}" data-index="${index}" title="${editBtnTitle}">${editBtnIcon}</button>
-            <button class="remove-btn" data-index="${index}" title="Remove">×</button>
+            <button class="${editBtnClass}" data-index="${index}" title="${editBtnTitle}" aria-label="${editAriaLabel}">${editBtnIcon}</button>
+            <button class="remove-btn" data-index="${index}" title="Remove" aria-label="${removeAriaLabel}">×</button>
           </div>
         </div>
         <div class="system-info">
@@ -671,6 +674,28 @@ window.addEventListener("DOMContentLoaded", () => {
         drawVisualization(currentDisplayedSystems);
         
         // Don't switch tabs - stay on current tab
+      }
+    });
+    
+    // Add keyboard support for system items (Enter/Space to activate)
+    systemsItemsContainer.addEventListener("keydown", async (e) => {
+      const target = e.target as HTMLElement;
+      
+      // Only handle Enter and Space keys
+      if (e.key !== "Enter" && e.key !== " ") return;
+      
+      e.preventDefault(); // Prevent scrolling on Space
+      
+      // Handle button actions
+      if (target.classList.contains("remove-btn") || target.classList.contains("edit-btn")) {
+        target.click(); // Trigger the click handler
+        return;
+      }
+      
+      // Handle system item selection
+      const systemItem = target.closest(".system-item") as HTMLElement;
+      if (systemItem && !target.closest("button")) {
+        systemItem.click(); // Trigger the click handler
       }
     });
   }
