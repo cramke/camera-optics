@@ -381,6 +381,54 @@ function updateCalculatedFocalLength(focalLength: number) {
 window.addEventListener("DOMContentLoaded", () => {
   // Button listeners
   document.getElementById("add-system-btn")?.addEventListener("click", addToComparison);
+  
+  // Add new system button (+ button in comparison list)
+  document.getElementById("add-new-system-btn")?.addEventListener("click", async () => {
+    try {
+      // Add current form to comparison list
+      const camera = getCameraFromForm();
+      const distance = getDistance();
+      const result = await calculateCameraFov(camera, distance);
+      
+      // If no name provided, assign default name
+      if (!camera.name) {
+        camera.name = `System ${store.getCameraSystems().length + 1}`;
+      }
+      
+      // Add the system
+      store.addCameraSystem({ camera, result });
+      const newIndex = store.getCameraSystems().length - 1;
+      
+      // Set the selected index and edit mode BEFORE updating the list
+      selectedSystemIndex = newIndex;
+      setEditMode(newIndex);
+      
+      // Update the list (will use the selectedSystemIndex to apply the selected class)
+      updateSystemsList();
+      currentDisplayedSystems = store.getCameraSystems();
+      drawVisualization(currentDisplayedSystems);
+      
+      // Load the newly added system back into the form
+      loadSystemToView(newIndex);
+      
+      // Update calculated FOV values
+      updateCalculatedFov(result.horizontal_fov_deg, result.vertical_fov_deg);
+      
+      // Switch to Camera Input tab
+      switchTab("camera-input");
+      
+      // Scroll to top
+      const cameraInputTab = document.getElementById("camera-input-tab");
+      if (cameraInputTab) {
+        cameraInputTab.scrollTop = 0;
+      }
+      
+      showToast("System added - now editing", "success", 2000);
+    } catch (error) {
+      console.error("Error adding system:", error);
+      showToast(`Error: ${error}`, "error", 3000);
+    }
+  });
 
   // Input method selection
   document.getElementById('focal-method')?.addEventListener('click', () => switchInputMethod('focal'));
