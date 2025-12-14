@@ -152,8 +152,13 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      - name: Run Rust tests
-        run: cargo test --manifest-path src-tauri/Cargo.toml
+      - name: Install cargo-llvm-cov
+        run: cargo install cargo-llvm-cov --locked
+
+      - name: Run Rust tests with coverage
+        run: |
+          cd src-tauri
+          cargo llvm-cov test --lcov --output-path ../coverage-rust.info
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -185,14 +190,16 @@ jobs:
       - name: Run Vitest tests
         run: pnpm test
 
-      - name: Generate coverage report
+      - name: Generate frontend coverage
         run: pnpm test:coverage
 
-      - name: Upload coverage report
+      - name: Upload coverage artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: coverage-report
-          path: coverage/
+          name: coverage-reports
+          path: |
+            coverage/
+            coverage-rust.info
           retention-days: 7
 
   security-scan:
@@ -230,5 +237,29 @@ jobs:
             p/rust
             p/typescript
             p/javascript
+
+  coverage-report:
+    name: Coverage Report
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download coverage artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: coverage-reports
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          files: ./coverage/lcov.info,./coverage-rust.info
+          flags: unittests
+          name: combined-coverage
+          fail_ci_if_error: false
+          verbose: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
             p/xss
             p/security-audit
