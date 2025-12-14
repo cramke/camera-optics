@@ -21,6 +21,10 @@ let editingIndex: number | null = null;
 // Track the currently displayed systems for visualization
 let currentDisplayedSystems: CameraWithResult[] = [];
 
+// Debounce delay for auto-calculation (ms)
+// Optimal balance between responsiveness and performance
+const AUTO_CALCULATE_DEBOUNCE_MS = 300;
+
 // Check if form values differ from stored system
 function hasFormChanges(): boolean {
   if (editingIndex === null) return false;
@@ -382,6 +386,21 @@ function updateCalculatedFocalLength(focalLength: number) {
   }
 }
 
+// Debounce utility function
+function debounce<T extends (...args: any[]) => any>(
+  func: T,
+  delay: number
+): (...args: Parameters<T>) => void {
+  let timeoutId: number | undefined;
+  
+  return function(this: any, ...args: Parameters<T>) {
+    clearTimeout(timeoutId);
+    timeoutId = setTimeout(() => {
+      func.apply(this, args);
+    }, delay) as unknown as number;
+  };
+}
+
 // Initialize app
 window.addEventListener("DOMContentLoaded", () => {
   // Button listeners
@@ -700,6 +719,14 @@ window.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  // Create debounced versions of calculation functions
+  const debouncedCalculateFov = debounce(calculateFov, AUTO_CALCULATE_DEBOUNCE_MS);
+  const debouncedAutoCalculateFocalLength = debounce(async () => {
+    await autoCalculateFocalLength();
+    // Also recalculate FOV with the new focal length
+    calculateFov();
+  }, AUTO_CALCULATE_DEBOUNCE_MS);
+
   // Auto-calculate FOV when any form field changes
   const formFields = [
     "sensor-width",
@@ -714,7 +741,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const field = document.getElementById(fieldId);
     if (field) {
       field.addEventListener("input", () => {
-        calculateFov();
+        debouncedCalculateFov();
       });
     }
   });
@@ -724,10 +751,8 @@ window.addEventListener("DOMContentLoaded", () => {
   fovFields.forEach(fieldId => {
     const field = document.getElementById(fieldId);
     if (field) {
-      field.addEventListener("input", async () => {
-        await autoCalculateFocalLength();
-        // Also recalculate FOV with the new focal length
-        calculateFov();
+      field.addEventListener("input", () => {
+        debouncedAutoCalculateFocalLength();
       });
     }
   });
