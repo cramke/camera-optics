@@ -32,13 +32,19 @@ function hasFormChanges(): boolean {
   const currentCamera = getCameraFromForm();
   const stored = storedSystem.camera;
   
+  // Get current distance in mm (getDistance converts m to mm)
+  const currentDistanceMm = getDistance();
+  // Convert stored distance from meters back to mm for comparison
+  const storedDistanceMm = storedSystem.result.distance_m * 1000;
+  
   return (
     currentCamera.name !== stored.name ||
     currentCamera.sensor_width_mm !== stored.sensor_width_mm ||
     currentCamera.sensor_height_mm !== stored.sensor_height_mm ||
     currentCamera.pixel_width !== stored.pixel_width ||
     currentCamera.pixel_height !== stored.pixel_height ||
-    currentCamera.focal_length_mm !== stored.focal_length_mm
+    currentCamera.focal_length_mm !== stored.focal_length_mm ||
+    Math.abs(currentDistanceMm - storedDistanceMm) > 0.01  // Allow for floating point precision
   );
 }
 
@@ -566,7 +572,7 @@ window.addEventListener("DOMContentLoaded", () => {
   // Add change tracking to all form inputs
   const formInputs = [
     'name', 'sensor-width', 'sensor-height', 
-    'pixel-width', 'pixel-height', 'focal-length'
+    'pixel-width', 'pixel-height', 'focal-length', 'distance'
   ];
   formInputs.forEach(inputId => {
     document.getElementById(inputId)?.addEventListener('input', checkForChanges);
