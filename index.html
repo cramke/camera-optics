@@ -16,7 +16,14 @@
             <h1>Camera Optics Calculator</h1>
           </div>
           <div class="header-menu">
-            <button id="menu-toggle-btn" class="menu-btn" aria-label="Open menu" aria-expanded="false">⋮</button>
+            <button
+              id="menu-toggle-btn"
+              class="menu-btn"
+              aria-label="Open menu"
+              aria-expanded="false"
+            >
+              ⋮
+            </button>
             <div id="menu-dropdown" class="menu-dropdown">
               <button id="settings-btn-mobile" class="dropdown-item">Settings</button>
               <button id="about-btn-mobile" class="dropdown-item">About</button>
@@ -31,7 +38,14 @@
           <div id="systems-list" class="systems-list">
             <div class="systems-list-header">
               <h3>Comparison List</h3>
-              <button id="add-new-system-btn" class="add-new-btn" title="Add new camera system" aria-label="Add new camera system">+</button>
+              <button
+                id="add-new-system-btn"
+                class="add-new-btn"
+                title="Add new camera system"
+                aria-label="Add new camera system"
+              >
+                +
+              </button>
             </div>
             <div id="systems-items"></div>
           </div>
@@ -59,22 +73,50 @@
                   <div class="form-row">
                     <div class="form-group">
                       <label for="sensor-width">Sensor Width (mm)</label>
-                      <input type="number" id="sensor-width" value="36" step="0.1" min="0.1" max="200" />
+                      <input
+                        type="number"
+                        id="sensor-width"
+                        value="36"
+                        step="0.1"
+                        min="0.1"
+                        max="200"
+                      />
                     </div>
                     <div class="form-group">
                       <label for="sensor-height">Sensor Height (mm)</label>
-                      <input type="number" id="sensor-height" value="27" step="0.1" min="0.1" max="200" />
+                      <input
+                        type="number"
+                        id="sensor-height"
+                        value="27"
+                        step="0.1"
+                        min="0.1"
+                        max="200"
+                      />
                     </div>
                   </div>
 
                   <div class="form-row">
                     <div class="form-group">
                       <label for="pixel-width">Pixel Width</label>
-                      <input type="number" id="pixel-width" value="2000" step="1" min="10" max="100000" />
+                      <input
+                        type="number"
+                        id="pixel-width"
+                        value="2000"
+                        step="1"
+                        min="10"
+                        max="100000"
+                      />
                     </div>
                     <div class="form-group">
                       <label for="pixel-height">Pixel Height</label>
-                      <input type="number" id="pixel-height" value="1500" step="1" min="10" max="100000" />
+                      <input
+                        type="number"
+                        id="pixel-height"
+                        value="1500"
+                        step="1"
+                        min="10"
+                        max="100000"
+                      />
                     </div>
                   </div>
 
@@ -84,7 +126,15 @@
                       <div class="method-content">
                         <label class="method-label">Focal Length</label>
                         <div class="form-group">
-                          <input type="number" id="focal-length" value="50" step="0.1" placeholder="mm" min="0.1" max="10000" />
+                          <input
+                            type="number"
+                            id="focal-length"
+                            value="50"
+                            step="0.1"
+                            placeholder="mm"
+                            min="0.1"
+                            max="10000"
+                          />
                         </div>
                       </div>
                     </div>
@@ -96,11 +146,25 @@
                         <div class="form-row">
                           <div class="form-group">
                             <label for="hfov-deg">Horizontal (°)</label>
-                            <input type="number" id="hfov-deg" placeholder="e.g., 39.6" step="0.1" min="0.1" max="180" />
+                            <input
+                              type="number"
+                              id="hfov-deg"
+                              placeholder="e.g., 39.6"
+                              step="0.1"
+                              min="0.1"
+                              max="180"
+                            />
                           </div>
                           <div class="form-group">
                             <label for="vfov-deg">Vertical (°)</label>
-                            <input type="number" id="vfov-deg" placeholder="e.g., 27" step="0.1" min="0.1" max="180" />
+                            <input
+                              type="number"
+                              id="vfov-deg"
+                              placeholder="e.g., 27"
+                              step="0.1"
+                              min="0.1"
+                              max="180"
+                            />
                           </div>
                         </div>
                       </div>
@@ -109,7 +173,14 @@
 
                   <div class="form-group">
                     <label for="distance">Working Distance (m)</label>
-                    <input type="number" id="distance" value="25" step="0.1" min="0.01" max="100000" />
+                    <input
+                      type="number"
+                      id="distance"
+                      value="25"
+                      step="0.1"
+                      min="0.01"
+                      max="100000"
+                    />
                   </div>
                 </div>
               </div>
@@ -117,13 +188,27 @@
               <div class="presets-column">
                 <div class="action-buttons">
                   <h3>Actions</h3>
-                  <button id="save-changes-btn" class="action-btn save-btn" style="display: none;">Save Changes</button>
-                  <button id="discard-changes-btn" class="action-btn discard-btn" style="display: none;">Discard Changes</button>
-                  <button id="delete-system-btn" class="action-btn delete-btn" style="display: none;">Delete System</button>
+                  <button id="save-changes-btn" class="action-btn save-btn" style="display: none">
+                    Save Changes
+                  </button>
+                  <button
+                    id="discard-changes-btn"
+                    class="action-btn discard-btn"
+                    style="display: none"
+                  >
+                    Discard Changes
+                  </button>
+                  <button
+                    id="delete-system-btn"
+                    class="action-btn delete-btn"
+                    style="display: none"
+                  >
+                    Delete System
+                  </button>
                   <button id="add-system-btn" class="action-btn add-btn">Add to Comparison</button>
                   <button id="clear-form-btn" class="action-btn clear-btn">Clear Form</button>
                 </div>
-                
+
                 <div class="presets">
                   <h3>Quick Presets</h3>
                   <button class="preset-btn" data-preset="full-frame">Full Frame</button>
@@ -136,7 +221,13 @@
 
           <div id="visualization-tab" class="tab-content">
             <div class="canvas-container">
-              <canvas id="fov-canvas" width="600" height="600" role="img" aria-label="Field of view visualization showing camera system coverage areas"></canvas>
+              <canvas
+                id="fov-canvas"
+                width="600"
+                height="600"
+                role="img"
+                aria-label="Field of view visualization showing camera system coverage areas"
+              ></canvas>
               <div id="canvas-legend" class="legend"></div>
             </div>
             <div class="reference-objects">
@@ -161,12 +252,28 @@
                   </div>
                   <div class="form-group">
                     <label for="preview-image-width">Image Real-World Width (m)</label>
-                    <input type="number" id="preview-image-width" value="1" min="0.01" max="1000" step="0.1" />
+                    <input
+                      type="number"
+                      id="preview-image-width"
+                      value="1"
+                      min="0.01"
+                      max="1000"
+                      step="0.1"
+                    />
                   </div>
                 </div>
                 <div class="form-group">
-                  <label for="preview-distance-slider">Working Distance: <span id="preview-distance-value">25</span> m</label>
-                  <input type="range" id="preview-distance-slider" min="1" max="25000" step="1" class="distance-slider" />
+                  <label for="preview-distance-slider"
+                    >Working Distance: <span id="preview-distance-value">25</span> m</label
+                  >
+                  <input
+                    type="range"
+                    id="preview-distance-slider"
+                    min="1"
+                    max="25000"
+                    step="1"
+                    class="distance-slider"
+                  />
                 </div>
                 <div class="form-group">
                   <label>Resolution</label>
@@ -176,11 +283,19 @@
               <div class="preview-images">
                 <div class="preview-image-box">
                   <h4>Original Image</h4>
-                  <canvas id="original-canvas" role="img" aria-label="Original uploaded image"></canvas>
+                  <canvas
+                    id="original-canvas"
+                    role="img"
+                    aria-label="Original uploaded image"
+                  ></canvas>
                 </div>
                 <div class="preview-image-box">
                   <h4>Camera View (at <span id="preview-distance-label">25</span>m)</h4>
-                  <canvas id="preview-canvas" role="img" aria-label="Preview of how the camera will see the scene at the specified distance"></canvas>
+                  <canvas
+                    id="preview-canvas"
+                    role="img"
+                    aria-label="Preview of how the camera will see the scene at the specified distance"
+                  ></canvas>
                   <div class="preview-info">
                     <div id="preview-stats"></div>
                   </div>
@@ -193,25 +308,33 @@
             <div class="dori-designer-content">
               <div class="designer-section">
                 <h3>Target DORI Distances (m)</h3>
-                
+
                 <div class="dori-grid">
                   <div class="dori-input-group">
-                    <label for="target-detection">Detection <span class="dori-spec">(25 px/m)</span></label>
+                    <label for="target-detection"
+                      >Detection <span class="dori-spec">(25 px/m)</span></label
+                    >
                     <input type="number" id="target-detection" placeholder="50" step="0.1" />
                   </div>
-                  
+
                   <div class="dori-input-group">
-                    <label for="target-observation">Observation <span class="dori-spec">(62.5 px/m)</span></label>
+                    <label for="target-observation"
+                      >Observation <span class="dori-spec">(62.5 px/m)</span></label
+                    >
                     <input type="number" id="target-observation" placeholder="20" step="0.1" />
                   </div>
-                  
+
                   <div class="dori-input-group">
-                    <label for="target-recognition">Recognition <span class="dori-spec">(125 px/m)</span></label>
+                    <label for="target-recognition"
+                      >Recognition <span class="dori-spec">(125 px/m)</span></label
+                    >
                     <input type="number" id="target-recognition" placeholder="10" step="0.1" />
                   </div>
-                  
+
                   <div class="dori-input-group">
-                    <label for="target-identification">Identification <span class="dori-spec">(250 px/m)</span></label>
+                    <label for="target-identification"
+                      >Identification <span class="dori-spec">(250 px/m)</span></label
+                    >
                     <input type="number" id="target-identification" placeholder="5" step="0.1" />
                   </div>
                 </div>
@@ -219,8 +342,10 @@
 
               <div class="designer-section">
                 <h3>Camera Parameters</h3>
-                <p class="section-description">Enter a value to fix it, or leave empty to see calculated range</p>
-                
+                <p class="section-description">
+                  Enter a value to fix it, or leave empty to see calculated range
+                </p>
+
                 <div class="param-row">
                   <div class="param-group" data-param="sensor-width">
                     <div class="param-header">
@@ -233,17 +358,35 @@
                       <button class="mode-btn" data-mode="range">Range</button>
                     </div>
                     <div class="param-input-container">
-                      <div class="param-input-wrapper mode-fixed" style="display: none;">
-                        <input type="number" id="fixed-sensor-width" class="param-input" placeholder="Enter value" step="0.1" />
+                      <div class="param-input-wrapper mode-fixed" style="display: none">
+                        <input
+                          type="number"
+                          id="fixed-sensor-width"
+                          class="param-input"
+                          placeholder="Enter value"
+                          step="0.1"
+                        />
                       </div>
-                      <div class="param-range-inputs mode-range" style="display: none;">
-                        <input type="number" id="min-sensor-width" class="param-range-input" placeholder="Min" step="0.1" />
+                      <div class="param-range-inputs mode-range" style="display: none">
+                        <input
+                          type="number"
+                          id="min-sensor-width"
+                          class="param-range-input"
+                          placeholder="Min"
+                          step="0.1"
+                        />
                         <span class="range-separator">–</span>
-                        <input type="number" id="max-sensor-width" class="param-range-input" placeholder="Max" step="0.1" />
+                        <input
+                          type="number"
+                          id="max-sensor-width"
+                          class="param-range-input"
+                          placeholder="Max"
+                          step="0.1"
+                        />
                       </div>
                     </div>
                   </div>
-                  
+
                   <div class="param-group" data-param="pixel-width">
                     <div class="param-header">
                       <label class="param-label">Pixel Width</label>
@@ -255,18 +398,36 @@
                       <button class="mode-btn" data-mode="range">Range</button>
                     </div>
                     <div class="param-input-container">
-                      <div class="param-input-wrapper mode-fixed" style="display: none;">
-                        <input type="number" id="fixed-pixel-width" class="param-input" placeholder="Enter value" step="1" />
+                      <div class="param-input-wrapper mode-fixed" style="display: none">
+                        <input
+                          type="number"
+                          id="fixed-pixel-width"
+                          class="param-input"
+                          placeholder="Enter value"
+                          step="1"
+                        />
                       </div>
-                      <div class="param-range-inputs mode-range" style="display: none;">
-                        <input type="number" id="min-pixel-width" class="param-range-input" placeholder="Min" step="1" />
+                      <div class="param-range-inputs mode-range" style="display: none">
+                        <input
+                          type="number"
+                          id="min-pixel-width"
+                          class="param-range-input"
+                          placeholder="Min"
+                          step="1"
+                        />
                         <span class="range-separator">–</span>
-                        <input type="number" id="max-pixel-width" class="param-range-input" placeholder="Max" step="1" />
+                        <input
+                          type="number"
+                          id="max-pixel-width"
+                          class="param-range-input"
+                          placeholder="Max"
+                          step="1"
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="param-row">
                   <div class="param-group" data-param="focal-length">
                     <div class="param-header">
@@ -279,17 +440,35 @@
                       <button class="mode-btn" data-mode="range">Range</button>
                     </div>
                     <div class="param-input-container">
-                      <div class="param-input-wrapper mode-fixed" style="display: none;">
-                        <input type="number" id="fixed-focal-length" class="param-input" placeholder="Enter value" step="0.1" />
+                      <div class="param-input-wrapper mode-fixed" style="display: none">
+                        <input
+                          type="number"
+                          id="fixed-focal-length"
+                          class="param-input"
+                          placeholder="Enter value"
+                          step="0.1"
+                        />
                       </div>
-                      <div class="param-range-inputs mode-range" style="display: none;">
-                        <input type="number" id="min-focal-length" class="param-range-input" placeholder="Min" step="0.1" />
+                      <div class="param-range-inputs mode-range" style="display: none">
+                        <input
+                          type="number"
+                          id="min-focal-length"
+                          class="param-range-input"
+                          placeholder="Min"
+                          step="0.1"
+                        />
                         <span class="range-separator">–</span>
-                        <input type="number" id="max-focal-length" class="param-range-input" placeholder="Max" step="0.1" />
+                        <input
+                          type="number"
+                          id="max-focal-length"
+                          class="param-range-input"
+                          placeholder="Max"
+                          step="0.1"
+                        />
                       </div>
                     </div>
                   </div>
-                  
+
                   <div class="param-group" data-param="horizontal-fov">
                     <div class="param-header">
                       <label class="param-label">Horizontal FOV (°)</label>
@@ -301,18 +480,36 @@
                       <button class="mode-btn" data-mode="range">Range</button>
                     </div>
                     <div class="param-input-container">
-                      <div class="param-input-wrapper mode-fixed" style="display: none;">
-                        <input type="number" id="fixed-horizontal-fov" class="param-input" placeholder="Enter value" step="0.1" />
+                      <div class="param-input-wrapper mode-fixed" style="display: none">
+                        <input
+                          type="number"
+                          id="fixed-horizontal-fov"
+                          class="param-input"
+                          placeholder="Enter value"
+                          step="0.1"
+                        />
                       </div>
-                      <div class="param-range-inputs mode-range" style="display: none;">
-                        <input type="number" id="min-horizontal-fov" class="param-range-input" placeholder="Min" step="0.1" />
+                      <div class="param-range-inputs mode-range" style="display: none">
+                        <input
+                          type="number"
+                          id="min-horizontal-fov"
+                          class="param-range-input"
+                          placeholder="Min"
+                          step="0.1"
+                        />
                         <span class="range-separator">–</span>
-                        <input type="number" id="max-horizontal-fov" class="param-range-input" placeholder="Max" step="0.1" />
+                        <input
+                          type="number"
+                          id="max-horizontal-fov"
+                          class="param-range-input"
+                          placeholder="Max"
+                          step="0.1"
+                        />
                       </div>
                     </div>
                   </div>
                 </div>
-                
+
                 <div class="param-row">
                   <div class="param-group" data-param="sensor-height">
                     <div class="param-header">
@@ -325,17 +522,35 @@
                       <button class="mode-btn" data-mode="range">Range</button>
                     </div>
                     <div class="param-input-container">
-                      <div class="param-input-wrapper mode-fixed" style="display: none;">
-                        <input type="number" id="fixed-sensor-height" class="param-input" placeholder="Enter value" step="0.1" />
+                      <div class="param-input-wrapper mode-fixed" style="display: none">
+                        <input
+                          type="number"
+                          id="fixed-sensor-height"
+                          class="param-input"
+                          placeholder="Enter value"
+                          step="0.1"
+                        />
                       </div>
-                      <div class="param-range-inputs mode-range" style="display: none;">
-                        <input type="number" id="min-sensor-height" class="param-range-input" placeholder="Min" step="0.1" />
+                      <div class="param-range-inputs mode-range" style="display: none">
+                        <input
+                          type="number"
+                          id="min-sensor-height"
+                          class="param-range-input"
+                          placeholder="Min"
+                          step="0.1"
+                        />
                         <span class="range-separator">–</span>
-                        <input type="number" id="max-sensor-height" class="param-range-input" placeholder="Max" step="0.1" />
+                        <input
+                          type="number"
+                          id="max-sensor-height"
+                          class="param-range-input"
+                          placeholder="Max"
+                          step="0.1"
+                        />
                       </div>
                     </div>
                   </div>
-                  
+
                   <div class="param-group" data-param="pixel-height">
                     <div class="param-header">
                       <label class="param-label">Pixel Height</label>
@@ -347,13 +562,31 @@
                       <button class="mode-btn" data-mode="range">Range</button>
                     </div>
                     <div class="param-input-container">
-                      <div class="param-input-wrapper mode-fixed" style="display: none;">
-                        <input type="number" id="fixed-pixel-height" class="param-input" placeholder="Enter value" step="1" />
+                      <div class="param-input-wrapper mode-fixed" style="display: none">
+                        <input
+                          type="number"
+                          id="fixed-pixel-height"
+                          class="param-input"
+                          placeholder="Enter value"
+                          step="1"
+                        />
                       </div>
-                      <div class="param-range-inputs mode-range" style="display: none;">
-                        <input type="number" id="min-pixel-height" class="param-range-input" placeholder="Min" step="1" />
+                      <div class="param-range-inputs mode-range" style="display: none">
+                        <input
+                          type="number"
+                          id="min-pixel-height"
+                          class="param-range-input"
+                          placeholder="Min"
+                          step="1"
+                        />
                         <span class="range-separator">–</span>
-                        <input type="number" id="max-pixel-height" class="param-range-input" placeholder="Max" step="1" />
+                        <input
+                          type="number"
+                          id="max-pixel-height"
+                          class="param-range-input"
+                          placeholder="Max"
+                          step="1"
+                        />
                       </div>
                     </div>
                   </div>
@@ -362,7 +595,9 @@
 
               <div class="button-row">
                 <button id="reset-dori-designer-btn" class="secondary-btn">Reset All</button>
-                <button id="export-to-comparison-btn" class="primary-btn" style="display: none;">Add to Comparison</button>
+                <button id="export-to-comparison-btn" class="primary-btn" style="display: none">
+                  Add to Comparison
+                </button>
               </div>
             </div>
           </div>
@@ -387,7 +622,9 @@
               <input type="checkbox" id="enable-experimental" />
               <span>Enable experimental features (Image Preview & DORI Designer)</span>
             </label>
-            <p class="setting-description">These features are in development and may not work as expected.</p>
+            <p class="setting-description">
+              These features are in development and may not work as expected.
+            </p>
           </div>
         </div>
         <div class="modal-footer">
@@ -407,7 +644,7 @@
           <h3>Camera Optics Calculator</h3>
           <p><strong>Version:</strong> 0.1.0</p>
           <p>Calculate field of view and spatial resolution for camera systems.</p>
-          <br>
+          <br />
           <p><strong>Features:</strong></p>
           <ul>
             <li>FOV calculation and visualization</li>

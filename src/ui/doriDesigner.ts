@@ -3,11 +3,20 @@
  * Specify target DORI distances and find parameter ranges
  */
 
-import { calculateDoriRanges, calculateDoriFromSingleDistance, calculateCameraFov } from "../services/api";
-import type { DoriTargets, ParameterConstraint, DoriParameterRanges, CameraSystem } from "../core/types";
-import { store } from "../services/store";
-import { showToast } from "./toast";
-import { updateSystemsList } from "../main";
+import {
+  calculateDoriRanges,
+  calculateDoriFromSingleDistance,
+  calculateCameraFov,
+} from '../services/api';
+import type {
+  DoriTargets,
+  ParameterConstraint,
+  DoriParameterRanges,
+  CameraSystem,
+} from '../core/types';
+import { store } from '../services/store';
+import { showToast } from './toast';
+import { updateSystemsList } from '../main';
 
 // Store the last calculated ranges for export
 let lastCalculatedRanges: DoriParameterRanges | null = null;
@@ -26,26 +35,26 @@ async function autoCalculateDoriDistances(changedField: string, value: number): 
     // Call backend to calculate all DORI distances
     const doriDistances = await calculateDoriFromSingleDistance(value, changedField as any);
 
-    const detectionEl = document.getElementById("target-detection") as HTMLInputElement;
-    const observationEl = document.getElementById("target-observation") as HTMLInputElement;
-    const recognitionEl = document.getElementById("target-recognition") as HTMLInputElement;
-    const identificationEl = document.getElementById("target-identification") as HTMLInputElement;
+    const detectionEl = document.getElementById('target-detection') as HTMLInputElement;
+    const observationEl = document.getElementById('target-observation') as HTMLInputElement;
+    const recognitionEl = document.getElementById('target-recognition') as HTMLInputElement;
+    const identificationEl = document.getElementById('target-identification') as HTMLInputElement;
 
     // Fill in all the calculated values (except the one that was changed)
-    if (changedField !== "detection") {
+    if (changedField !== 'detection') {
       detectionEl.value = doriDistances.detection_m.toFixed(1);
     }
-    if (changedField !== "observation") {
+    if (changedField !== 'observation') {
       observationEl.value = doriDistances.observation_m.toFixed(1);
     }
-    if (changedField !== "recognition") {
+    if (changedField !== 'recognition') {
       recognitionEl.value = doriDistances.recognition_m.toFixed(1);
     }
-    if (changedField !== "identification") {
+    if (changedField !== 'identification') {
       identificationEl.value = doriDistances.identification_m.toFixed(1);
     }
   } catch (error) {
-    console.error("Error calculating DORI distances:", error);
+    console.error('Error calculating DORI distances:', error);
   }
 }
 
@@ -55,12 +64,12 @@ async function autoCalculateDoriDistances(changedField: string, value: number): 
 export function initializeDoriDesigner(): void {
   // Set up input field listeners to show/hide clear buttons and ranges
   const paramInputs = [
-    { input: "fixed-sensor-width", range: "range-sensor-width" },
-    { input: "fixed-pixel-width", range: "range-pixel-width" },
-    { input: "fixed-focal-length", range: "range-focal-length" },
-    { input: "fixed-horizontal-fov", range: "range-horizontal-fov" },
-    { input: "fixed-sensor-height", range: "range-sensor-height" },
-    { input: "fixed-pixel-height", range: "range-pixel-height" },
+    { input: 'fixed-sensor-width', range: 'range-sensor-width' },
+    { input: 'fixed-pixel-width', range: 'range-pixel-width' },
+    { input: 'fixed-focal-length', range: 'range-focal-length' },
+    { input: 'fixed-horizontal-fov', range: 'range-horizontal-fov' },
+    { input: 'fixed-sensor-height', range: 'range-sensor-height' },
+    { input: 'fixed-pixel-height', range: 'range-pixel-height' },
   ];
 
   paramInputs.forEach(({ input, range }) => {
@@ -73,35 +82,35 @@ export function initializeDoriDesigner(): void {
     // Show/hide clear button based on input value
     const updateClearButton = () => {
       if (inputEl.value) {
-        clearBtn.style.display = "flex";
-        rangeEl?.classList.remove("active");
+        clearBtn.style.display = 'flex';
+        rangeEl?.classList.remove('active');
       } else {
-        clearBtn.style.display = "none";
+        clearBtn.style.display = 'none';
       }
     };
 
     // Listen for input changes
-    inputEl.addEventListener("input", updateClearButton);
+    inputEl.addEventListener('input', updateClearButton);
 
     // Clear button click handler
-    clearBtn.addEventListener("click", () => {
-      inputEl.value = "";
-      clearBtn.style.display = "none";
+    clearBtn.addEventListener('click', () => {
+      inputEl.value = '';
+      clearBtn.style.display = 'none';
       // Range will be shown on next calculation
     });
   });
 
   // Auto-calculate other DORI distances when one is entered
   const doriFields = [
-    { id: "target-detection", name: "detection" },
-    { id: "target-observation", name: "observation" },
-    { id: "target-recognition", name: "recognition" },
-    { id: "target-identification", name: "identification" },
+    { id: 'target-detection', name: 'detection' },
+    { id: 'target-observation', name: 'observation' },
+    { id: 'target-recognition', name: 'recognition' },
+    { id: 'target-identification', name: 'identification' },
   ];
 
   doriFields.forEach(({ id, name }) => {
     const field = document.getElementById(id) as HTMLInputElement;
-    field?.addEventListener("input", () => {
+    field?.addEventListener('input', () => {
       const value = parseFloat(field.value);
       if (value > 0) {
         autoCalculateDoriDistances(name, value);
@@ -113,65 +122,77 @@ export function initializeDoriDesigner(): void {
 
   // Auto-calculate ranges when any parameter constraint changes
   const constraintFields = [
-    "fixed-sensor-width", "min-sensor-width", "max-sensor-width",
-    "fixed-sensor-height", "min-sensor-height", "max-sensor-height",
-    "fixed-pixel-width", "min-pixel-width", "max-pixel-width",
-    "fixed-pixel-height", "min-pixel-height", "max-pixel-height",
-    "fixed-focal-length", "min-focal-length", "max-focal-length",
-    "fixed-horizontal-fov", "min-horizontal-fov", "max-horizontal-fov"
+    'fixed-sensor-width',
+    'min-sensor-width',
+    'max-sensor-width',
+    'fixed-sensor-height',
+    'min-sensor-height',
+    'max-sensor-height',
+    'fixed-pixel-width',
+    'min-pixel-width',
+    'max-pixel-width',
+    'fixed-pixel-height',
+    'min-pixel-height',
+    'max-pixel-height',
+    'fixed-focal-length',
+    'min-focal-length',
+    'max-focal-length',
+    'fixed-horizontal-fov',
+    'min-horizontal-fov',
+    'max-horizontal-fov',
   ];
 
-  constraintFields.forEach(fieldId => {
+  constraintFields.forEach((fieldId) => {
     const field = document.getElementById(fieldId) as HTMLInputElement;
-    field?.addEventListener("input", () => {
+    field?.addEventListener('input', () => {
       // Auto-calculate ranges when constraint changes
       calculateParameterRanges();
     });
   });
 
   // Mode control (segmented control) handlers
-  document.querySelectorAll(".param-group").forEach(group => {
-    const modeButtons = group.querySelectorAll(".mode-btn");
-    const fixedWrapper = group.querySelector(".mode-fixed") as HTMLElement;
-    const rangeWrapper = group.querySelector(".mode-range") as HTMLElement;
-    const param = group.getAttribute("data-param");
+  document.querySelectorAll('.param-group').forEach((group) => {
+    const modeButtons = group.querySelectorAll('.mode-btn');
+    const fixedWrapper = group.querySelector('.mode-fixed') as HTMLElement;
+    const rangeWrapper = group.querySelector('.mode-range') as HTMLElement;
+    const param = group.getAttribute('data-param');
 
-    modeButtons.forEach(btn => {
-      btn.addEventListener("click", () => {
-        const mode = btn.getAttribute("data-mode");
-        
+    modeButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const mode = btn.getAttribute('data-mode');
+
         // Update active state
-        modeButtons.forEach(b => b.classList.remove("active"));
-        btn.classList.add("active");
+        modeButtons.forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
 
         // Show/hide appropriate inputs
-        if (mode === "float") {
-          if (fixedWrapper) fixedWrapper.style.display = "none";
-          if (rangeWrapper) rangeWrapper.style.display = "none";
-          
+        if (mode === 'float') {
+          if (fixedWrapper) fixedWrapper.style.display = 'none';
+          if (rangeWrapper) rangeWrapper.style.display = 'none';
+
           // Clear inputs when switching to float
           const fixedInput = group.querySelector(`#fixed-${param}`) as HTMLInputElement;
           const minInput = group.querySelector(`#min-${param}`) as HTMLInputElement;
           const maxInput = group.querySelector(`#max-${param}`) as HTMLInputElement;
-          if (fixedInput) fixedInput.value = "";
-          if (minInput) minInput.value = "";
-          if (maxInput) maxInput.value = "";
-        } else if (mode === "fixed") {
-          if (fixedWrapper) fixedWrapper.style.display = "block";
-          if (rangeWrapper) rangeWrapper.style.display = "none";
-          
+          if (fixedInput) fixedInput.value = '';
+          if (minInput) minInput.value = '';
+          if (maxInput) maxInput.value = '';
+        } else if (mode === 'fixed') {
+          if (fixedWrapper) fixedWrapper.style.display = 'block';
+          if (rangeWrapper) rangeWrapper.style.display = 'none';
+
           // Clear range inputs
           const minInput = group.querySelector(`#min-${param}`) as HTMLInputElement;
           const maxInput = group.querySelector(`#max-${param}`) as HTMLInputElement;
-          if (minInput) minInput.value = "";
-          if (maxInput) maxInput.value = "";
-        } else if (mode === "range") {
-          if (fixedWrapper) fixedWrapper.style.display = "none";
-          if (rangeWrapper) rangeWrapper.style.display = "block";
-          
+          if (minInput) minInput.value = '';
+          if (maxInput) maxInput.value = '';
+        } else if (mode === 'range') {
+          if (fixedWrapper) fixedWrapper.style.display = 'none';
+          if (rangeWrapper) rangeWrapper.style.display = 'block';
+
           // Clear fixed input
           const fixedInput = group.querySelector(`#fixed-${param}`) as HTMLInputElement;
-          if (fixedInput) fixedInput.value = "";
+          if (fixedInput) fixedInput.value = '';
         }
 
         // Trigger recalculation
@@ -181,12 +202,12 @@ export function initializeDoriDesigner(): void {
   });
 
   // Export to comparison button
-  const exportBtn = document.getElementById("export-to-comparison-btn");
-  exportBtn?.addEventListener("click", exportToComparison);
+  const exportBtn = document.getElementById('export-to-comparison-btn');
+  exportBtn?.addEventListener('click', exportToComparison);
 
   // Reset button
-  const resetBtn = document.getElementById("reset-dori-designer-btn");
-  resetBtn?.addEventListener("click", resetDoriDesigner);
+  const resetBtn = document.getElementById('reset-dori-designer-btn');
+  resetBtn?.addEventListener('click', resetDoriDesigner);
 }
 
 /**
@@ -194,37 +215,42 @@ export function initializeDoriDesigner(): void {
  */
 function resetDoriDesigner(): void {
   // Clear DORI target inputs
-  const targetIds = ["target-detection", "target-observation", "target-recognition", "target-identification"];
-  targetIds.forEach(id => {
+  const targetIds = [
+    'target-detection',
+    'target-observation',
+    'target-recognition',
+    'target-identification',
+  ];
+  targetIds.forEach((id) => {
     const input = document.getElementById(id) as HTMLInputElement;
-    if (input) input.value = "";
+    if (input) input.value = '';
   });
 
   // Reset all parameter groups
-  document.querySelectorAll(".param-group").forEach(group => {
-    const param = group.getAttribute("data-param");
-    const modeButtons = group.querySelectorAll(".mode-btn");
-    const fixedWrapper = group.querySelector(".mode-fixed") as HTMLElement;
-    const rangeWrapper = group.querySelector(".mode-range") as HTMLElement;
+  document.querySelectorAll('.param-group').forEach((group) => {
+    const param = group.getAttribute('data-param');
+    const modeButtons = group.querySelectorAll('.mode-btn');
+    const fixedWrapper = group.querySelector('.mode-fixed') as HTMLElement;
+    const rangeWrapper = group.querySelector('.mode-range') as HTMLElement;
 
     // Set to float mode
-    modeButtons.forEach(b => b.classList.remove("active"));
+    modeButtons.forEach((b) => b.classList.remove('active'));
     const floatBtn = group.querySelector('[data-mode="float"]');
-    if (floatBtn) floatBtn.classList.add("active");
+    if (floatBtn) floatBtn.classList.add('active');
 
     // Hide inputs
-    if (fixedWrapper) fixedWrapper.style.display = "none";
-    if (rangeWrapper) rangeWrapper.style.display = "none";
+    if (fixedWrapper) fixedWrapper.style.display = 'none';
+    if (rangeWrapper) rangeWrapper.style.display = 'none';
 
     // Clear fixed input
     const fixedInput = group.querySelector(`#fixed-${param}`) as HTMLInputElement;
-    if (fixedInput) fixedInput.value = "";
+    if (fixedInput) fixedInput.value = '';
 
     // Reset sliders to full range
     const minSlider = group.querySelector(`#min-${param}`) as HTMLInputElement;
     const maxSlider = group.querySelector(`#max-${param}`) as HTMLInputElement;
-    const minValue = group.querySelector(".range-value-min") as HTMLElement;
-    const maxValue = group.querySelector(".range-value-max") as HTMLElement;
+    const minValue = group.querySelector('.range-value-min') as HTMLElement;
+    const maxValue = group.querySelector('.range-value-max') as HTMLElement;
 
     if (minSlider && maxSlider && minValue && maxValue) {
       minSlider.value = minSlider.min;
@@ -234,16 +260,16 @@ function resetDoriDesigner(): void {
     }
 
     // Clear inline range display
-    const rangeInline = group.querySelector(".param-range-inline") as HTMLElement;
+    const rangeInline = group.querySelector('.param-range-inline') as HTMLElement;
     if (rangeInline) {
-      rangeInline.textContent = "";
-      rangeInline.className = "param-range-inline";
+      rangeInline.textContent = '';
+      rangeInline.className = 'param-range-inline';
     }
   });
 
   // Hide export button
-  const exportBtn = document.getElementById("export-to-comparison-btn") as HTMLButtonElement;
-  if (exportBtn) exportBtn.style.display = "none";
+  const exportBtn = document.getElementById('export-to-comparison-btn') as HTMLButtonElement;
+  if (exportBtn) exportBtn.style.display = 'none';
 }
 
 /**
@@ -252,10 +278,10 @@ function resetDoriDesigner(): void {
 function getDoriTargets(): DoriTargets {
   const targets: DoriTargets = {};
 
-  const detectionEl = document.getElementById("target-detection") as HTMLInputElement;
-  const observationEl = document.getElementById("target-observation") as HTMLInputElement;
-  const recognitionEl = document.getElementById("target-recognition") as HTMLInputElement;
-  const identificationEl = document.getElementById("target-identification") as HTMLInputElement;
+  const detectionEl = document.getElementById('target-detection') as HTMLInputElement;
+  const observationEl = document.getElementById('target-observation') as HTMLInputElement;
+  const recognitionEl = document.getElementById('target-recognition') as HTMLInputElement;
+  const identificationEl = document.getElementById('target-identification') as HTMLInputElement;
 
   if (detectionEl?.value) targets.detection_m = parseFloat(detectionEl.value);
   if (observationEl?.value) targets.observation_m = parseFloat(observationEl.value);
@@ -285,8 +311,8 @@ function getConstraints(): ParameterConstraint {
     }
 
     // Check for range constraints
-    const hasMin = minEl?.value && minEl.value.trim() !== "";
-    const hasMax = maxEl?.value && maxEl.value.trim() !== "";
+    const hasMin = minEl?.value && minEl.value.trim() !== '';
+    const hasMax = maxEl?.value && maxEl.value.trim() !== '';
 
     if (hasMin && hasMax) {
       const min = isInteger ? parseInt(minEl.value) : parseFloat(minEl.value);
@@ -306,22 +332,48 @@ function getConstraints(): ParameterConstraint {
     return null;
   };
 
-  const sensorWidth = getConstraintValue("fixed-sensor-width", "min-sensor-width", "max-sensor-width");
+  const sensorWidth = getConstraintValue(
+    'fixed-sensor-width',
+    'min-sensor-width',
+    'max-sensor-width'
+  );
   if (sensorWidth !== null) constraints.sensor_width_mm = sensorWidth;
 
-  const sensorHeight = getConstraintValue("fixed-sensor-height", "min-sensor-height", "max-sensor-height");
+  const sensorHeight = getConstraintValue(
+    'fixed-sensor-height',
+    'min-sensor-height',
+    'max-sensor-height'
+  );
   if (sensorHeight !== null) constraints.sensor_height_mm = sensorHeight;
 
-  const pixelWidth = getConstraintValue("fixed-pixel-width", "min-pixel-width", "max-pixel-width", true);
+  const pixelWidth = getConstraintValue(
+    'fixed-pixel-width',
+    'min-pixel-width',
+    'max-pixel-width',
+    true
+  );
   if (pixelWidth !== null) constraints.pixel_width = pixelWidth;
 
-  const pixelHeight = getConstraintValue("fixed-pixel-height", "min-pixel-height", "max-pixel-height", true);
+  const pixelHeight = getConstraintValue(
+    'fixed-pixel-height',
+    'min-pixel-height',
+    'max-pixel-height',
+    true
+  );
   if (pixelHeight !== null) constraints.pixel_height = pixelHeight;
 
-  const focalLength = getConstraintValue("fixed-focal-length", "min-focal-length", "max-focal-length");
+  const focalLength = getConstraintValue(
+    'fixed-focal-length',
+    'min-focal-length',
+    'max-focal-length'
+  );
   if (focalLength !== null) constraints.focal_length_mm = focalLength;
 
-  const horizontalFov = getConstraintValue("fixed-horizontal-fov", "min-horizontal-fov", "max-horizontal-fov");
+  const horizontalFov = getConstraintValue(
+    'fixed-horizontal-fov',
+    'min-horizontal-fov',
+    'max-horizontal-fov'
+  );
   if (horizontalFov !== null) constraints.horizontal_fov_deg = horizontalFov;
 
   return constraints;
@@ -336,8 +388,13 @@ async function calculateParameterRanges(): Promise<void> {
     const constraints = getConstraints();
 
     // Validate that at least one target is specified
-    if (!targets.detection_m && !targets.observation_m && !targets.recognition_m && !targets.identification_m) {
-      alert("Please specify at least one target DORI distance");
+    if (
+      !targets.detection_m &&
+      !targets.observation_m &&
+      !targets.recognition_m &&
+      !targets.identification_m
+    ) {
+      alert('Please specify at least one target DORI distance');
       return;
     }
 
@@ -352,13 +409,13 @@ async function calculateParameterRanges(): Promise<void> {
     displayParameterRanges(ranges);
 
     // Show export button
-    const exportBtn = document.getElementById("export-to-comparison-btn") as HTMLButtonElement;
+    const exportBtn = document.getElementById('export-to-comparison-btn') as HTMLButtonElement;
     if (exportBtn) {
-      exportBtn.style.display = "block";
+      exportBtn.style.display = 'block';
     }
   } catch (error) {
-    console.error("Error calculating parameter ranges:", error);
-    alert("Failed to calculate parameter ranges. Please check your inputs.");
+    console.error('Error calculating parameter ranges:', error);
+    alert('Failed to calculate parameter ranges. Please check your inputs.');
   }
 }
 
@@ -367,13 +424,45 @@ async function calculateParameterRanges(): Promise<void> {
  */
 function displayParameterRanges(ranges: DoriParameterRanges): void {
   // Map backend field names to UI element IDs and parameter names
-  const parameterMapping: { [key: string]: { rangeId: string; param: string; unit: string; label: string } } = {
-    sensor_width_mm: { rangeId: "range-sensor-width", param: "sensor-width", unit: "mm", label: "Sensor Width" },
-    sensor_height_mm: { rangeId: "range-sensor-height", param: "sensor-height", unit: "mm", label: "Sensor Height" },
-    pixel_width: { rangeId: "range-pixel-width", param: "pixel-width", unit: "px", label: "Pixel Width" },
-    pixel_height: { rangeId: "range-pixel-height", param: "pixel-height", unit: "px", label: "Pixel Height" },
-    focal_length_mm: { rangeId: "range-focal-length", param: "focal-length", unit: "mm", label: "Focal Length" },
-    horizontal_fov_deg: { rangeId: "range-horizontal-fov", param: "horizontal-fov", unit: "°", label: "Horizontal FOV" },
+  const parameterMapping: {
+    [key: string]: { rangeId: string; param: string; unit: string; label: string };
+  } = {
+    sensor_width_mm: {
+      rangeId: 'range-sensor-width',
+      param: 'sensor-width',
+      unit: 'mm',
+      label: 'Sensor Width',
+    },
+    sensor_height_mm: {
+      rangeId: 'range-sensor-height',
+      param: 'sensor-height',
+      unit: 'mm',
+      label: 'Sensor Height',
+    },
+    pixel_width: {
+      rangeId: 'range-pixel-width',
+      param: 'pixel-width',
+      unit: 'px',
+      label: 'Pixel Width',
+    },
+    pixel_height: {
+      rangeId: 'range-pixel-height',
+      param: 'pixel-height',
+      unit: 'px',
+      label: 'Pixel Height',
+    },
+    focal_length_mm: {
+      rangeId: 'range-focal-length',
+      param: 'focal-length',
+      unit: 'mm',
+      label: 'Focal Length',
+    },
+    horizontal_fov_deg: {
+      rangeId: 'range-horizontal-fov',
+      param: 'horizontal-fov',
+      unit: '°',
+      label: 'Horizontal FOV',
+    },
   };
 
   // Update each parameter's inline range display with color-coded validation
@@ -392,12 +481,12 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
     const maxInput = document.getElementById(`max-${mapping.param}`) as HTMLInputElement;
 
     const rangeData = ranges[key as keyof DoriParameterRanges];
-    
+
     // Check if this parameter has a calculated range
     if (rangeData && typeof rangeData === 'object' && 'min' in rangeData && 'max' in rangeData) {
       const range = rangeData as { min: number; max: number };
       const isSingleValue = Math.abs(range.max - range.min) < 0.01; // Tolerance for floating point
-      
+
       if (isSingleValue) {
         // Single value (green)
         rangeEl.textContent = `${range.min.toFixed(range.min < 10 ? 2 : 0)} ${mapping.unit}`;
@@ -414,9 +503,9 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
       rangeEl.className = 'param-range-inline complete-state';
     } else if (currentMode === 'range' && (minInput?.value || maxInput?.value)) {
       // Range mode with constraints (blue)
-      const hasMin = minInput?.value && minInput.value.trim() !== "";
-      const hasMax = maxInput?.value && maxInput.value.trim() !== "";
-      
+      const hasMin = minInput?.value && minInput.value.trim() !== '';
+      const hasMax = maxInput?.value && maxInput.value.trim() !== '';
+
       if (hasMin && hasMax) {
         rangeEl.textContent = `${minInput.value} – ${maxInput.value} ${mapping.unit}`;
       } else if (hasMin) {
@@ -439,7 +528,7 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
  */
 async function exportToComparison(): Promise<void> {
   if (!lastCalculatedRanges || !lastCalculatedTargets) {
-    alert("Please calculate parameter ranges first");
+    alert('Please calculate parameter ranges first');
     return;
   }
 
@@ -447,28 +536,40 @@ async function exportToComparison(): Promise<void> {
     const constraints = getConstraints();
 
     // Build camera system using fixed values or midpoints of ranges
-    const sensorWidth = constraints.sensor_width_mm || getMidpoint(lastCalculatedRanges.sensor_width_mm);
-    const pixelWidth = Math.round(constraints.pixel_width || getMidpoint(lastCalculatedRanges.pixel_width));
-    
+    const sensorWidth =
+      constraints.sensor_width_mm || getMidpoint(lastCalculatedRanges.sensor_width_mm);
+    const pixelWidth = Math.round(
+      constraints.pixel_width || getMidpoint(lastCalculatedRanges.pixel_width)
+    );
+
     // Calculate height based on standard 4:3 aspect ratio if not specified
     const aspectRatio = 4 / 3; // Standard aspect ratio
-    const sensorHeight = constraints.sensor_height_mm || getMidpoint(lastCalculatedRanges.sensor_height_mm) || (sensorWidth / aspectRatio);
-    const pixelHeight = Math.round(constraints.pixel_height || getMidpoint(lastCalculatedRanges.pixel_height) || (pixelWidth / aspectRatio));
-    
+    const sensorHeight =
+      constraints.sensor_height_mm ||
+      getMidpoint(lastCalculatedRanges.sensor_height_mm) ||
+      sensorWidth / aspectRatio;
+    const pixelHeight = Math.round(
+      constraints.pixel_height ||
+        getMidpoint(lastCalculatedRanges.pixel_height) ||
+        pixelWidth / aspectRatio
+    );
+
     const camera: CameraSystem = {
       sensor_width_mm: sensorWidth,
       sensor_height_mm: sensorHeight,
       pixel_width: pixelWidth,
       pixel_height: pixelHeight,
-      focal_length_mm: constraints.focal_length_mm || getMidpoint(lastCalculatedRanges.focal_length_mm),
+      focal_length_mm:
+        constraints.focal_length_mm || getMidpoint(lastCalculatedRanges.focal_length_mm),
     };
 
     // Use the first specified DORI target as the distance
-    const distance_m = lastCalculatedTargets.identification_m 
-      || lastCalculatedTargets.recognition_m 
-      || lastCalculatedTargets.observation_m 
-      || lastCalculatedTargets.detection_m 
-      || 10;
+    const distance_m =
+      lastCalculatedTargets.identification_m ||
+      lastCalculatedTargets.recognition_m ||
+      lastCalculatedTargets.observation_m ||
+      lastCalculatedTargets.detection_m ||
+      10;
 
     // Calculate FOV for this configuration
     const fovResult = await calculateCameraFov(camera, distance_m * 1000); // Convert to mm
@@ -476,10 +577,13 @@ async function exportToComparison(): Promise<void> {
     // Generate a name based on DORI targets
     const doriNames: string[] = [];
     if (lastCalculatedTargets.detection_m) doriNames.push(`D${lastCalculatedTargets.detection_m}m`);
-    if (lastCalculatedTargets.observation_m) doriNames.push(`O${lastCalculatedTargets.observation_m}m`);
-    if (lastCalculatedTargets.recognition_m) doriNames.push(`R${lastCalculatedTargets.recognition_m}m`);
-    if (lastCalculatedTargets.identification_m) doriNames.push(`I${lastCalculatedTargets.identification_m}m`);
-    
+    if (lastCalculatedTargets.observation_m)
+      doriNames.push(`O${lastCalculatedTargets.observation_m}m`);
+    if (lastCalculatedTargets.recognition_m)
+      doriNames.push(`R${lastCalculatedTargets.recognition_m}m`);
+    if (lastCalculatedTargets.identification_m)
+      doriNames.push(`I${lastCalculatedTargets.identification_m}m`);
+
     camera.name = `DORI: ${doriNames.join(', ')}`;
 
     // Add to store
@@ -489,10 +593,10 @@ async function exportToComparison(): Promise<void> {
     updateSystemsList();
 
     // Show success message
-    showToast(`Added to comparison: ${camera.name}`, "success");
+    showToast(`Added to comparison: ${camera.name}`, 'success');
   } catch (error) {
-    console.error("Error adding to comparison:", error);
-    alert("Failed to add camera configuration to comparison");
+    console.error('Error adding to comparison:', error);
+    alert('Failed to add camera configuration to comparison');
   }
 }
 

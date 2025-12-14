@@ -2,10 +2,10 @@
  * Form component for camera system input and management
  */
 
-import type { CameraSystem } from "../core/types";
-import { CAMERA_PRESETS } from "../core/constants";
-import { calculateFocalLengthFromFov } from "../services/api";
-import { store } from "../services/store";
+import type { CameraSystem } from '../core/types';
+import { CAMERA_PRESETS } from '../core/constants';
+import { calculateFocalLengthFromFov } from '../services/api';
+import { store } from '../services/store';
 
 /**
  * Validation constraints for camera system parameters
@@ -29,7 +29,7 @@ function validateField(
 ): number {
   const parsed = parseFloat(value);
 
-  if (!value || value.trim() === "") {
+  if (!value || value.trim() === '') {
     throw new Error(`${constraint.name} is required`);
   }
 
@@ -42,15 +42,11 @@ function validateField(
   }
 
   if (parsed < constraint.min) {
-    throw new Error(
-      `${constraint.name} must be at least ${constraint.min}${constraint.unit}`
-    );
+    throw new Error(`${constraint.name} must be at least ${constraint.min}${constraint.unit}`);
   }
 
   if (parsed > constraint.max) {
-    throw new Error(
-      `${constraint.name} cannot exceed ${constraint.max}${constraint.unit}`
-    );
+    throw new Error(`${constraint.name} cannot exceed ${constraint.max}${constraint.unit}`);
   }
 
   return parsed;
@@ -61,17 +57,19 @@ function validateField(
  * @throws Error if any required field is invalid or missing
  */
 export function getCameraFromForm(): CameraSystem {
-  const sensorWidthInput = (document.getElementById("sensor-width") as HTMLInputElement).value;
-  const sensorHeightInput = (document.getElementById("sensor-height") as HTMLInputElement).value;
-  const pixelWidthInput = (document.getElementById("pixel-width") as HTMLInputElement).value;
-  const pixelHeightInput = (document.getElementById("pixel-height") as HTMLInputElement).value;
-  const focalLengthInput = (document.getElementById("focal-length") as HTMLInputElement).value;
+  const sensorWidthInput = (document.getElementById('sensor-width') as HTMLInputElement).value;
+  const sensorHeightInput = (document.getElementById('sensor-height') as HTMLInputElement).value;
+  const pixelWidthInput = (document.getElementById('pixel-width') as HTMLInputElement).value;
+  const pixelHeightInput = (document.getElementById('pixel-height') as HTMLInputElement).value;
+  const focalLengthInput = (document.getElementById('focal-length') as HTMLInputElement).value;
 
   // Validate all required fields with constraints
   const sensorWidth = validateField(sensorWidthInput, VALIDATION_CONSTRAINTS.sensorWidth);
   const sensorHeight = validateField(sensorHeightInput, VALIDATION_CONSTRAINTS.sensorHeight);
   const pixelWidth = Math.round(validateField(pixelWidthInput, VALIDATION_CONSTRAINTS.pixelWidth));
-  const pixelHeight = Math.round(validateField(pixelHeightInput, VALIDATION_CONSTRAINTS.pixelHeight));
+  const pixelHeight = Math.round(
+    validateField(pixelHeightInput, VALIDATION_CONSTRAINTS.pixelHeight)
+  );
   const focalLength = validateField(focalLengthInput, VALIDATION_CONSTRAINTS.focalLength);
 
   return {
@@ -80,7 +78,7 @@ export function getCameraFromForm(): CameraSystem {
     pixel_width: pixelWidth,
     pixel_height: pixelHeight,
     focal_length_mm: focalLength,
-    name: (document.getElementById("name") as HTMLInputElement).value || undefined,
+    name: (document.getElementById('name') as HTMLInputElement).value || undefined,
   };
 }
 
@@ -89,9 +87,9 @@ export function getCameraFromForm(): CameraSystem {
  * @throws Error if distance is invalid
  */
 export function getDistance(): number {
-  const distanceInput = (document.getElementById("distance") as HTMLInputElement).value;
+  const distanceInput = (document.getElementById('distance') as HTMLInputElement).value;
   const distance = validateField(distanceInput, VALIDATION_CONSTRAINTS.distance);
-  
+
   // Convert meters to millimeters for the Rust backend
   return distance * 1000;
 }
@@ -101,13 +99,17 @@ export function getDistance(): number {
  * Updates the focal length field and clears FOV input fields
  */
 export async function calculateFocalLength(): Promise<void> {
-  const sensorWidth = parseFloat((document.getElementById("sensor-width") as HTMLInputElement).value);
-  const sensorHeight = parseFloat((document.getElementById("sensor-height") as HTMLInputElement).value);
-  const hfovDeg = parseFloat((document.getElementById("hfov-deg") as HTMLInputElement).value);
-  const vfovDeg = parseFloat((document.getElementById("vfov-deg") as HTMLInputElement).value);
+  const sensorWidth = parseFloat(
+    (document.getElementById('sensor-width') as HTMLInputElement).value
+  );
+  const sensorHeight = parseFloat(
+    (document.getElementById('sensor-height') as HTMLInputElement).value
+  );
+  const hfovDeg = parseFloat((document.getElementById('hfov-deg') as HTMLInputElement).value);
+  const vfovDeg = parseFloat((document.getElementById('vfov-deg') as HTMLInputElement).value);
 
   if (!sensorWidth || !sensorHeight) {
-    alert("Please enter sensor width and height first");
+    alert('Please enter sensor width and height first');
     return;
   }
 
@@ -124,7 +126,7 @@ export async function calculateFocalLength(): Promise<void> {
     sensorSize = sensorHeight;
     fovDeg = vfovDeg;
   } else {
-    alert("Please enter either Horizontal FOV or Vertical FOV");
+    alert('Please enter either Horizontal FOV or Vertical FOV');
     return;
   }
 
@@ -132,13 +134,13 @@ export async function calculateFocalLength(): Promise<void> {
     const focalLength = await calculateFocalLengthFromFov(sensorSize, fovDeg);
 
     // Update focal length field
-    (document.getElementById("focal-length") as HTMLInputElement).value = focalLength.toFixed(2);
+    (document.getElementById('focal-length') as HTMLInputElement).value = focalLength.toFixed(2);
 
     // Clear the FOV input fields
-    (document.getElementById("hfov-deg") as HTMLInputElement).value = "";
-    (document.getElementById("vfov-deg") as HTMLInputElement).value = "";
+    (document.getElementById('hfov-deg') as HTMLInputElement).value = '';
+    (document.getElementById('vfov-deg') as HTMLInputElement).value = '';
   } catch (error) {
-    console.error("Error calculating focal length:", error);
+    console.error('Error calculating focal length:', error);
     alert(`Error: ${error}`);
   }
 }
@@ -151,22 +153,28 @@ export function loadSystemToForm(index: number, onUpdate: () => void): void {
   const system = store.getCameraSystem(index);
   if (!system) return;
 
-  (document.getElementById("sensor-width") as HTMLInputElement).value = system.camera.sensor_width_mm.toString();
-  (document.getElementById("sensor-height") as HTMLInputElement).value = system.camera.sensor_height_mm.toString();
-  (document.getElementById("pixel-width") as HTMLInputElement).value = system.camera.pixel_width.toString();
-  (document.getElementById("pixel-height") as HTMLInputElement).value = system.camera.pixel_height.toString();
-  (document.getElementById("focal-length") as HTMLInputElement).value = system.camera.focal_length_mm.toString();
-  (document.getElementById("distance") as HTMLInputElement).value = (system.result.distance_m).toString();
-  (document.getElementById("name") as HTMLInputElement).value = system.camera.name || "";
+  (document.getElementById('sensor-width') as HTMLInputElement).value =
+    system.camera.sensor_width_mm.toString();
+  (document.getElementById('sensor-height') as HTMLInputElement).value =
+    system.camera.sensor_height_mm.toString();
+  (document.getElementById('pixel-width') as HTMLInputElement).value =
+    system.camera.pixel_width.toString();
+  (document.getElementById('pixel-height') as HTMLInputElement).value =
+    system.camera.pixel_height.toString();
+  (document.getElementById('focal-length') as HTMLInputElement).value =
+    system.camera.focal_length_mm.toString();
+  (document.getElementById('distance') as HTMLInputElement).value =
+    system.result.distance_m.toString();
+  (document.getElementById('name') as HTMLInputElement).value = system.camera.name || '';
 
   // Remove the system from the list so it can be re-added after editing
   store.removeCameraSystem(index);
-  
+
   // Trigger update callback
   onUpdate();
 
   // Scroll to the form
-  document.querySelector(".camera-form")?.scrollIntoView({ behavior: "smooth" });
+  document.querySelector('.camera-form')?.scrollIntoView({ behavior: 'smooth' });
 }
 
 /**
@@ -176,13 +184,20 @@ export function loadSystemToView(index: number): void {
   const system = store.getCameraSystem(index);
   if (!system) return;
 
-  (document.getElementById("sensor-width") as HTMLInputElement).value = system.camera.sensor_width_mm.toString();
-  (document.getElementById("sensor-height") as HTMLInputElement).value = system.camera.sensor_height_mm.toString();
-  (document.getElementById("pixel-width") as HTMLInputElement).value = system.camera.pixel_width.toString();
-  (document.getElementById("pixel-height") as HTMLInputElement).value = system.camera.pixel_height.toString();
-  (document.getElementById("focal-length") as HTMLInputElement).value = system.camera.focal_length_mm.toString();
-  (document.getElementById("distance") as HTMLInputElement).value = (system.result.distance_m).toString();
-  (document.getElementById("name") as HTMLInputElement).value = system.camera.name || `System ${index + 1}`;
+  (document.getElementById('sensor-width') as HTMLInputElement).value =
+    system.camera.sensor_width_mm.toString();
+  (document.getElementById('sensor-height') as HTMLInputElement).value =
+    system.camera.sensor_height_mm.toString();
+  (document.getElementById('pixel-width') as HTMLInputElement).value =
+    system.camera.pixel_width.toString();
+  (document.getElementById('pixel-height') as HTMLInputElement).value =
+    system.camera.pixel_height.toString();
+  (document.getElementById('focal-length') as HTMLInputElement).value =
+    system.camera.focal_length_mm.toString();
+  (document.getElementById('distance') as HTMLInputElement).value =
+    system.result.distance_m.toString();
+  (document.getElementById('name') as HTMLInputElement).value =
+    system.camera.name || `System ${index + 1}`;
 }
 
 /**
@@ -192,10 +207,15 @@ export function loadPreset(presetName: string): void {
   const preset = CAMERA_PRESETS[presetName];
   if (!preset) return;
 
-  (document.getElementById("sensor-width") as HTMLInputElement).value = preset.sensor_width_mm?.toString() || "";
-  (document.getElementById("sensor-height") as HTMLInputElement).value = preset.sensor_height_mm?.toString() || "";
-  (document.getElementById("pixel-width") as HTMLInputElement).value = preset.pixel_width?.toString() || "";
-  (document.getElementById("pixel-height") as HTMLInputElement).value = preset.pixel_height?.toString() || "";
-  (document.getElementById("focal-length") as HTMLInputElement).value = preset.focal_length_mm?.toString() || "";
-  (document.getElementById("name") as HTMLInputElement).value = preset.name || "";
+  (document.getElementById('sensor-width') as HTMLInputElement).value =
+    preset.sensor_width_mm?.toString() || '';
+  (document.getElementById('sensor-height') as HTMLInputElement).value =
+    preset.sensor_height_mm?.toString() || '';
+  (document.getElementById('pixel-width') as HTMLInputElement).value =
+    preset.pixel_width?.toString() || '';
+  (document.getElementById('pixel-height') as HTMLInputElement).value =
+    preset.pixel_height?.toString() || '';
+  (document.getElementById('focal-length') as HTMLInputElement).value =
+    preset.focal_length_mm?.toString() || '';
+  (document.getElementById('name') as HTMLInputElement).value = preset.name || '';
 }

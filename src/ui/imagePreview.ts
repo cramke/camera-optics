@@ -2,8 +2,8 @@
  * Image Preview Module - Visualize camera resolution at distance
  */
 
-import type { CameraSystem, FovResult } from "../core/types";
-import { calculateCameraFov } from "../services/api";
+import type { CameraSystem, FovResult } from '../core/types';
+import { calculateCameraFov } from '../services/api';
 
 let uploadedImage: HTMLImageElement | null = null;
 let currentCamera: CameraSystem | null = null;
@@ -14,11 +14,11 @@ let imageRealWorldWidth: number = 1; // meters
  * Initialize the image preview functionality
  */
 export function initializeImagePreview(): void {
-  const uploadInput = document.getElementById("preview-upload") as HTMLInputElement;
-  const distanceSlider = document.getElementById("preview-distance-slider") as HTMLInputElement;
-  const distanceValueSpan = document.getElementById("preview-distance-value");
-  const mainDistanceInput = document.getElementById("distance") as HTMLInputElement;
-  const imageWidthInput = document.getElementById("preview-image-width") as HTMLInputElement;
+  const uploadInput = document.getElementById('preview-upload') as HTMLInputElement;
+  const distanceSlider = document.getElementById('preview-distance-slider') as HTMLInputElement;
+  const distanceValueSpan = document.getElementById('preview-distance-value');
+  const mainDistanceInput = document.getElementById('distance') as HTMLInputElement;
+  const imageWidthInput = document.getElementById('preview-image-width') as HTMLInputElement;
 
   if (!uploadInput || !distanceSlider || !imageWidthInput) return;
 
@@ -37,7 +37,7 @@ export function initializeImagePreview(): void {
   loadDefaultImage();
 
   // Handle image upload
-  uploadInput.addEventListener("change", (e) => {
+  uploadInput.addEventListener('change', (e) => {
     const file = (e.target as HTMLInputElement).files?.[0];
     if (!file) return;
 
@@ -58,20 +58,20 @@ export function initializeImagePreview(): void {
   });
 
   // Handle slider change - update preview and sync to main form
-  distanceSlider.addEventListener("input", async () => {
+  distanceSlider.addEventListener('input', async () => {
     currentDistance = parseFloat(distanceSlider.value) || 25;
     if (distanceValueSpan) {
       distanceValueSpan.textContent = currentDistance.toFixed(1);
     }
     updateDistanceLabel(currentDistance);
-    
+
     // Sync to main distance field
     if (mainDistanceInput) {
       mainDistanceInput.value = currentDistance.toString();
       // Trigger input event to recalculate FOV in main form
-      mainDistanceInput.dispatchEvent(new Event("input", { bubbles: true }));
+      mainDistanceInput.dispatchEvent(new Event('input', { bubbles: true }));
     }
-    
+
     // Auto-regenerate preview if we have an image and camera
     if (uploadedImage && currentCamera) {
       await generatePreview();
@@ -80,7 +80,7 @@ export function initializeImagePreview(): void {
 
   // Sync from main distance field to preview slider
   if (mainDistanceInput) {
-    mainDistanceInput.addEventListener("input", async () => {
+    mainDistanceInput.addEventListener('input', async () => {
       const mainValue = parseFloat(mainDistanceInput.value) || 25;
       currentDistance = mainValue;
       distanceSlider.value = mainValue.toString();
@@ -88,7 +88,7 @@ export function initializeImagePreview(): void {
         distanceValueSpan.textContent = mainValue.toFixed(1);
       }
       updateDistanceLabel(currentDistance);
-      
+
       // Auto-regenerate preview if we have an image and camera
       if (uploadedImage && currentCamera) {
         await generatePreview();
@@ -97,7 +97,7 @@ export function initializeImagePreview(): void {
   }
 
   // Handle image width change - auto-regenerate preview
-  imageWidthInput.addEventListener("input", async () => {
+  imageWidthInput.addEventListener('input', async () => {
     imageRealWorldWidth = parseFloat(imageWidthInput.value) || 1;
     if (uploadedImage && currentCamera) {
       await generatePreview();
@@ -112,9 +112,9 @@ export function initializeImagePreview(): void {
  */
 export function updatePreviewCamera(camera: CameraSystem, result: FovResult): void {
   currentCamera = camera;
-  
+
   // Update resolution display
-  const resolutionDiv = document.getElementById("preview-resolution");
+  const resolutionDiv = document.getElementById('preview-resolution');
   if (resolutionDiv) {
     const ppmH = result.horizontal_ppm;
     const ppmV = result.vertical_ppm;
@@ -126,10 +126,10 @@ export function updatePreviewCamera(camera: CameraSystem, result: FovResult): vo
  * Draw the original uploaded image on the canvas
  */
 function drawOriginalImage(img: HTMLImageElement): void {
-  const canvas = document.getElementById("original-canvas") as HTMLCanvasElement;
+  const canvas = document.getElementById('original-canvas') as HTMLCanvasElement;
   if (!canvas) return;
 
-  const ctx = canvas.getContext("2d");
+  const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
   // Resize canvas to fit image (max 400px)
@@ -159,25 +159,28 @@ function drawOriginalImage(img: HTMLImageElement): void {
  */
 async function generatePreview(): Promise<void> {
   if (!uploadedImage || !currentCamera) {
-    console.log("Preview not ready:", { uploadedImage: !!uploadedImage, currentCamera: !!currentCamera });
+    console.log('Preview not ready:', {
+      uploadedImage: !!uploadedImage,
+      currentCamera: !!currentCamera,
+    });
     return;
   }
 
   try {
     // Calculate FOV at current distance (convert m to mm)
     const result = await calculateCameraFov(currentCamera, currentDistance * 1000);
-    
-    console.log("Preview calculation:", {
+
+    console.log('Preview calculation:', {
       distance: currentDistance,
       ppmH: result.horizontal_ppm,
       ppmV: result.vertical_ppm,
-      imageRealWorldWidth: imageRealWorldWidth
+      imageRealWorldWidth: imageRealWorldWidth,
     });
 
-    const previewCanvas = document.getElementById("preview-canvas") as HTMLCanvasElement;
+    const previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
     if (!previewCanvas) return;
 
-    const ctx = previewCanvas.getContext("2d");
+    const ctx = previewCanvas.getContext('2d');
     if (!ctx) return;
 
     // Calculate pixels per millimeter for each dimension
@@ -192,19 +195,19 @@ async function generatePreview(): Promise<void> {
     // Calculate how many pixels the camera would capture for this area
     const cameraPixelsH = imageWidthMm * ppmH;
     const cameraPixelsV = imageHeightMm * ppmV;
-    
-    console.log("Camera pixels:", { cameraPixelsH, cameraPixelsV });
+
+    console.log('Camera pixels:', { cameraPixelsH, cameraPixelsV });
 
     // Ensure we have at least 1 pixel
     const finalPixelsH = Math.max(1, Math.floor(cameraPixelsH));
     const finalPixelsV = Math.max(1, Math.floor(cameraPixelsV));
 
     // Create a temporary canvas to downsample
-    const tempCanvas = document.createElement("canvas");
+    const tempCanvas = document.createElement('canvas');
     tempCanvas.width = finalPixelsH;
     tempCanvas.height = finalPixelsV;
-    const tempCtx = tempCanvas.getContext("2d");
-    
+    const tempCtx = tempCanvas.getContext('2d');
+
     if (!tempCtx) return;
 
     // Disable image smoothing for pixelated effect
@@ -217,13 +220,16 @@ async function generatePreview(): Promise<void> {
     // Use a larger scale when we have very few pixels
     const minScale = 2;
     const maxDisplaySize = 400;
-    
-    let scale = Math.max(minScale, Math.floor(maxDisplaySize / Math.max(finalPixelsH, finalPixelsV)));
-    
+
+    let scale = Math.max(
+      minScale,
+      Math.floor(maxDisplaySize / Math.max(finalPixelsH, finalPixelsV))
+    );
+
     // Cap the display size
     let displayWidth = finalPixelsH * scale;
     let displayHeight = finalPixelsV * scale;
-    
+
     if (displayWidth > maxDisplaySize || displayHeight > maxDisplaySize) {
       scale = Math.floor(maxDisplaySize / Math.max(finalPixelsH, finalPixelsV));
       displayWidth = finalPixelsH * scale;
@@ -238,14 +244,13 @@ async function generatePreview(): Promise<void> {
 
     // Draw the downsampled image scaled up using nearest-neighbor
     ctx.drawImage(tempCanvas, 0, 0, displayWidth, displayHeight);
-    
-    console.log("Display:", { finalPixelsH, finalPixelsV, scale, displayWidth, displayHeight });
+
+    console.log('Display:', { finalPixelsH, finalPixelsV, scale, displayWidth, displayHeight });
 
     // Update stats
     updatePreviewStats(finalPixelsH, finalPixelsV, ppmH, ppmV, imageWidthMm, imageHeightMm);
-
   } catch (error) {
-    console.error("Error generating preview:", error);
+    console.error('Error generating preview:', error);
   }
 }
 
@@ -260,7 +265,7 @@ function updatePreviewStats(
   widthMm: number,
   heightMm: number
 ): void {
-  const statsDiv = document.getElementById("preview-stats");
+  const statsDiv = document.getElementById('preview-stats');
   if (!statsDiv) return;
 
   statsDiv.innerHTML = `
@@ -275,7 +280,7 @@ function updatePreviewStats(
  * Update the distance label in the preview header
  */
 function updateDistanceLabel(distance: number): void {
-  const label = document.getElementById("preview-distance-label");
+  const label = document.getElementById('preview-distance-label');
   if (label) {
     label.textContent = distance.toFixed(1);
   }
@@ -295,8 +300,8 @@ function loadDefaultImage(): void {
     }
   };
   img.onerror = () => {
-    console.error("Failed to load default image");
+    console.error('Failed to load default image');
   };
   // Use direct path that Vite will resolve
-  img.src = new URL("../assets/pierre-person.jpeg", import.meta.url).href;
+  img.src = new URL('../assets/pierre-person.jpeg', import.meta.url).href;
 }

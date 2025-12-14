@@ -36,7 +36,7 @@ export interface CameraWithResult {
 
 export interface ValidationWarning {
   message: string;
-  severity: "Warning" | "Error";
+  severity: 'Warning' | 'Error';
 }
 
 export interface ReferenceObject {

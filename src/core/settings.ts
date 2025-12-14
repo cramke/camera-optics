@@ -36,7 +36,7 @@ const experimentalEnabled = isExperimentalEnabled();
 export const FEATURES = {
   // Image Preview tab - experimental feature
   IMAGE_PREVIEW: experimentalEnabled,
-  
+
   // DORI Designer tab - experimental feature
   DORI_DESIGNER: experimentalEnabled,
 } as const;

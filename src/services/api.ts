@@ -2,8 +2,8 @@
  * Tauri API wrapper - Backend communication layer
  */
 
-import { invoke } from "@tauri-apps/api/core";
-import type { CameraSystem, FovResult } from "../core/types";
+import { invoke } from '@tauri-apps/api/core';
+import type { CameraSystem, FovResult } from '../core/types';
 
 /**
  * Calculate FOV for a camera system at a given distance
@@ -12,7 +12,7 @@ export async function calculateCameraFov(
   camera: CameraSystem,
   distanceMm: number
 ): Promise<FovResult> {
-  return await invoke<FovResult>("calculate_camera_fov", {
+  return await invoke<FovResult>('calculate_camera_fov', {
     camera,
     distanceMm,
   });
@@ -25,7 +25,7 @@ export async function calculateFocalLengthFromFov(
   sensorSizeMm: number,
   fovDeg: number
 ): Promise<number> {
-  return await invoke<number>("calculate_focal_length_from_fov_command", {
+  return await invoke<number>('calculate_focal_length_from_fov_command', {
     sensorSizeMm,
     fovDeg,
   });
@@ -35,10 +35,10 @@ export async function calculateFocalLengthFromFov(
  * Calculate parameter ranges for given DORI requirements
  */
 export async function calculateDoriRanges(
-  targets: import("../core/types").DoriTargets,
-  constraints: import("../core/types").ParameterConstraint
-): Promise<import("../core/types").DoriParameterRanges> {
-  return await invoke("calculate_dori_ranges", {
+  targets: import('../core/types').DoriTargets,
+  constraints: import('../core/types').ParameterConstraint
+): Promise<import('../core/types').DoriParameterRanges> {
+  return await invoke('calculate_dori_ranges', {
     targets,
     constraints,
   });
@@ -49,9 +49,9 @@ export async function calculateDoriRanges(
  */
 export async function calculateDoriFromSingleDistance(
   distanceM: number,
-  doriType: "detection" | "observation" | "recognition" | "identification"
-): Promise<import("../core/types").DoriDistances> {
-  return await invoke("calculate_dori_from_single_distance", {
+  doriType: 'detection' | 'observation' | 'recognition' | 'identification'
+): Promise<import('../core/types').DoriDistances> {
+  return await invoke('calculate_dori_from_single_distance', {
     distanceM,
     doriType,
   });
@@ -63,8 +63,8 @@ export async function calculateDoriFromSingleDistance(
 export async function validateCameraSystem(
   camera: CameraSystem,
   result: FovResult
-): Promise<import("../core/types").ValidationWarning[]> {
-  return await invoke("validate_camera_system", {
+): Promise<import('../core/types').ValidationWarning[]> {
+  return await invoke('validate_camera_system', {
     camera,
     result,
   });

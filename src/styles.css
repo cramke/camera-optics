@@ -571,7 +571,9 @@ button {
 
 .system-item.selected {
   background: #ffffff;
-  box-shadow: 0 0 0 2px rgba(102, 126, 234, 0.3), 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow:
+    0 0 0 2px rgba(102, 126, 234, 0.3),
+    0 2px 8px rgba(0, 0, 0, 0.15);
   border-left-width: 6px;
   transform: translateX(2px);
 }
@@ -939,7 +941,9 @@ button {
     background: #1f2937;
   }
 
-  h2, h3, h4,
+  h2,
+  h3,
+  h4,
   .result-card h3,
   .result-section h4,
   .legend h4 {
@@ -1089,7 +1093,7 @@ button {
   cursor: pointer;
 }
 
-.designer-section input[type="number"]:disabled {
+.designer-section input[type='number']:disabled {
   background-color: #f5f5f5;
   cursor: not-allowed;
   opacity: 0.6;
@@ -1143,7 +1147,7 @@ button {
 }
 
 .limiting-requirement::before {
-  content: "⚠️";
+  content: '⚠️';
   font-size: 1.2rem;
 }
 
@@ -1483,7 +1487,7 @@ button {
   margin-bottom: 1rem;
 }
 
-.preview-controls input[type="file"] {
+.preview-controls input[type='file'] {
   padding: 0.5rem;
   border: 2px dashed #ddd;
   border-radius: 8px;
@@ -1491,7 +1495,7 @@ button {
   width: 100%;
 }
 
-.preview-controls input[type="file"]:hover {
+.preview-controls input[type='file']:hover {
   border-color: #667eea;
 }
 
@@ -1563,12 +1567,12 @@ button {
 .distance-slider {
   width: 100%;
   cursor: pointer;
-  accent-color: #2196F3;
+  accent-color: #2196f3;
 }
 
 #preview-distance-value {
   font-weight: 600;
-  color: #2196F3;
+  color: #2196f3;
 }
 
 /* Responsive adjustments for preview */
@@ -1706,7 +1710,7 @@ button {
   background: #f5f5f5;
 }
 
-.checkbox-label input[type="checkbox"] {
+.checkbox-label input[type='checkbox'] {
   width: 20px;
   height: 20px;
   cursor: pointer;

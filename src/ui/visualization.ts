@@ -2,25 +2,25 @@
  * Canvas visualization component for FOV rendering
  */
 
-import type { CameraWithResult, ReferenceObject } from "../core/types";
-import { REFERENCE_OBJECTS, SYSTEM_COLORS } from "../core/constants";
+import type { CameraWithResult, ReferenceObject } from '../core/types';
+import { REFERENCE_OBJECTS, SYSTEM_COLORS } from '../core/constants';
 
 /**
  * Draw FOV visualization on canvas
  */
 export function drawVisualization(systems: CameraWithResult[]): void {
-  const canvas = document.getElementById("fov-canvas") as HTMLCanvasElement;
-  const ctx = canvas.getContext("2d");
+  const canvas = document.getElementById('fov-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  const legend = document.getElementById("canvas-legend")!;
+  const legend = document.getElementById('canvas-legend')!;
 
   // Clear canvas
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   if (systems.length === 0) {
     drawEmptyState(ctx, canvas);
-    legend.innerHTML = "";
+    legend.innerHTML = '';
     return;
   }
 
@@ -46,9 +46,10 @@ export function drawVisualization(systems: CameraWithResult[]): void {
   });
 
   // Draw reference object if selected
-  const selectedObjectId = (document.getElementById("ref-object-select") as HTMLSelectElement)?.value;
+  const selectedObjectId = (document.getElementById('ref-object-select') as HTMLSelectElement)
+    ?.value;
 
-  if (selectedObjectId && selectedObjectId !== "none") {
+  if (selectedObjectId && selectedObjectId !== 'none') {
     const obj = REFERENCE_OBJECTS.find((o) => o.id === selectedObjectId);
     if (obj) {
       drawReferenceObject(ctx, obj, centerX, centerY, scale);
@@ -63,25 +64,17 @@ export function drawVisualization(systems: CameraWithResult[]): void {
  * Draw empty state message
  */
 function drawEmptyState(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {
-  ctx.fillStyle = "#999";
-  ctx.font = "18px sans-serif";
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-  ctx.fillText(
-    "Invalid value",
-    canvas.width / 2,
-    canvas.height / 2 - 10
-  );
-  
-  ctx.fillStyle = "#666";
-  ctx.font = "14px sans-serif";
-  ctx.fillText(
-    "Enter valid values to see visualization",
-    canvas.width / 2,
-    canvas.height / 2 + 20
-  );
-  
-  ctx.textBaseline = "alphabetic";
+  ctx.fillStyle = '#999';
+  ctx.font = '18px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText('Invalid value', canvas.width / 2, canvas.height / 2 - 10);
+
+  ctx.fillStyle = '#666';
+  ctx.font = '14px sans-serif';
+  ctx.fillText('Enter valid values to see visualization', canvas.width / 2, canvas.height / 2 + 20);
+
+  ctx.textBaseline = 'alphabetic';
 }
 
 /**
@@ -94,7 +87,7 @@ function drawGrid(
   maxFov: number,
   scale: number
 ): void {
-  ctx.strokeStyle = "#e0e0e0";
+  ctx.strokeStyle = '#e0e0e0';
   ctx.lineWidth = 1;
   for (let i = 1; i <= 5; i++) {
     const size = (maxFov / 5) * i * scale;
@@ -113,7 +106,7 @@ function drawCrosshair(
   centerY: number,
   padding: number
 ): void {
-  ctx.strokeStyle = "#999";
+  ctx.strokeStyle = '#999';
   ctx.beginPath();
   ctx.moveTo(centerX, padding);
   ctx.lineTo(centerX, canvasHeight - padding);
@@ -140,7 +133,7 @@ function drawFovBox(
   const y = centerY - height / 2;
 
   // Fill with transparency
-  ctx.fillStyle = color + "33";
+  ctx.fillStyle = color + '33';
   ctx.fillRect(x, y, width, height);
 
   // Outline
@@ -150,12 +143,12 @@ function drawFovBox(
 
   // Label
   ctx.fillStyle = color;
-  ctx.font = "bold 12px sans-serif";
+  ctx.font = 'bold 12px sans-serif';
   ctx.fillText(system.camera.name || `System ${index + 1}`, x + 5, y + 15);
 
   // Draw dimension labels for this FOV
-  ctx.font = "11px sans-serif";
-  ctx.textAlign = "center";
+  ctx.font = '11px sans-serif';
+  ctx.textAlign = 'center';
 
   // Horizontal FOV label (bottom)
   const hfovLabel = `${system.result.horizontal_fov_m.toFixed(2)}m`;
@@ -169,7 +162,7 @@ function drawFovBox(
   ctx.fillText(vfovLabel, 0, 0);
   ctx.restore();
 
-  ctx.textAlign = "left";
+  ctx.textAlign = 'left';
 }
 
 // Cache for reference object images (optional feature)
@@ -196,7 +189,7 @@ function tryLoadReferenceImage(objectId: string, imagePath: string): void {
 }
 
 // Preload icons for reference objects that have iconPath defined
-REFERENCE_OBJECTS.forEach(obj => {
+REFERENCE_OBJECTS.forEach((obj) => {
   if (obj.iconPath) {
     tryLoadReferenceImage(obj.id, obj.iconPath);
   }
@@ -219,12 +212,12 @@ function drawReferenceObject(
 
   // Check if custom image is available for this object (optional feature)
   const hasCustomImage = referenceObjectImages.has(obj.id) && imageLoadStatus.get(obj.id) === true;
-  
+
   if (hasCustomImage) {
     // Draw custom image (e.g., drone SVG icon)
     const img = referenceObjectImages.get(obj.id)!;
     ctx.drawImage(img, x, y, width, height);
-    
+
     // Draw subtle outline
     ctx.strokeStyle = obj.color;
     ctx.lineWidth = 2;
@@ -235,17 +228,17 @@ function drawReferenceObject(
     ctx.fillRect(x, y, width, height);
 
     // Draw outline
-    ctx.strokeStyle = "#000";
+    ctx.strokeStyle = '#000';
     ctx.lineWidth = 1;
     ctx.strokeRect(x, y, width, height);
 
     // Draw label
-    ctx.fillStyle = "#fff";
-    ctx.strokeStyle = "#000";
+    ctx.fillStyle = '#fff';
+    ctx.strokeStyle = '#000';
     ctx.lineWidth = 2;
-    ctx.font = "bold 14px sans-serif";
-    ctx.textAlign = "center";
-    ctx.textBaseline = "middle";
+    ctx.font = 'bold 14px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
 
     // Draw text with outline for visibility
     ctx.strokeText(obj.label, centerX, centerY);
@@ -254,12 +247,12 @@ function drawReferenceObject(
 
   // Draw size label below object
   ctx.fillStyle = obj.color;
-  ctx.font = "10px sans-serif";
-  ctx.textBaseline = "top";
+  ctx.font = '10px sans-serif';
+  ctx.textBaseline = 'top';
   const sizeLabel = `${obj.name} (${obj.width}×${obj.height}m)`;
   ctx.fillText(sizeLabel, centerX, y + height + 3);
 
-  ctx.textBaseline = "alphabetic";
+  ctx.textBaseline = 'alphabetic';
 }
 
 /**
@@ -278,7 +271,7 @@ function updateLegend(legend: HTMLElement, systems: CameraWithResult[]): void {
       </div>
     `
       )
-      .join("")}
+      .join('')}
   `;
 }
 

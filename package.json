@@ -1,6 +1,6 @@
 {
   "name": "camera-optics-app",
-    "private": true,
+  "private": true,
   "version": "0.1.0",
   "description": "Camera Optics Calculator - Calculate FOV and spatial resolution for camera systems",
   "type": "module",
