@@ -173,26 +173,38 @@ impl CameraSystem {
         // Check sensor dimensions (typical range: 1-100mm)
         if self.sensor_width_mm < 1.0 {
             warnings.push(ValidationWarning {
-                message: format!("Sensor width ({:.2} mm) is unrealistically small", self.sensor_width_mm),
+                message: format!(
+                    "Sensor width ({:.2} mm) is unrealistically small",
+                    self.sensor_width_mm
+                ),
                 severity: ValidationSeverity::Error,
             });
         }
         if self.sensor_width_mm > 100.0 {
             warnings.push(ValidationWarning {
-                message: format!("Sensor width ({:.2} mm) is unrealistically large", self.sensor_width_mm),
+                message: format!(
+                    "Sensor width ({:.2} mm) is unrealistically large",
+                    self.sensor_width_mm
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
 
         if self.sensor_height_mm < 1.0 {
             warnings.push(ValidationWarning {
-                message: format!("Sensor height ({:.2} mm) is unrealistically small", self.sensor_height_mm),
+                message: format!(
+                    "Sensor height ({:.2} mm) is unrealistically small",
+                    self.sensor_height_mm
+                ),
                 severity: ValidationSeverity::Error,
             });
         }
         if self.sensor_height_mm > 100.0 {
             warnings.push(ValidationWarning {
-                message: format!("Sensor height ({:.2} mm) is unrealistically large", self.sensor_height_mm),
+                message: format!(
+                    "Sensor height ({:.2} mm) is unrealistically large",
+                    self.sensor_height_mm
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
@@ -200,13 +212,19 @@ impl CameraSystem {
         // Check focal length (typical range: 1-2000mm)
         if self.focal_length_mm < 1.0 {
             warnings.push(ValidationWarning {
-                message: format!("Focal length ({:.2} mm) is unrealistically short", self.focal_length_mm),
+                message: format!(
+                    "Focal length ({:.2} mm) is unrealistically short",
+                    self.focal_length_mm
+                ),
                 severity: ValidationSeverity::Error,
             });
         }
         if self.focal_length_mm > 2000.0 {
             warnings.push(ValidationWarning {
-                message: format!("Focal length ({:.0} mm) is extremely long", self.focal_length_mm),
+                message: format!(
+                    "Focal length ({:.0} mm) is extremely long",
+                    self.focal_length_mm
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
@@ -214,26 +232,38 @@ impl CameraSystem {
         // Check resolution (typical range: 100-50000 pixels)
         if self.pixel_width < 100 {
             warnings.push(ValidationWarning {
-                message: format!("Pixel width ({} px) is unrealistically low", self.pixel_width),
+                message: format!(
+                    "Pixel width ({} px) is unrealistically low",
+                    self.pixel_width
+                ),
                 severity: ValidationSeverity::Error,
             });
         }
         if self.pixel_width > 50000 {
             warnings.push(ValidationWarning {
-                message: format!("Pixel width ({} px) is unrealistically high", self.pixel_width),
+                message: format!(
+                    "Pixel width ({} px) is unrealistically high",
+                    self.pixel_width
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
 
         if self.pixel_height < 100 {
             warnings.push(ValidationWarning {
-                message: format!("Pixel height ({} px) is unrealistically low", self.pixel_height),
+                message: format!(
+                    "Pixel height ({} px) is unrealistically low",
+                    self.pixel_height
+                ),
                 severity: ValidationSeverity::Error,
             });
         }
         if self.pixel_height > 50000 {
             warnings.push(ValidationWarning {
-                message: format!("Pixel height ({} px) is unrealistically high", self.pixel_height),
+                message: format!(
+                    "Pixel height ({} px) is unrealistically high",
+                    self.pixel_height
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
@@ -242,26 +272,38 @@ impl CameraSystem {
         let (h_pitch, v_pitch) = self.pixel_pitch_um();
         if h_pitch < 0.5 {
             warnings.push(ValidationWarning {
-                message: format!("Horizontal pixel pitch ({:.2} µm) is unrealistically small", h_pitch),
+                message: format!(
+                    "Horizontal pixel pitch ({:.2} µm) is unrealistically small",
+                    h_pitch
+                ),
                 severity: ValidationSeverity::Error,
             });
         }
         if h_pitch > 20.0 {
             warnings.push(ValidationWarning {
-                message: format!("Horizontal pixel pitch ({:.2} µm) is unusually large", h_pitch),
+                message: format!(
+                    "Horizontal pixel pitch ({:.2} µm) is unusually large",
+                    h_pitch
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
 
         if v_pitch < 0.5 {
             warnings.push(ValidationWarning {
-                message: format!("Vertical pixel pitch ({:.2} µm) is unrealistically small", v_pitch),
+                message: format!(
+                    "Vertical pixel pitch ({:.2} µm) is unrealistically small",
+                    v_pitch
+                ),
                 severity: ValidationSeverity::Error,
             });
         }
         if v_pitch > 20.0 {
             warnings.push(ValidationWarning {
-                message: format!("Vertical pixel pitch ({:.2} µm) is unusually large", v_pitch),
+                message: format!(
+                    "Vertical pixel pitch ({:.2} µm) is unusually large",
+                    v_pitch
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
@@ -269,11 +311,11 @@ impl CameraSystem {
         // Check aspect ratio consistency (sensor vs pixel)
         let sensor_aspect = self.sensor_width_mm / self.sensor_height_mm;
         let pixel_aspect = self.pixel_width as f64 / self.pixel_height as f64;
-        
+
         // Allow 5% tolerance for aspect ratio mismatch
         let aspect_tolerance = 0.05;
         let aspect_diff_percent = ((sensor_aspect - pixel_aspect).abs() / sensor_aspect) * 100.0;
-        
+
         if (sensor_aspect - pixel_aspect).abs() / sensor_aspect > aspect_tolerance {
             warnings.push(ValidationWarning {
                 message: format!(
@@ -334,26 +376,38 @@ impl FovResult {
         // Check FOV angles (should be between 0 and 180 degrees)
         if self.horizontal_fov_deg > 180.0 {
             warnings.push(ValidationWarning {
-                message: format!("Horizontal FOV ({:.1}°) exceeds 180° - physically impossible", self.horizontal_fov_deg),
+                message: format!(
+                    "Horizontal FOV ({:.1}°) exceeds 180° - physically impossible",
+                    self.horizontal_fov_deg
+                ),
                 severity: ValidationSeverity::Error,
             });
         }
         if self.horizontal_fov_deg < 0.1 {
             warnings.push(ValidationWarning {
-                message: format!("Horizontal FOV ({:.2}°) is extremely narrow - may be unrealistic", self.horizontal_fov_deg),
+                message: format!(
+                    "Horizontal FOV ({:.2}°) is extremely narrow - may be unrealistic",
+                    self.horizontal_fov_deg
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
 
         if self.vertical_fov_deg > 180.0 {
             warnings.push(ValidationWarning {
-                message: format!("Vertical FOV ({:.1}°) exceeds 180° - physically impossible", self.vertical_fov_deg),
+                message: format!(
+                    "Vertical FOV ({:.1}°) exceeds 180° - physically impossible",
+                    self.vertical_fov_deg
+                ),
                 severity: ValidationSeverity::Error,
             });
         }
         if self.vertical_fov_deg < 0.1 {
             warnings.push(ValidationWarning {
-                message: format!("Vertical FOV ({:.2}°) is extremely narrow - may be unrealistic", self.vertical_fov_deg),
+                message: format!(
+                    "Vertical FOV ({:.2}°) is extremely narrow - may be unrealistic",
+                    self.vertical_fov_deg
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
@@ -361,13 +415,19 @@ impl FovResult {
         // Check for unrealistic PPM values
         if self.horizontal_ppm > 100000.0 || self.vertical_ppm > 100000.0 {
             warnings.push(ValidationWarning {
-                message: format!("Pixels per meter ({:.1} × {:.1} px/m) is unrealistically high", self.horizontal_ppm, self.vertical_ppm),
+                message: format!(
+                    "Pixels per meter ({:.1} × {:.1} px/m) is unrealistically high",
+                    self.horizontal_ppm, self.vertical_ppm
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
         if self.horizontal_ppm < 0.001 || self.vertical_ppm < 0.001 {
             warnings.push(ValidationWarning {
-                message: format!("Pixels per meter ({:.6} × {:.6} px/m) is unrealistically low", self.horizontal_ppm, self.vertical_ppm),
+                message: format!(
+                    "Pixels per meter ({:.6} × {:.6} px/m) is unrealistically low",
+                    self.horizontal_ppm, self.vertical_ppm
+                ),
                 severity: ValidationSeverity::Warning,
             });
         }
@@ -377,7 +437,10 @@ impl FovResult {
             // Detection distance should be reasonable (0.1m - 10,000m)
             if dori.detection_m < 0.1 || dori.detection_m > 10000.0 {
                 warnings.push(ValidationWarning {
-                    message: format!("Detection distance ({:.0} m) seems unrealistic", dori.detection_m),
+                    message: format!(
+                        "Detection distance ({:.0} m) seems unrealistic",
+                        dori.detection_m
+                    ),
                     severity: ValidationSeverity::Warning,
                 });
             }
@@ -385,19 +448,22 @@ impl FovResult {
             // DORI distances should be in descending order (D > O > R > I)
             if dori.detection_m < dori.observation_m {
                 warnings.push(ValidationWarning {
-                    message: "Detection distance should be greater than Observation distance".to_string(),
+                    message: "Detection distance should be greater than Observation distance"
+                        .to_string(),
                     severity: ValidationSeverity::Error,
                 });
             }
             if dori.observation_m < dori.recognition_m {
                 warnings.push(ValidationWarning {
-                    message: "Observation distance should be greater than Recognition distance".to_string(),
+                    message: "Observation distance should be greater than Recognition distance"
+                        .to_string(),
                     severity: ValidationSeverity::Error,
                 });
             }
             if dori.recognition_m < dori.identification_m {
                 warnings.push(ValidationWarning {
-                    message: "Recognition distance should be greater than Identification distance".to_string(),
+                    message: "Recognition distance should be greater than Identification distance"
+                        .to_string(),
                     severity: ValidationSeverity::Error,
                 });
             }

@@ -16,8 +16,12 @@ pub fn validate_camera_system(camera: CameraSystem, result: FovResult) -> Vec<Va
 
 /// Tauri command to calculate FOV for multiple camera systems
 #[tauri::command]
-pub fn compare_camera_systems(cameras: Vec<CameraSystem>, distance_mm: f64) -> Vec<CameraWithResult> {
-    cameras.into_iter()
+pub fn compare_camera_systems(
+    cameras: Vec<CameraSystem>,
+    distance_mm: f64,
+) -> Vec<CameraWithResult> {
+    cameras
+        .into_iter()
         .map(|camera| {
             let result = calculate_fov(&camera, distance_mm);
             CameraWithResult { camera, result }
@@ -40,7 +44,7 @@ pub fn calculate_depth_of_field(
     coc_mm: f64,
 ) -> serde_json::Value {
     let (near, far, total) = calculate_dof(object_distance_mm, focal_length_mm, f_number, coc_mm);
-    
+
     serde_json::json!({
         "near_mm": near,
         "far_mm": far,
