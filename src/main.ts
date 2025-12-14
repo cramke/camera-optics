@@ -40,14 +40,14 @@ function switchTab(tabName: string) {
 // Update UI to show edit mode
 function setEditMode(index: number | null): void {
   editingIndex = index;
-  const addBtn = document.getElementById("add-system-btn") as HTMLButtonElement;
+  const saveBtn = document.getElementById("save-changes-btn") as HTMLButtonElement;
   
   if (index !== null) {
-    addBtn.textContent = "Save Changes";
-    addBtn.classList.add("edit-mode");
+    // Show save button when in edit mode
+    saveBtn.style.display = "block";
   } else {
-    addBtn.textContent = "Add to Comparison";
-    addBtn.classList.remove("edit-mode");
+    // Hide save button when not in edit mode
+    saveBtn.style.display = "none";
   }
 }
 
@@ -109,7 +109,7 @@ function displayCalculationError(): void {
   `;
 }
 
-// Add current system to comparison list or save changes if editing
+// Add current system to comparison list (always creates new)
 async function addToComparison() {
   const camera = getCameraFromForm();
   const distance = getDistance();
@@ -117,27 +117,19 @@ async function addToComparison() {
   try {
     const result = await calculateCameraFov(camera, distance);
 
-    if (editingIndex !== null) {
-      // Update existing system
-      store.updateCameraSystem(editingIndex, { camera, result });
-      selectedSystemIndex = editingIndex;
-      
-      // Exit edit mode
-      setEditMode(null);
-      
-      showToast("Changes saved", "success", 2000);
-    } else {
-      // Add new system - if no name provided, assign default name
-      if (!camera.name) {
-        camera.name = `System ${store.getCameraSystems().length + 1}`;
-      }
-      store.addCameraSystem({ camera, result });
-      
-      // Set the newly added system as selected
-      selectedSystemIndex = store.getCameraSystems().length - 1;
-      
-      showToast("System added to comparison", "success", 2000);
+    // Add new system - if no name provided, assign default name
+    if (!camera.name) {
+      camera.name = `System ${store.getCameraSystems().length + 1}`;
     }
+    store.addCameraSystem({ camera, result });
+    
+    // Set the newly added system as selected
+    selectedSystemIndex = store.getCameraSystems().length - 1;
+    
+    // Exit edit mode since we created a new system
+    setEditMode(null);
+    
+    showToast("System added to comparison", "success", 2000);
     
     updateSystemsList();
     currentDisplayedSystems = store.getCameraSystems();
@@ -146,7 +138,40 @@ async function addToComparison() {
     // Display the system in results tab
     displaySingleResult(camera, result, selectedSystemIndex);
   } catch (error) {
-    console.error("Error saving system:", error);
+    console.error("Error adding system:", error);
+    showToast(`Error: ${error}`, "error", 3000);
+  }
+}
+
+// Save changes to the currently editing system
+async function saveChanges() {
+  if (editingIndex === null) {
+    showToast("No system selected for editing", "warning", 2000);
+    return;
+  }
+
+  const camera = getCameraFromForm();
+  const distance = getDistance();
+
+  try {
+    const result = await calculateCameraFov(camera, distance);
+
+    // Update existing system
+    store.updateCameraSystem(editingIndex, { camera, result });
+    selectedSystemIndex = editingIndex;
+    
+    showToast("Changes saved", "success", 2000);
+    
+    updateSystemsList();
+    currentDisplayedSystems = store.getCameraSystems();
+    drawVisualization(currentDisplayedSystems);
+    
+    // Display the system in results tab
+    displaySingleResult(camera, result, selectedSystemIndex);
+    
+    // Stay in edit mode after saving
+  } catch (error) {
+    console.error("Error saving changes:", error);
     showToast(`Error: ${error}`, "error", 3000);
   }
 }
@@ -212,15 +237,15 @@ export function updateSystemsList() {
       // Update selected index
       selectedSystemIndex = index;
       
-      // Exit edit mode when viewing a different system
-      setEditMode(null);
+      // Enter edit mode when selecting a system
+      setEditMode(index);
       
       // Update the visual selection by toggling the class
       document.querySelectorAll(".system-item").forEach((sysItem, i) => {
         sysItem.classList.toggle("selected", i === index);
       });
       
-      // Load the system values into the form (for viewing)
+      // Load the system values into the form for editing
       loadSystemToView(index);
       
       // Update calculated FOV values
@@ -246,7 +271,7 @@ export function updateSystemsList() {
       // Check if this system is currently being edited
       if (editingIndex === index) {
         // Save changes
-        await addToComparison();
+        await saveChanges();
       } else {
         // Enter edit mode
         // Load system values into form for editing
@@ -393,6 +418,7 @@ function updateCalculatedFocalLength(focalLength: number) {
 window.addEventListener("DOMContentLoaded", () => {
   // Button listeners
   document.getElementById("add-system-btn")?.addEventListener("click", addToComparison);
+  document.getElementById("save-changes-btn")?.addEventListener("click", saveChanges);
   
   // Add new system button (+ button in comparison list)
   document.getElementById("add-new-system-btn")?.addEventListener("click", async () => {
@@ -440,6 +466,29 @@ window.addEventListener("DOMContentLoaded", () => {
       console.error("Error adding system:", error);
       showToast(`Error: ${error}`, "error", 3000);
     }
+  });
+
+  // Clear form button
+  document.getElementById("clear-form-btn")?.addEventListener("click", () => {
+    // Reset all form fields to default values
+    (document.getElementById("name") as HTMLInputElement).value = "";
+    (document.getElementById("sensor-width") as HTMLInputElement).value = "36";
+    (document.getElementById("sensor-height") as HTMLInputElement).value = "27";
+    (document.getElementById("pixel-width") as HTMLInputElement).value = "2000";
+    (document.getElementById("pixel-height") as HTMLInputElement).value = "1500";
+    (document.getElementById("focal-length") as HTMLInputElement).value = "50";
+    (document.getElementById("distance") as HTMLInputElement).value = "25";
+    (document.getElementById("hfov-deg") as HTMLInputElement).value = "";
+    (document.getElementById("vfov-deg") as HTMLInputElement).value = "";
+    
+    // Exit edit mode
+    setEditMode(null);
+    selectedSystemIndex = null;
+    
+    // Recalculate with default values
+    calculateFov();
+    
+    showToast("Form cleared", "info", 2000);
   });
 
   // Input method selection
