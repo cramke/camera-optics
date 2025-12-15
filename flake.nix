@@ -17,12 +17,14 @@
             pkgs.pnpm
             pkgs.rustup            # install Rust toolchains as declared in rust-toolchain.toml if you have one
             pkgs.cargo
+            pkgs.pre-commit
             pkgs.pkg-config
             pkgs.openssl           # common native deps
             pkgs.protobuf          # if tauri build needs it
           ];
           shellHook = ''
             pnpm install --frozen-lockfile
+            pre-commit install
             export PS1="[nix] $PS1"
           '';
         };
