@@ -43,7 +43,7 @@ jobs:
       - name: Check frontend formatting (Prettier)
         run: |
           npx prettier --check "**/*.{css,html,js,ts,json}" \
-            --ignore-path .gitignore \
+            --ignore-path .prettierignore \
             --ignore-unknown
 
   lint-and-build:
@@ -263,4 +263,3 @@ jobs:
           verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-
