@@ -188,7 +188,7 @@ jobs:
         run: pnpm install
 
       - name: Run Vitest tests
-        run: pnpm test
+        run: pnpm vitest run --coverage
 
       - name: Generate frontend coverage
         run: pnpm test:coverage
@@ -237,6 +237,8 @@ jobs:
             p/rust
             p/typescript
             p/javascript
+            p/xss
+            p/security-audit
 
   coverage-report:
     name: Coverage Report
@@ -261,5 +263,4 @@ jobs:
           verbose: true
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
-            p/xss
-            p/security-audit
+
