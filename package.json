@@ -13,7 +13,8 @@
     "tauri:build": "tauri build",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "test:coverage": "vitest --coverage"
+    "test:coverage": "vitest --coverage",
+    "build:docs-ts": "tsc -p docs/tsconfig.json"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",

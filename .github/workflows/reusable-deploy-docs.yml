@@ -1,0 +1,42 @@
+name: Reusable Deploy Docs
+
+# This workflow is triggered by other workflows
+on:
+  workflow_call:
+    inputs:
+      # The path to deploy to, e.g., "latest" or "v1.2.3"
+      deploy-path:
+        required: true
+        type: string
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          # We need to fetch all history for some doc generators
+          fetch-depth: 0
+
+      - name: Setup Node.js # Or your language of choice
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build documentation
+        run: npm run docs:build # Your build command
+
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docs-dist # Your built docs directory
+          # Deploy to a subdirectory like /latest/ or /v1.2.3/
+          destination_dir: ${{ inputs.deploy-path }}
+          # Keep other versions by not cleaning the destination directory
+          keep_files: true
