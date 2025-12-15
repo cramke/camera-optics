@@ -14,7 +14,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
-    "build:docs-ts": "tsc -p docs/tsconfig.json"
+    "build:docs-ts": "tsc docs/version-switcher.ts --target ES2015 --module ESNext --lib ES2015,DOM --outDir docs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
