@@ -24,33 +24,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Rust
-        uses: dtolnay/rust-toolchain@stable
-
-      - name: Install system dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y \
-            libwebkit2gtk-4.1-dev \
-            libappindicator3-dev \
-            librsvg2-dev \
-            patchelf
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Install Nix
+        uses: cachix/install-nix-action@v27
         with:
-          node-version: '20'
-
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 9
-
-      - name: Install dependencies
-        run: pnpm install
+          nix_path: nixpkgs=channel:nixos-24.05
+          extra_nix_config: |
+            access-tokens = github.com=${{ secrets.GITHUB_TOKEN }}
+            experimental-features = nix-command flakes
 
       - name: Build Tauri app
-        run: pnpm tauri:build
+        run: nix develop .# --command bash -c 'pnpm install && pnpm tauri:build'
 
       - name: Upload deb package
         uses: actions/upload-artifact@v4
@@ -105,13 +88,13 @@ jobs:
         run: |
           latest_tag="${{ steps.get_latest_tag.outputs.latest_tag }}"
           bump_type="${{ inputs.bump }}"
-          
+
           # Remove 'v' prefix if present
           version=${latest_tag#v}
-          
+
           # Split version into major.minor.patch
           IFS='.' read -r major minor patch <<< "$version"
-          
+
           # Increment based on bump type
           case $bump_type in
             major)
@@ -127,7 +110,7 @@ jobs:
               patch=$((patch + 1))
               ;;
           esac
-          
+
           new_version="v${major}.${minor}.${patch}"
           echo "new_version=$new_version" >> $GITHUB_OUTPUT
           echo "New version: $new_version"
@@ -137,22 +120,22 @@ jobs:
         run: |
           latest_tag="${{ steps.get_latest_tag.outputs.latest_tag }}"
           new_version="${{ steps.next_version.outputs.new_version }}"
-          
+
           # Get commit range
           if [ "$latest_tag" = "v0.0.0" ]; then
             commit_range="HEAD"
           else
             commit_range="${latest_tag}..HEAD"
           fi
-          
+
           # Initialize changelog
           cat > CHANGELOG.md << EOF
           # Changelog
-          
+
           ## ${new_version} ($(date +%Y-%m-%d))
-          
+
           EOF
-          
+
           # Parse commits by type
           declare -A sections
           sections[feat]="### Features"
@@ -165,7 +148,7 @@ jobs:
           sections[build]="### Build System"
           sections[ci]="### CI/CD"
           sections[chore]="### Chores"
-          
+
           # Collect commits by type
           for type in feat fix docs style refactor perf test build ci chore; do
             commits=$(git log $commit_range --pretty=format:"%s" --grep="^${type}:" --grep="^${type}(.*):") || true
@@ -180,7 +163,7 @@ jobs:
               echo "" >> CHANGELOG.md
             fi
           done
-          
+
           # Add breaking changes section
           breaking=$(git log $commit_range --pretty=format:"%s%n%b" --grep="BREAKING CHANGE") || true
           if [ -n "$breaking" ]; then
@@ -189,18 +172,18 @@ jobs:
             echo "$breaking" | grep -A 10 "BREAKING CHANGE" | sed 's/BREAKING CHANGE: /- /' >> CHANGELOG.md
             echo "" >> CHANGELOG.md
           fi
-          
+
           # Add all contributors
           echo "### Contributors" >> CHANGELOG.md
           echo "" >> CHANGELOG.md
           git log $commit_range --format='%aN' | sort -u | sed 's/^/- /' >> CHANGELOG.md
           echo "" >> CHANGELOG.md
-          
+
           # Add comparison link
           if [ "$latest_tag" != "v0.0.0" ]; then
             echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${latest_tag}...${new_version}" >> CHANGELOG.md
           fi
-          
+
           cat CHANGELOG.md
 
       - name: Download Linux artifacts

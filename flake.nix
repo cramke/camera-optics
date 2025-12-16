@@ -10,14 +10,14 @@
     flake-utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs { inherit system; };
-      in {
-        devShells.default = pkgs.mkShell {
+        shell = pkgs.mkShell {
           buildInputs = [
             pkgs.nodejs_20
             pkgs.pnpm
             pkgs.rustup            # install Rust toolchains as declared in rust-toolchain.toml if you have one
             pkgs.cargo
             pkgs.pre-commit
+            pkgs.mdbook            # For building the documentation
             pkgs.pkg-config
             pkgs.openssl           # common native deps
             pkgs.protobuf          # if tauri build needs it
@@ -28,5 +28,8 @@
             export PS1="[nix] $PS1"
           '';
         };
+      in {
+        devShells.default = shell;
+        packages.default = shell;
       });
 }
