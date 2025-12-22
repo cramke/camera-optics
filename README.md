@@ -78,21 +78,21 @@ cargo run --bin camera-optics-cli -- dof -d 3000 -f 50 -a 2.8
 
 ```
 tauri-app/
-├── src/                    # Frontend (TypeScript/HTML/CSS)
-│   ├── main.ts            # GUI logic and Tauri command calls
-│   ├── styles.css         # Application styling
-│   └── assets/            # Static assets
-├── src-tauri/             # Rust backend
+├── src/                        # Frontend (TypeScript/HTML/CSS)
+│   ├── main.ts                 # GUI logic and Tauri command calls
+│   ├── styles.css              # Application styling
+│   └── assets/                 # Static assets
+├── src-tauri/                  # Rust backend
 │   ├── src/
-│   │   ├── lib.rs         # Tauri GUI library
-│   │   ├── main.rs        # GUI binary entry point
-│   │   ├── cli.rs         # CLI binary entry point
-│   │   └── optics/        # Shared optical calculation library
-│   │       ├── types.rs       # Data structures (CameraSystem, FovResult)
-│   │       ├── calculations.rs # Optical formulas (FOV, DOF, hyperfocal)
-│   │       └── commands.rs     # Tauri command wrappers
-│   └── Cargo.toml         # Rust dependencies
-└── OPTICS_GUIDE.md        # Detailed usage guide and formulas
+│   │   ├── lib.rs              # Tauri GUI library
+│   │   ├── main.rs             # GUI binary entry point
+│   │   ├── cli_commands.rs     # CLI binary entry point
+│   │   ├── gui_commands.rs     # GUI command entry point
+│   │   └── optics/             # Shared optical calculation library
+│   │       ├── types.rs        # Data structures (CameraSystem, FovResult)
+│   │       └── calculations.rs # Optical formulas (FOV, DOF, hyperfocal)
+│   └── Cargo.toml              # Rust dependencies
+└── OPTICS_GUIDE.md             # Detailed usage guide and formulas
 ```
 
 ## Architecture

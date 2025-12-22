@@ -1,5 +1,5 @@
-use super::calculations::*;
-use super::types::*;
+use crate::optics::calculations::*;
+use crate::optics::types::*;
 
 /// Tauri command to calculate FOV for a single camera system
 #[tauri::command]

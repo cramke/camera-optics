@@ -1,7 +1,8 @@
 // Optical calculation modules
+mod gui_commands;
 pub mod optics;
 
-use optics::commands::*;
+use crate::gui_commands::*;
 
 // Learn more about Tauri commands at https://tauri.app/develop/calling-rust/
 #[tauri::command]

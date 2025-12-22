@@ -32,5 +32,4 @@ path = "src/main.rs"
 
 [[bin]]
 name = "camera-optics-cli"
-path = "src/cli.rs"
-
+path = "src/cli_commands.rs"

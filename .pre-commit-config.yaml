@@ -19,4 +19,5 @@ repos:
     rev: v1.0
     hooks:
       - id: fmt
-        args: [--all] # Ensure all files in the crate are formatted
+        args: [--all, --manifest-path, src-tauri/Cargo.toml]
+        pass_filenames: false
