@@ -220,21 +220,25 @@
           </div>
 
           <div id="visualization-tab" class="tab-content">
-            <div class="canvas-container">
-              <canvas
-                id="fov-canvas"
-                width="600"
-                height="600"
-                role="img"
-                aria-label="Field of view visualization showing camera system coverage areas"
-              ></canvas>
-              <div id="canvas-legend" class="legend"></div>
-            </div>
-            <div class="reference-objects">
-              <label for="ref-object-select">Reference Object:</label>
-              <select id="ref-object-select">
-                <!-- Options populated dynamically from TypeScript -->
-              </select>
+            <div class="visualization-layout">
+              <div class="canvas-container">
+                <canvas
+                  id="fov-canvas"
+                  width="600"
+                  height="600"
+                  role="img"
+                  aria-label="Field of view visualization showing camera system coverage areas"
+                ></canvas>
+              </div>
+              <div class="sidebar">
+                <div id="canvas-legend" class="legend"></div>
+                <div class="reference-objects">
+                  <label for="ref-object-select">Reference Object:</label>
+                  <select id="ref-object-select">
+                    <!-- Options populated dynamically from TypeScript -->
+                  </select>
+                </div>
+              </div>
             </div>
           </div>
 

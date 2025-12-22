@@ -731,6 +731,23 @@ button {
   display: block;
 }
 
+.visualization-layout {
+  display: flex;
+  align-items: flex-start; /* Align items at the top */
+  gap: 1rem; /* Add spacing between the canvas and the sidebar */
+}
+
+.sidebar {
+  flex: 1; /* Take up less space for the sidebar */
+  display: flex;
+  flex-direction: column; /* Stack the legend and reference objects vertically */
+  gap: 1rem; /* Add spacing between the legend and the reference objects */
+}
+
+.legend {
+  margin-bottom: 0.5rem; /* Optional: Add spacing below the legend */
+}
+
 /* Reference Objects */
 .reference-objects {
   margin-top: 1rem;
