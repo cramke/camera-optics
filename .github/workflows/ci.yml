@@ -241,19 +241,21 @@ jobs:
             p/security-audit
 
   coverage-report:
-    name: Coverage Report
+    name: Coverage Report and Deploy Badges
     permissions:
       contents: write
-      pull-requests: write
+      pages: write
+      id-token: write
     runs-on: ubuntu-latest
     needs: test
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          persist-credentials: true
 
-      - name: Download coverage artifacts into workspace root
+      - name: Download coverage artifacts
         uses: actions/download-artifact@v4
         with:
           name: coverage-reports
@@ -262,7 +264,7 @@ jobs:
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Generate coverage badges and update README (robust path checks)
+      - name: Generate coverage badges
         run: |
           set -euxo pipefail
 
@@ -277,7 +279,6 @@ jobs:
           # Candidate paths for Rust lcov
           RUST_PATHS=(
             "coverage-rust.info"
-            "coverage-reports/coverage-rust.info"
             "coverage-reports/coverage-rust.info"
             "coverage/coverage-rust.info"
           )
@@ -342,38 +343,18 @@ jobs:
           echo "Frontend coverage: ${F_PCT_ROUND:-0}% (color: $F_COLOR)"
           echo "Rust coverage: ${R_PCT:-0}% (color: $R_COLOR)"
 
+          # Create badges directory for mdBook
+          mkdir -p badges
+
           # Download badges from shields.io
-          curl -s -o coverage-frontend-badge.svg "https://img.shields.io/badge/coverage_frontend-${F_PCT_ROUND}%25-${F_COLOR}.svg"
-          curl -s -o coverage-rust-badge.svg "https://img.shields.io/badge/coverage_rust-${R_PCT}%25-${R_COLOR}.svg"
+          curl -s -o badges/coverage-frontend.svg "https://img.shields.io/badge/coverage_frontend-${F_PCT_ROUND}%25-${F_COLOR}.svg"
+          curl -s -o badges/coverage-rust.svg "https://img.shields.io/badge/coverage_rust-${R_PCT}%25-${R_COLOR}.svg"
 
-          # Insert badges into README.md if not present (after the docs badge)
-          if ! grep -q 'coverage_frontend' README.md; then
-            awk -v badges="[![Coverage Frontend](./coverage-frontend-badge.svg)](./coverage-frontend-badge.svg) [![Coverage Rust](./coverage-rust-badge.svg)](./coverage-rust-badge.svg)" \
-              '/img.shields.io.*docs-mdBook/ && !inserted { print; print badges; inserted=1; next } { print }' README.md > README.tmp && mv README.tmp README.md
-          else
-            echo "README already contains coverage badges - will update committed badge files only."
-          fi
-
-          # Commit changes if anything changed
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-
-          git add coverage-frontend-badge.svg coverage-rust-badge.svg README.md || true
-          if ! git diff --cached --quiet; then
-            git commit --no-verify -m "chore(ci): update coverage badges"
-          else
-            echo "No changes to commit"
-          fi
-
-      - name: Create Pull Request
-        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725 # v8.0.0 from Dec 2025
+      - name: Upload badges as artifact
+        uses: actions/upload-pages-artifact@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          commit-message: 'chore(ci): update coverage badges'
-          committer: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
-          author: 'github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>'
-          title: 'chore(ci): update coverage badges'
-          body: 'Automated update of coverage badges (frontend + rust).'
-          labels: coverage, automation
-          base: main
-          branch: update-coverage-badges
+          path: ./badges
+
+      - name: Deploy badges to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

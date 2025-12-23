@@ -1,8 +1,6 @@
 # Camera Optics Calculator
 
-[![Documentation](https://img.shields.io/badge/docs-mdBook-blue)](https://cramke.github.io/camera-optics/) [![Coverage Frontend](./coverage-frontend-badge.svg)](./coverage-frontend-badge.svg) [![Coverage Rust](./coverage-rust-badge.svg)](./coverage-rust-badge.svg)
-[![Coverage Frontend](./coverage-frontend-badge.svg)](./coverage-frontend-badge.svg) [![Coverage Rust](./coverage-rust-badge.svg)](./coverage-rust-badge.svg)
-[![Coverage Frontend](./coverage-frontend-badge.svg)](./coverage-frontend-badge.svg) [![Coverage Rust](./coverage-rust-badge.svg)](./coverage-rust-badge.svg)
+[![Documentation](https://img.shields.io/badge/docs-mdBook-blue)](https://cramke.github.io/camera-optics/) [![Coverage Frontend](https://cramke.github.io/camera-optics/coverage-frontend.svg)](https://cramke.github.io/camera-optics/) [![Coverage Rust](https://cramke.github.io/camera-optics/coverage-rust.svg)](https://cramke.github.io/camera-optics/)
 
 A dual-interface application for calculating and visualizing camera system performance (lens + sensor). Calculate field of view (FOV), spatial resolution (pixels per mm), and depth of field for various camera configurations.
 
