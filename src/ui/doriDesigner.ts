@@ -155,11 +155,11 @@ export function initializeDoriDesigner(): void {
     const modeButtons = group.querySelectorAll('.mode-btn');
     const fixedWrapper = group.querySelector('.mode-fixed') as HTMLElement;
     const rangeWrapper = group.querySelector('.mode-range') as HTMLElement;
-    const param = group.getAttribute('data-param');
+    const param = group.dataset.param;
 
     modeButtons.forEach((btn) => {
       btn.addEventListener('click', () => {
-        const mode = btn.getAttribute('data-mode');
+        const mode = btn.dataset.mode;
 
         // Update active state
         modeButtons.forEach((b) => b.classList.remove('active'));
@@ -228,7 +228,7 @@ function resetDoriDesigner(): void {
 
   // Reset all parameter groups
   document.querySelectorAll('.param-group').forEach((group) => {
-    const param = group.getAttribute('data-param');
+    const param = group.dataset.param;
     const modeButtons = group.querySelectorAll('.mode-btn');
     const fixedWrapper = group.querySelector('.mode-fixed') as HTMLElement;
     const rangeWrapper = group.querySelector('.mode-range') as HTMLElement;
@@ -473,7 +473,7 @@ function displayParameterRanges(ranges: DoriParameterRanges): void {
     // Determine current mode
     const paramGroup = document.querySelector(`[data-param="${mapping.param}"]`);
     const activeBtn = paramGroup?.querySelector('.mode-btn.active');
-    const currentMode = activeBtn?.getAttribute('data-mode') || 'float';
+    const currentMode = activeBtn?.dataset.mode || 'float';
 
     // Get input values
     const fixedInput = document.getElementById(`fixed-${mapping.param}`) as HTMLInputElement;
