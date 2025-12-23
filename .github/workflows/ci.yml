@@ -252,38 +252,74 @@ jobs:
         with:
           persist-credentials: true
 
-      - name: Download coverage artifacts
+      - name: Download coverage artifacts into workspace root
         uses: actions/download-artifact@v4
         with:
           name: coverage-reports
+          path: .
 
       - name: Install jq
         run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Generate coverage badges and update README
+      - name: Generate coverage badges and update README (robust path checks)
         run: |
           set -euo pipefail
 
-          # --- Frontend coverage (Vitest) ---
-          if [ -f coverage/coverage-summary.json ]; then
-            F_PCT=$(jq -r '.total.lines.pct' coverage/coverage-summary.json)
+          # Candidate paths for frontend coverage summary (Vitest)
+          FRONTEND_PATHS=(
+            "coverage/coverage-summary.json"
+            "coverage-reports/coverage/coverage-summary.json"
+            "coverage-reports/coverage-summary.json"
+            "coverage-summary.json"
+          )
+
+          # Candidate paths for Rust lcov
+          RUST_PATHS=(
+            "coverage-rust.info"
+            "coverage-reports/coverage-rust.info"
+            "coverage-reports/coverage-rust.info"
+            "coverage/coverage-rust.info"
+          )
+
+          # Find first existing frontend summary
+          F_SUM=""
+          for p in "${FRONTEND_PATHS[@]}"; do
+            if [ -f "$p" ]; then
+              F_SUM="$p"
+              break
+            fi
+          done
+
+          if [ -n "$F_SUM" ]; then
+            echo "Using frontend coverage summary: $F_SUM"
+            F_PCT=$(jq -r '.total.lines.pct' "$F_SUM")
             F_PCT_ROUND=$(printf "%.0f" "$F_PCT")
           else
-            echo "coverage/coverage-summary.json not found"
+            echo "No frontend coverage-summary.json found in candidate paths."
             F_PCT_ROUND=0
           fi
 
-          # --- Rust coverage (lcov from cargo llvm-cov) ---
-          if [ -f coverage-rust.info ]; then
-            # Sum LF and LH values across coverage-rust.info
-            read LF_TOTAL LH_TOTAL < <(awk -F":" '/^LF:/{lf+= $2} /^LH:/{lh+= $2} END{printf "%d %d", lf, lh}' coverage-rust.info)
+          # Find first existing rust lcov
+          R_LCOV=""
+          for p in "${RUST_PATHS[@]}"; do
+            if [ -f "$p" ]; then
+              R_LCOV="$p"
+              break
+            fi
+          done
+
+          if [ -n "$R_LCOV" ]; then
+            echo "Using rust lcov file: $R_LCOV"
+            # Sum LF and LH values across found lcov file
+            read LF_TOTAL LH_TOTAL < <(awk -F":" '/^LF:/{lf+= $2} /^LH:/{lh+= $2} END{printf "%d %d", lf, lh}' "$R_LCOV")
             if [ "$LF_TOTAL" -gt 0 ]; then
               R_PCT=$(awk -v lh="$LH_TOTAL" -v lf="$LF_TOTAL" 'BEGIN{printf "%.0f", (lh/lf)*100}')
             else
+              echo "No LF records found in $R_LCOV; setting R_PCT=0"
               R_PCT=0
             fi
           else
-            echo "coverage-rust.info not found"
+            echo "No rust lcov file found in candidate paths."
             R_PCT=0
           fi
 
@@ -297,8 +333,11 @@ jobs:
             fi
           }
 
-          F_COLOR=$(color_for "$F_PCT_ROUND")
-          R_COLOR=$(color_for "$R_PCT")
+          F_COLOR=$(color_for "${F_PCT_ROUND:-0}")
+          R_COLOR=$(color_for "${R_PCT:-0}")
+
+          echo "Frontend coverage: ${F_PCT_ROUND:-0}% (color: $F_COLOR)"
+          echo "Rust coverage: ${R_PCT:-0}% (color: $R_COLOR)"
 
           # Download badges from shields.io
           curl -s -o coverage-frontend-badge.svg "https://img.shields.io/badge/coverage_frontend-${F_PCT_ROUND}%25-${F_COLOR}.svg"
@@ -306,16 +345,18 @@ jobs:
 
           # Insert badges into README.md if not present (after the docs badge)
           if ! grep -q 'coverage_frontend' README.md; then
-            awk -v badges="[![Coverage Frontend](./coverage-frontend-badge.svg)](./coverage-frontend-badge.svg) [![Coverage Rust](./coverage-rust-badge.svg)](./coverage-rust-badge.svg)" '
-              /img.shields.io.*docs-mdBook/ && !inserted { print; print badges; inserted=1; next } { print }' README.md > README.tmp && mv README.tmp README.md
+            awk -v badges="[![Coverage Frontend](./coverage-frontend-badge.svg)](./coverage-frontend-badge.svg) [![Coverage Rust](./coverage-rust-badge.svg)](./coverage-rust-badge.svg)" \
+              '/img.shields.io.*docs-mdBook/ && !inserted { print; print badges; inserted=1; next } { print }' README.md > README.tmp && mv README.tmp README.md
+          else
+            echo "README already contains coverage badges - will update committed badge files only."
           fi
 
-          # Commit changes
+          # Commit changes if anything changed
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
           git add coverage-frontend-badge.svg coverage-rust-badge.svg README.md || true
-          if git diff --staged --quiet; then
+          if git diff --cached --quiet; then
             echo "No changes to commit"
             exit 0
           else
@@ -323,7 +364,7 @@ jobs:
           fi
 
       - name: Create Pull Request
-        uses: peter-evans/create-pull-request@98357b18bf14b5342f975ff684046ec3b2a07725 # v8.0.0 from Dec 2025
+        uses: peter-evans/create-pull-request@v4
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           commit-message: 'chore(ci): update coverage badges'
