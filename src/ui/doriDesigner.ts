@@ -299,6 +299,11 @@ function getDoriTargets(): DoriTargets {
 function getConstraints(): ParameterConstraint {
   const constraints: ParameterConstraint = {};
 
+  // Helper to parse input value as number
+  const parseValue = (value: string, isInteger: boolean): number => {
+    return isInteger ? parseInt(value) : parseFloat(value);
+  };
+
   // Helper to get constraint value (fixed or range)
   const getConstraintValue = (fixedId: string, minId: string, maxId: string, isInteger = false) => {
     const fixedEl = document.getElementById(fixedId) as HTMLInputElement;
@@ -307,29 +312,30 @@ function getConstraints(): ParameterConstraint {
 
     // Fixed value takes priority
     if (fixedEl?.value) {
-      return isInteger ? parseInt(fixedEl.value) : parseFloat(fixedEl.value);
+      return parseValue(fixedEl.value, isInteger);
     }
 
     // Check for range constraints
     const hasMin = minEl?.value && minEl.value.trim() !== '';
     const hasMax = maxEl?.value && maxEl.value.trim() !== '';
 
-    if (hasMin && hasMax) {
-      const min = isInteger ? parseInt(minEl.value) : parseFloat(minEl.value);
-      const max = isInteger ? parseInt(maxEl.value) : parseFloat(maxEl.value);
-      // If min equals max, treat as fixed value
-      if (min === max) return min;
-      // For now, use midpoint as fixed value (backend doesn't support ranges yet)
-      return (min + max) / 2;
-    } else if (hasMin) {
-      // Only min specified - use as lower bound (for now treat as fixed)
-      return isInteger ? parseInt(minEl.value) : parseFloat(minEl.value);
-    } else if (hasMax) {
-      // Only max specified - use as upper bound (for now treat as fixed)
-      return isInteger ? parseInt(maxEl.value) : parseFloat(maxEl.value);
+    // No constraints specified
+    if (!hasMin && !hasMax) return null;
+
+    // Only min specified - use as lower bound (for now treat as fixed)
+    if (hasMin && !hasMax) {
+      return parseValue(minEl.value, isInteger);
     }
 
-    return null;
+    // Only max specified - use as upper bound (for now treat as fixed)
+    if (!hasMin && hasMax) {
+      return parseValue(maxEl.value, isInteger);
+    }
+
+    // Both min and max specified - use midpoint (backend doesn't support ranges yet)
+    const min = parseValue(minEl.value, isInteger);
+    const max = parseValue(maxEl.value, isInteger);
+    return (min + max) / 2;
   };
 
   const sensorWidth = getConstraintValue(
