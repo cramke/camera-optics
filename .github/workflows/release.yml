@@ -2,16 +2,6 @@ name: Release
 
 on:
   workflow_dispatch:
-    inputs:
-      bump:
-        description: 'Version bump type'
-        required: true
-        type: choice
-        options:
-          - patch
-          - minor
-          - major
-        default: patch
 
 env:
   CARGO_TERM_COLOR: always
@@ -87,13 +77,33 @@ jobs:
         id: next_version
         run: |
           latest_tag="${{ steps.get_latest_tag.outputs.latest_tag }}"
-          bump_type="${{ inputs.bump }}"
 
           # Remove 'v' prefix if present
           version=${latest_tag#v}
 
           # Split version into major.minor.patch
           IFS='.' read -r major minor patch <<< "$version"
+
+          # Get commit range
+          if [ "$latest_tag" = "v0.0.0" ]; then
+            commit_range="HEAD"
+          else
+            commit_range="${latest_tag}..HEAD"
+          fi
+
+          # Determine bump type from conventional commits
+          # Check for BREAKING CHANGE or major commits (feat!)
+          if git log $commit_range --pretty=format:"%s%n%b" | grep -qE "^(feat|fix|chore|refactor|perf|style|test|build|ci|docs)(\(.+\))?!:|BREAKING CHANGE"; then
+            bump_type="major"
+          # Check for feat: commits (minor)
+          elif git log $commit_range --pretty=format:"%s" | grep -qE "^feat(\(.+\))?:"; then
+            bump_type="minor"
+          # Default to patch (fix, chore, etc.)
+          else
+            bump_type="patch"
+          fi
+
+          echo "Detected bump type: $bump_type"
 
           # Increment based on bump type
           case $bump_type in
@@ -195,7 +205,7 @@ jobs:
       - name: Download docs
         uses: actions/download-artifact@v4
         with:
-          name: camera-optics-docs-archive
+          name: camera-optics-docs
           path: ./
 
       - name: Create Release
