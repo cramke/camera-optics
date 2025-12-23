@@ -358,7 +358,7 @@ jobs:
 
           git add coverage-frontend-badge.svg coverage-rust-badge.svg README.md || true
           if ! git diff --cached --quiet; then
-            git commit -m "chore(ci): update coverage badges" || true
+            git commit --no-verify -m "chore(ci): update coverage badges"
           else
             echo "No changes to commit"
           fi
