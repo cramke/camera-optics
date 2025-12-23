@@ -244,6 +244,7 @@ jobs:
     name: Coverage Report
     permissions:
       contents: write
+      pull-requests: write
     runs-on: ubuntu-latest
     needs: test
     steps:
