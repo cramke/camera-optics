@@ -375,3 +375,5 @@ jobs:
           title: 'chore(ci): update coverage badges'
           body: 'Automated update of coverage badges (frontend + rust).'
           labels: coverage, automation
+          base: main
+          branch: update-coverage-badges
