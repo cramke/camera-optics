@@ -5,16 +5,12 @@ on:
     branches:
       - main
     paths:
-      - "docs/**"
-      - ".github/workflows/**"
+      - 'docs/**'
+      - '.github/workflows/**'
   workflow_dispatch:
 
-permissions:
-  pages: write
-  id-token: write
-
 concurrency:
-  group: "pages-latest"
+  group: 'pages-latest'
   cancel-in-progress: false
 
 jobs:
@@ -25,6 +21,9 @@ jobs:
   # Deploy job
   deploy:
     name: Deploy to GitHub Pages
+    permissions:
+      pages: write
+      id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
