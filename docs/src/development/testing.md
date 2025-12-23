@@ -39,6 +39,7 @@ Tests are located in `src/**/*.test.ts`:
 - `src/services/store.test.ts` - Store CRUD operations (22 tests)
 
 Example test:
+
 ```typescript
 import { describe, it, expect, beforeEach } from 'vitest';
 import { Store } from './store';
@@ -46,7 +47,9 @@ import { Store } from './store';
 describe('Store', () => {
   it('should add new system', () => {
     const store = new Store();
-    const system = { /* ... */ };
+    const system = {
+      /* ... */
+    };
     const id = store.add(system);
     expect(store.get(id)).toBeDefined();
   });
@@ -79,7 +82,7 @@ Tests run automatically in GitHub Actions:
 - **Lint**: `cargo clippy`, (TypeScript via `tsc`)
 - **Build**: `cargo build --release`, `pnpm build`
 - **Test**: `cargo test`, `pnpm test`
-- **Coverage**: Combined Rust + TypeScript via Codecov
+- **Coverage**: Combined Rust + TypeScript
 
 ## Writing Tests
 
@@ -105,6 +108,6 @@ Tests run automatically in GitHub Actions:
 - **Excluded**: UI interaction code, error handling
 
 View coverage:
+
 - Frontend: `coverage/index.html`
 - Rust: Terminal output from `cargo llvm-cov`
-- Combined: Codecov dashboard

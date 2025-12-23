@@ -241,7 +241,7 @@ jobs:
             p/security-audit
 
   coverage-report:
-    name: Coverage Report
+    name: Generate Coverage Badges
     runs-on: ubuntu-latest
     needs: test
     steps:
@@ -252,14 +252,100 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: coverage-reports
+          path: .
 
-      - name: Upload to Codecov
-        uses: codecov/codecov-action@v4
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Generate coverage badges
+        run: |
+          set -euxo pipefail
+
+          # Candidate paths for frontend coverage summary (Vitest)
+          FRONTEND_PATHS=(
+            "coverage/coverage-summary.json"
+            "coverage-reports/coverage/coverage-summary.json"
+            "coverage-reports/coverage-summary.json"
+            "coverage-summary.json"
+          )
+
+          # Candidate paths for Rust lcov
+          RUST_PATHS=(
+            "coverage-rust.info"
+            "coverage-reports/coverage-rust.info"
+            "coverage/coverage-rust.info"
+          )
+
+          # Find first existing frontend summary
+          F_SUM=""
+          for p in "${FRONTEND_PATHS[@]}"; do
+            if [ -f "$p" ]; then
+              F_SUM="$p"
+              break
+            fi
+          done
+
+          if [ -n "$F_SUM" ]; then
+            echo "Using frontend coverage summary: $F_SUM"
+            F_PCT=$(jq -r '.total.lines.pct' "$F_SUM")
+            F_PCT_ROUND=$(printf "%.0f" "$F_PCT")
+          else
+            echo "No frontend coverage-summary.json found in candidate paths."
+            F_PCT_ROUND=0
+          fi
+
+          # Find first existing rust lcov
+          R_LCOV=""
+          for p in "${RUST_PATHS[@]}"; do
+            if [ -f "$p" ]; then
+              R_LCOV="$p"
+              break
+            fi
+          done
+
+          if [ -n "$R_LCOV" ]; then
+            echo "Using rust lcov file: $R_LCOV"
+            # Sum LF and LH values across found lcov file
+            AWK_OUTPUT=$(awk -F":" '/^LF:/{lf+= $2} /^LH:/{lh+= $2} END{printf "%d %d", lf, lh}' "$R_LCOV")
+            read LF_TOTAL LH_TOTAL <<< "$AWK_OUTPUT"
+            echo "Rust coverage data: LF=$LF_TOTAL LH=$LH_TOTAL"
+            if [ -n "$LF_TOTAL" ] && [ "$LF_TOTAL" -gt 0 ]; then
+              R_PCT=$(awk -v lh="$LH_TOTAL" -v lf="$LF_TOTAL" 'BEGIN{printf "%.0f", (lh/lf)*100}')
+            else
+              echo "No LF records found in $R_LCOV; setting R_PCT=0"
+              R_PCT=0
+            fi
+          else
+            echo "No rust lcov file found in candidate paths."
+            R_PCT=0
+          fi
+
+          color_for() {
+            P=$1
+            if [ "$P" -ge 90 ]; then echo "brightgreen"
+            elif [ "$P" -ge 75 ]; then echo "yellowgreen"
+            elif [ "$P" -ge 60 ]; then echo "yellow"
+            elif [ "$P" -ge 40 ]; then echo "orange"
+            else echo "red"
+            fi
+          }
+
+          F_COLOR=$(color_for "${F_PCT_ROUND:-0}")
+          R_COLOR=$(color_for "${R_PCT:-0}")
+
+          echo "Frontend coverage: ${F_PCT_ROUND:-0}% (color: $F_COLOR)"
+          echo "Rust coverage: ${R_PCT:-0}% (color: $R_COLOR)"
+
+          # Create badges directory
+          mkdir -p badges
+
+          # Download badges from shields.io
+          curl -s -o badges/coverage-frontend.svg "https://img.shields.io/badge/coverage_frontend-${F_PCT_ROUND}%25-${F_COLOR}.svg"
+          curl -s -o badges/coverage-rust.svg "https://img.shields.io/badge/coverage_rust-${R_PCT}%25-${R_COLOR}.svg"
+
+      - name: Upload badges as artifact
+        uses: actions/upload-artifact@v4
         with:
-          files: ./coverage/lcov.info,./coverage-rust.info
-          flags: unittests
-          name: combined-coverage
-          fail_ci_if_error: false
-          verbose: true
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+          name: coverage-badges
+          path: ./badges/
+          retention-days: 90
