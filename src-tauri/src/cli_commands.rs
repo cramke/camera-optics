@@ -14,7 +14,7 @@ enum Commands {
     /// Calculate field of view and spatial resolution
     Fov {
         /// Sensor width in millimeters
-        #[arg(short = 'w', long)]
+        #[arg(short = 'W', long)]
         sensor_width: f64,
 
         /// Sensor height in millimeters
