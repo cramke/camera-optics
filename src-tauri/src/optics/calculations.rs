@@ -66,14 +66,12 @@ pub fn calculate_fov(camera: &CameraSystem, distance_mm: f64) -> FovResult {
 /// # Returns
 /// DORI distances in meters for each surveillance task
 pub fn calculate_dori_distances(camera: &CameraSystem) -> DoriDistances {
-    // Standard DORI pixel density requirements (pixels per meter)
-    const DETECTION_PX_PER_M: f64 = 25.0;
-    const OBSERVATION_PX_PER_M: f64 = 62.5;
-    const RECOGNITION_PX_PER_M: f64 = 125.0;
-    const IDENTIFICATION_PX_PER_M: f64 = 250.0;
-
     // Formula: distance = (focal_length × pixel_width) / (sensor_width × required_px_per_m)
     // This gives the maximum distance at which the required pixel density is achieved
+
+    use super::constants::{
+        DETECTION_PX_PER_M, IDENTIFICATION_PX_PER_M, OBSERVATION_PX_PER_M, RECOGNITION_PX_PER_M,
+    };
 
     let detection_m = (camera.focal_length_mm * camera.pixel_width as f64)
         / (camera.sensor_width_mm * DETECTION_PX_PER_M);
