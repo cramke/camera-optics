@@ -61,6 +61,221 @@ export function drawVisualization(systems: CameraWithResult[]): void {
 }
 
 /**
+ * Draw bird's eye view visualization showing HFOV and spatial distance
+ */
+export function drawBirdsEyeView(systems: CameraWithResult[]): void {
+  const canvas = document.getElementById('birds-eye-canvas') as HTMLCanvasElement;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  // Clear canvas
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  if (systems.length === 0) {
+    drawEmptyState(ctx, canvas);
+    return;
+  }
+
+  // Find max distance for scaling
+  const maxDistance = Math.max(...systems.map((s) => s.result.distance_m));
+  const maxHFov = Math.max(...systems.map((s) => s.result.horizontal_fov_m));
+
+  const padding = 60;
+  const scaleDistance = (canvas.height - 2 * padding) / maxDistance;
+  const scaleWidth = (canvas.width - 2 * padding) / (maxHFov * 1.2);
+  const scale = Math.min(scaleDistance, scaleWidth);
+
+  const cameraX = canvas.width / 2;
+  const cameraY = canvas.height - padding;
+
+  // Draw background grid
+  drawBirdsEyeGrid(ctx, canvas, cameraX, cameraY, maxDistance, scale, padding);
+
+  // Draw each camera's FOV cone
+  systems.forEach((system, index) => {
+    drawFovCone(ctx, system, index, cameraX, cameraY, scale);
+  });
+
+  // Draw camera position
+  drawCameraPosition(ctx, cameraX, cameraY);
+
+  // Draw reference object if selected
+  const selectedObjectId = (document.getElementById('ref-object-select') as HTMLSelectElement)
+    ?.value;
+
+  if (selectedObjectId && selectedObjectId !== 'none') {
+    const obj = REFERENCE_OBJECTS.find((o) => o.id === selectedObjectId);
+    if (obj && systems.length > 0) {
+      // Draw object at the target distance of the first system
+      const distance = systems[0].result.distance_m;
+      drawBirdsEyeReferenceObject(ctx, obj, cameraX, cameraY, distance, scale);
+    }
+  }
+}
+
+/**
+ * Draw background grid for bird's eye view
+ */
+function drawBirdsEyeGrid(
+  ctx: CanvasRenderingContext2D,
+  canvas: HTMLCanvasElement,
+  cameraX: number,
+  cameraY: number,
+  maxDistance: number,
+  scale: number,
+  padding: number
+): void {
+  ctx.strokeStyle = '#e0e0e0';
+  ctx.lineWidth = 1;
+  ctx.fillStyle = '#999';
+  ctx.font = '10px sans-serif';
+  ctx.textAlign = 'right';
+
+  // Draw horizontal distance lines
+  const steps = 5;
+  for (let i = 1; i <= steps; i++) {
+    const distance = (maxDistance / steps) * i;
+    const y = cameraY - distance * scale;
+
+    ctx.beginPath();
+    ctx.moveTo(padding, y);
+    ctx.lineTo(canvas.width - padding, y);
+    ctx.stroke();
+
+    // Distance label
+    ctx.fillText(`${distance.toFixed(1)}m`, padding - 5, y + 3);
+  }
+
+  // Draw vertical center line
+  ctx.strokeStyle = '#ccc';
+  ctx.setLineDash([5, 5]);
+  ctx.beginPath();
+  ctx.moveTo(cameraX, padding);
+  ctx.lineTo(cameraX, cameraY);
+  ctx.stroke();
+  ctx.setLineDash([]);
+}
+
+/**
+ * Draw camera position at bottom
+ */
+function drawCameraPosition(ctx: CanvasRenderingContext2D, x: number, y: number): void {
+  // Draw camera icon (triangle)
+  ctx.fillStyle = '#333';
+  ctx.beginPath();
+  ctx.moveTo(x, y - 15);
+  ctx.lineTo(x - 10, y + 5);
+  ctx.lineTo(x + 10, y + 5);
+  ctx.closePath();
+  ctx.fill();
+
+  // Camera label
+  ctx.fillStyle = '#333';
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText('CAMERA', x, y + 18);
+}
+
+/**
+ * Draw FOV cone for a camera system
+ */
+function drawFovCone(
+  ctx: CanvasRenderingContext2D,
+  system: CameraWithResult,
+  index: number,
+  cameraX: number,
+  cameraY: number,
+  scale: number
+): void {
+  const color = getSystemColor(index);
+  const distance = system.result.distance_m * scale;
+  const halfWidth = (system.result.horizontal_fov_m / 2) * scale;
+
+  const targetY = cameraY - distance;
+
+  // Draw FOV cone
+  ctx.fillStyle = color + '22';
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+
+  ctx.beginPath();
+  ctx.moveTo(cameraX, cameraY);
+  ctx.lineTo(cameraX - halfWidth, targetY);
+  ctx.lineTo(cameraX + halfWidth, targetY);
+  ctx.closePath();
+  ctx.fill();
+  ctx.stroke();
+
+  // Draw FOV width line at target distance
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.moveTo(cameraX - halfWidth, targetY);
+  ctx.lineTo(cameraX + halfWidth, targetY);
+  ctx.stroke();
+
+  // Labels
+  ctx.fillStyle = color;
+  ctx.font = 'bold 11px sans-serif';
+  ctx.textAlign = 'left';
+
+  // System name at top of cone
+  ctx.fillText(system.camera.name || `System ${index + 1}`, cameraX - halfWidth + 5, targetY - 5);
+
+  // Distance label (along left edge)
+  ctx.save();
+  ctx.translate(cameraX - halfWidth - 15, cameraY - distance / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textAlign = 'center';
+  ctx.fillText(`${system.result.distance_m.toFixed(2)}m`, 0, 0);
+  ctx.restore();
+
+  // HFOV width label at target distance
+  ctx.textAlign = 'center';
+  ctx.fillText(
+    `${system.result.horizontal_fov_m.toFixed(2)}m (${system.result.horizontal_fov_deg.toFixed(1)}°)`,
+    cameraX,
+    targetY + 15
+  );
+
+  // HFOV angle label near camera
+  ctx.font = '10px sans-serif';
+  ctx.fillText(`HFOV ${system.result.horizontal_fov_deg.toFixed(1)}°`, cameraX, cameraY - 25);
+}
+
+/**
+ * Draw reference object in bird's eye view
+ */
+function drawBirdsEyeReferenceObject(
+  ctx: CanvasRenderingContext2D,
+  obj: ReferenceObject,
+  cameraX: number,
+  cameraY: number,
+  distance: number,
+  scale: number
+): void {
+  const width = obj.width * scale;
+  const y = cameraY - distance * scale;
+  const x = cameraX - width / 2;
+  const height = 8; // Fixed small height for top-down view
+
+  // Draw object
+  ctx.fillStyle = obj.color;
+  ctx.fillRect(x, y - height / 2, width, height);
+
+  // Draw outline
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth = 1;
+  ctx.strokeRect(x, y - height / 2, width, height);
+
+  // Label
+  ctx.fillStyle = obj.color;
+  ctx.font = 'bold 10px sans-serif';
+  ctx.textAlign = 'center';
+  ctx.fillText(`${obj.label} ${obj.name} (${obj.width}m)`, cameraX, y - height / 2 - 5);
+}
+
+/**
  * Draw empty state message
  */
 function drawEmptyState(ctx: CanvasRenderingContext2D, canvas: HTMLCanvasElement): void {

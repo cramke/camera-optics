@@ -222,6 +222,7 @@
           <div id="visualization-tab" class="tab-content">
             <div class="visualization-layout">
               <div class="canvas-container">
+                <h3>Front View</h3>
                 <canvas
                   id="fov-canvas"
                   width="600"
@@ -237,6 +238,32 @@
                   <select id="ref-object-select">
                     <!-- Options populated dynamically from TypeScript -->
                   </select>
+                </div>
+              </div>
+            </div>
+            <div class="visualization-layout" style="margin-top: 20px">
+              <div class="canvas-container">
+                <h3>Bird's Eye View (Top-Down)</h3>
+                <canvas
+                  id="birds-eye-canvas"
+                  width="600"
+                  height="600"
+                  role="img"
+                  aria-label="Bird's eye view showing horizontal FOV and spatial distance"
+                ></canvas>
+              </div>
+              <div class="sidebar">
+                <div class="birds-eye-info">
+                  <h4>View Information</h4>
+                  <p>
+                    This view shows the camera's horizontal field of view (HFOV) from above,
+                    displaying the spatial coverage at the target distance.
+                  </p>
+                  <ul>
+                    <li>Camera position at bottom</li>
+                    <li>Distance marked along vertical axis</li>
+                    <li>HFOV width shown at target distance</li>
+                  </ul>
                 </div>
               </div>
             </div>

@@ -3,7 +3,7 @@ import type { CameraWithResult } from './core/types';
 import { calculateCameraFov } from './services/api';
 import { FEATURES } from './core/settings';
 import { store } from './services/store';
-import { drawVisualization } from './ui/visualization';
+import { drawVisualization, drawBirdsEyeView } from './ui/visualization';
 import { getCameraFromForm, getDistance, loadSystemToView, loadPreset } from './ui/form';
 import { calculateFocalLengthFromFov } from './services/api';
 import { displaySingleResult } from './ui/results';
@@ -78,6 +78,7 @@ function switchTab(tabName: string) {
   // Redraw visualization when switching to visualization tab
   if (tabName === 'visualization') {
     drawVisualization(currentDisplayedSystems);
+    drawBirdsEyeView(currentDisplayedSystems);
   }
 }
 
@@ -144,6 +145,7 @@ async function calculateFov(exitEditMode: boolean = false) {
     displaySingleResult(camera, result);
     currentDisplayedSystems = [{ camera, result }];
     drawVisualization(currentDisplayedSystems);
+    drawBirdsEyeView(currentDisplayedSystems);
   } catch (error) {
     console.error('Error calculating FOV:', error);
 
@@ -153,6 +155,7 @@ async function calculateFov(exitEditMode: boolean = false) {
     // Clear visualization and show error in results
     currentDisplayedSystems = [];
     drawVisualization(currentDisplayedSystems);
+    drawBirdsEyeView(currentDisplayedSystems);
     displayCalculationError();
   }
 }
@@ -206,6 +209,7 @@ async function addToComparison() {
     updateSystemsList();
     currentDisplayedSystems = store.getCameraSystems();
     drawVisualization(currentDisplayedSystems);
+    drawBirdsEyeView(currentDisplayedSystems);
 
     // Display the system in results tab
     displaySingleResult(camera, result, selectedSystemIndex);
@@ -251,6 +255,7 @@ async function saveChanges() {
     updateSystemsList();
     currentDisplayedSystems = store.getCameraSystems();
     drawVisualization(currentDisplayedSystems);
+    drawBirdsEyeView(currentDisplayedSystems);
 
     // Display the system in results tab
     displaySingleResult(camera, result, selectedSystemIndex);
@@ -469,6 +474,7 @@ window.addEventListener('DOMContentLoaded', () => {
     updateSystemsList();
     currentDisplayedSystems = store.getCameraSystems();
     drawVisualization(currentDisplayedSystems);
+    drawBirdsEyeView(currentDisplayedSystems);
 
     // Clear the form
     (document.getElementById('name') as HTMLInputElement).value = '';
@@ -501,6 +507,7 @@ window.addEventListener('DOMContentLoaded', () => {
       updateSystemsList();
       currentDisplayedSystems = store.getCameraSystems();
       drawVisualization(currentDisplayedSystems);
+      drawBirdsEyeView(currentDisplayedSystems);
 
       // Load the newly added system back into the form
       loadSystemToView(newIndex);
@@ -603,6 +610,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Add change listener
     refSelect.addEventListener('change', () => {
       drawVisualization(currentDisplayedSystems);
+      drawBirdsEyeView(currentDisplayedSystems);
     });
   }
 
@@ -628,6 +636,7 @@ window.addEventListener('DOMContentLoaded', () => {
     updateSystemsList();
     currentDisplayedSystems = store.getCameraSystems();
     drawVisualization(currentDisplayedSystems);
+    drawBirdsEyeView(currentDisplayedSystems);
 
     // Update results tab to show the selected system if available
     const updatedSystems = store.getCameraSystems();
@@ -699,6 +708,7 @@ window.addEventListener('DOMContentLoaded', () => {
     // Update visualization to highlight the selected system
     currentDisplayedSystems = store.getCameraSystems();
     drawVisualization(currentDisplayedSystems);
+    drawBirdsEyeView(currentDisplayedSystems);
   }
 
   // Set up event delegation for system list interactions (prevents memory leaks)

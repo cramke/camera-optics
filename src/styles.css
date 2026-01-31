@@ -784,25 +784,61 @@ button {
 /* Canvas */
 .canvas-container {
   display: flex;
-  gap: 2rem;
+  flex-direction: column;
+  gap: 0.5rem;
   align-items: flex-start;
 }
 
-#fov-canvas {
+.canvas-container h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  color: #374151;
+  font-weight: 600;
+}
+
+#fov-canvas,
+#birds-eye-canvas {
   border: 1px solid #e5e7eb;
   border-radius: 8px;
   background: white;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
-.legend {
+.legend,
+.birds-eye-info {
   min-width: 200px;
 }
 
-.legend h4 {
+.legend h4,
+.birds-eye-info h4 {
   margin: 0 0 1rem 0;
   font-size: 1rem;
   color: #374151;
+}
+
+.birds-eye-info {
+  padding: 1rem;
+  background: #f9fafb;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.birds-eye-info p {
+  margin: 0 0 0.75rem 0;
+  font-size: 0.9rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+.birds-eye-info ul {
+  margin: 0;
+  padding-left: 1.25rem;
+  font-size: 0.85rem;
+  color: #6b7280;
+}
+
+.birds-eye-info ul li {
+  margin-bottom: 0.25rem;
 }
 
 .legend-item {
