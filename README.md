@@ -4,9 +4,8 @@
 
 A dual-interface application for calculating and visualizing camera system performance (lens + sensor). Calculate field of view (FOV), spatial resolution (pixels per mm), and depth of field for various camera configurations.
 
-Built with Tauri (Rust backend) + Vanilla TypeScript frontend.
+Built with Tauri + Vanilla TypeScript frontend.
 
-📚 **[Read the full documentation](https://cramke.github.io/camera-optics/)**
 
 ## Features
 
