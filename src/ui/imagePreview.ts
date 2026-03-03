@@ -5,6 +5,8 @@
 import type { CameraSystem, FovResult, ImageDownsampleResult } from '../core/types';
 import { calculateCameraFov, calculateImageDownsample } from '../services/api';
 
+const CANVAS_SIZE = 400;
+
 let uploadedImage: HTMLImageElement | null = null;
 let currentCamera: CameraSystem | null = null;
 let currentDistance: number = 25;
@@ -132,26 +134,19 @@ function drawOriginalImage(img: HTMLImageElement): void {
   const ctx = canvas.getContext('2d');
   if (!ctx) return;
 
-  // Resize canvas to fit image (max 400px)
-  const maxSize = 400;
-  let width = img.width;
-  let height = img.height;
+  canvas.width = CANVAS_SIZE;
+  canvas.height = CANVAS_SIZE;
 
-  if (width > height) {
-    if (width > maxSize) {
-      height = (height * maxSize) / width;
-      width = maxSize;
-    }
-  } else {
-    if (height > maxSize) {
-      width = (width * maxSize) / height;
-      height = maxSize;
-    }
-  }
+  ctx.fillStyle = '#fafafa';
+  ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-  canvas.width = width;
-  canvas.height = height;
-  ctx.drawImage(img, 0, 0, width, height);
+  const scale = Math.min(CANVAS_SIZE / img.width, CANVAS_SIZE / img.height);
+  const w = Math.round(img.width * scale);
+  const h = Math.round(img.height * scale);
+  const x = Math.round((CANVAS_SIZE - w) / 2);
+  const y = Math.round((CANVAS_SIZE - h) / 2);
+
+  ctx.drawImage(img, x, y, w, h);
 }
 
 /**
@@ -202,14 +197,26 @@ async function generatePreview(): Promise<void> {
     // Draw downsampled image
     tempCtx.drawImage(uploadedImage, 0, 0, dsResult.camera_pixels_h, dsResult.camera_pixels_v);
 
-    previewCanvas.width = dsResult.display_width;
-    previewCanvas.height = dsResult.display_height;
+    previewCanvas.width = CANVAS_SIZE;
+    previewCanvas.height = CANVAS_SIZE;
+
+    ctx.fillStyle = '#fafafa';
+    ctx.fillRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
     // Disable smoothing for pixelated display
     ctx.imageSmoothingEnabled = false;
 
-    // Draw the downsampled image scaled up using nearest-neighbor
-    ctx.drawImage(tempCanvas, 0, 0, dsResult.display_width, dsResult.display_height);
+    // Fit the pixelated image centered in the fixed canvas
+    const scale = Math.min(
+      CANVAS_SIZE / dsResult.display_width,
+      CANVAS_SIZE / dsResult.display_height
+    );
+    const drawW = Math.round(dsResult.display_width * scale);
+    const drawH = Math.round(dsResult.display_height * scale);
+    const drawX = Math.round((CANVAS_SIZE - drawW) / 2);
+    const drawY = Math.round((CANVAS_SIZE - drawH) / 2);
+
+    ctx.drawImage(tempCanvas, drawX, drawY, drawW, drawH);
 
     // Update stats
     updatePreviewStats(fovResult, dsResult);
