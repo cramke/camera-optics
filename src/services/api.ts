@@ -3,7 +3,12 @@
  */
 
 import { invoke } from '@tauri-apps/api/core';
-import type { CameraSystem, FovResult } from '../core/types';
+import type {
+  CameraSystem,
+  FovResult,
+  ImageDownsampleParams,
+  ImageDownsampleResult,
+} from '../core/types';
 
 /**
  * Calculate FOV for a camera system at a given distance
@@ -54,6 +59,17 @@ export async function calculateDoriFromSingleDistance(
   return await invoke('calculate_dori_from_single_distance', {
     distanceM,
     doriType,
+  });
+}
+
+/**
+ * Calculate image downsampling parameters for preview visualization
+ */
+export async function calculateImageDownsample(
+  params: ImageDownsampleParams
+): Promise<ImageDownsampleResult> {
+  return await invoke<ImageDownsampleResult>('calculate_image_downsample_command', {
+    params,
   });
 }
 

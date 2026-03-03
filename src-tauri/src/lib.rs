@@ -1,5 +1,6 @@
 // Optical calculation modules
 mod gui_commands;
+pub mod images;
 pub mod optics;
 
 use crate::gui_commands::*;
@@ -9,6 +10,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
         .invoke_handler(tauri::generate_handler![
+            calculate_image_downsample_command,
             calculate_camera_fov,
             compare_camera_systems,
             calculate_hyperfocal_distance,

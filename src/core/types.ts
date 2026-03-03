@@ -50,6 +50,28 @@ export interface ReferenceObject {
   iconPath?: string; // Optional path to custom SVG/image icon
 }
 
+// Types for image preview downsampling
+export interface ImageDownsampleParams {
+  horizontal_ppm: number;
+  vertical_ppm: number;
+  image_real_world_width_m: number;
+  original_width_px: number;
+  original_height_px: number;
+  max_display_size: number;
+}
+
+export interface ImageDownsampleResult {
+  camera_pixels_h: number;
+  camera_pixels_v: number;
+  scale: number;
+  display_width: number;
+  display_height: number;
+  scene_width_mm: number;
+  scene_height_mm: number;
+  downsample_ratio_h: number;
+  downsample_ratio_v: number;
+}
+
 // Types for inverse DORI calculation workflow
 export interface DoriTargets {
   detection_m?: number;

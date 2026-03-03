@@ -2,8 +2,8 @@
  * Image Preview Module - Visualize camera resolution at distance
  */
 
-import type { CameraSystem, FovResult } from '../core/types';
-import { calculateCameraFov } from '../services/api';
+import type { CameraSystem, FovResult, ImageDownsampleResult } from '../core/types';
+import { calculateCameraFov, calculateImageDownsample } from '../services/api';
 
 let uploadedImage: HTMLImageElement | null = null;
 let currentCamera: CameraSystem | null = null;
@@ -168,14 +168,19 @@ async function generatePreview(): Promise<void> {
 
   try {
     // Calculate FOV at current distance (convert m to mm)
-    const result = await calculateCameraFov(currentCamera, currentDistance * 1000);
+    const fovResult = await calculateCameraFov(currentCamera, currentDistance * 1000);
 
-    console.log('Preview calculation:', {
-      distance: currentDistance,
-      ppmH: result.horizontal_ppm,
-      ppmV: result.vertical_ppm,
-      imageRealWorldWidth: imageRealWorldWidth,
+    // Delegate all downsampling math to the Rust backend
+    const dsResult = await calculateImageDownsample({
+      horizontal_ppm: fovResult.horizontal_ppm,
+      vertical_ppm: fovResult.vertical_ppm,
+      image_real_world_width_m: imageRealWorldWidth,
+      original_width_px: uploadedImage.width,
+      original_height_px: uploadedImage.height,
+      max_display_size: 400,
     });
+
+    console.log('Downsample result from backend:', dsResult);
 
     const previewCanvas = document.getElementById('preview-canvas') as HTMLCanvasElement;
     if (!previewCanvas) return;
@@ -183,29 +188,10 @@ async function generatePreview(): Promise<void> {
     const ctx = previewCanvas.getContext('2d');
     if (!ctx) return;
 
-    // Calculate pixels per millimeter for each dimension
-    const ppmH = result.horizontal_ppm;
-    const ppmV = result.vertical_ppm;
-
-    // Calculate how many real-world mm the image represents
-    // Use the user-specified real-world width
-    const imageWidthMm = imageRealWorldWidth * 1000;
-    const imageHeightMm = (uploadedImage.height / uploadedImage.width) * imageWidthMm;
-
-    // Calculate how many pixels the camera would capture for this area
-    const cameraPixelsH = imageWidthMm * ppmH;
-    const cameraPixelsV = imageHeightMm * ppmV;
-
-    console.log('Camera pixels:', { cameraPixelsH, cameraPixelsV });
-
-    // Ensure we have at least 1 pixel
-    const finalPixelsH = Math.max(1, Math.floor(cameraPixelsH));
-    const finalPixelsV = Math.max(1, Math.floor(cameraPixelsV));
-
-    // Create a temporary canvas to downsample
+    // Create a temporary canvas to downsample the image
     const tempCanvas = document.createElement('canvas');
-    tempCanvas.width = finalPixelsH;
-    tempCanvas.height = finalPixelsV;
+    tempCanvas.width = dsResult.camera_pixels_h;
+    tempCanvas.height = dsResult.camera_pixels_v;
     const tempCtx = tempCanvas.getContext('2d');
 
     if (!tempCtx) return;
@@ -214,41 +200,19 @@ async function generatePreview(): Promise<void> {
     tempCtx.imageSmoothingEnabled = false;
 
     // Draw downsampled image
-    tempCtx.drawImage(uploadedImage, 0, 0, finalPixelsH, finalPixelsV);
+    tempCtx.drawImage(uploadedImage, 0, 0, dsResult.camera_pixels_h, dsResult.camera_pixels_v);
 
-    // Calculate scale factor to show pixelation clearly
-    // Use a larger scale when we have very few pixels
-    const minScale = 2;
-    const maxDisplaySize = 400;
-
-    let scale = Math.max(
-      minScale,
-      Math.floor(maxDisplaySize / Math.max(finalPixelsH, finalPixelsV))
-    );
-
-    // Cap the display size
-    let displayWidth = finalPixelsH * scale;
-    let displayHeight = finalPixelsV * scale;
-
-    if (displayWidth > maxDisplaySize || displayHeight > maxDisplaySize) {
-      scale = Math.floor(maxDisplaySize / Math.max(finalPixelsH, finalPixelsV));
-      displayWidth = finalPixelsH * scale;
-      displayHeight = finalPixelsV * scale;
-    }
-
-    previewCanvas.width = displayWidth;
-    previewCanvas.height = displayHeight;
+    previewCanvas.width = dsResult.display_width;
+    previewCanvas.height = dsResult.display_height;
 
     // Disable smoothing for pixelated display
     ctx.imageSmoothingEnabled = false;
 
     // Draw the downsampled image scaled up using nearest-neighbor
-    ctx.drawImage(tempCanvas, 0, 0, displayWidth, displayHeight);
-
-    console.log('Display:', { finalPixelsH, finalPixelsV, scale, displayWidth, displayHeight });
+    ctx.drawImage(tempCanvas, 0, 0, dsResult.display_width, dsResult.display_height);
 
     // Update stats
-    updatePreviewStats(finalPixelsH, finalPixelsV, ppmH, ppmV, imageWidthMm, imageHeightMm);
+    updatePreviewStats(fovResult, dsResult);
   } catch (error) {
     console.error('Error generating preview:', error);
   }
@@ -257,22 +221,15 @@ async function generatePreview(): Promise<void> {
 /**
  * Update the preview statistics display
  */
-function updatePreviewStats(
-  pixelsH: number,
-  pixelsV: number,
-  ppmH: number,
-  ppmV: number,
-  widthMm: number,
-  heightMm: number
-): void {
+function updatePreviewStats(fov: FovResult, ds: ImageDownsampleResult): void {
   const statsDiv = document.getElementById('preview-stats');
   if (!statsDiv) return;
 
   statsDiv.innerHTML = `
-    <p><strong>Camera captures:</strong> ${pixelsH} × ${pixelsV} pixels</p>
-    <p><strong>Scene size:</strong> ${(widthMm / 1000).toFixed(2)}m × ${(heightMm / 1000).toFixed(2)}m</p>
-    <p><strong>Resolution:</strong> ${ppmH.toFixed(2)} × ${ppmV.toFixed(2)} px/mm</p>
-    <p><strong>Downsampling:</strong> ${Math.floor(uploadedImage!.width / pixelsH)}:1 (H), ${Math.floor(uploadedImage!.height / pixelsV)}:1 (V)</p>
+    <p><strong>Camera captures:</strong> ${ds.camera_pixels_h} × ${ds.camera_pixels_v} pixels</p>
+    <p><strong>Scene size:</strong> ${(ds.scene_width_mm / 1000).toFixed(2)}m × ${(ds.scene_height_mm / 1000).toFixed(2)}m</p>
+    <p><strong>Resolution:</strong> ${fov.horizontal_ppm.toFixed(2)} × ${fov.vertical_ppm.toFixed(2)} px/mm</p>
+    <p><strong>Downsampling:</strong> ${ds.downsample_ratio_h}:1 (H), ${ds.downsample_ratio_v}:1 (V)</p>
   `;
 }
 

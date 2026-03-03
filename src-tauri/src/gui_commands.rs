@@ -1,5 +1,13 @@
+use crate::images::downsample::*;
+use crate::images::types::*;
 use crate::optics::calculations::*;
 use crate::optics::types::*;
+
+/// Tauri command to calculate image downsampling parameters for preview
+#[tauri::command]
+pub fn calculate_image_downsample_command(params: ImageDownsampleParams) -> ImageDownsampleResult {
+    calculate_image_downsample(&params)
+}
 
 /// Tauri command to calculate FOV for a single camera system
 #[tauri::command]
