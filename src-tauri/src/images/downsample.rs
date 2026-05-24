@@ -25,37 +25,33 @@ pub fn calculate_image_downsample(params: &ImageDownsampleParams) -> ImageDownsa
     let min_scale: u32 = 2;
     let max_dim = camera_pixels_h.max(camera_pixels_v);
 
-    let mut scale = if max_dim > 0 {
-        (params.max_display_size / max_dim).max(min_scale)
-    } else {
-        min_scale
-    };
-
+    let scale = params
+        .max_display_size
+        .checked_div(max_dim)
+        .map_or(min_scale, |s| s.max(min_scale));
     // Cap display size to max_display_size
     let mut display_width = camera_pixels_h * scale;
     let mut display_height = camera_pixels_v * scale;
 
     if display_width > params.max_display_size || display_height > params.max_display_size {
-        scale = if max_dim > 0 {
-            (params.max_display_size / max_dim).max(1)
-        } else {
-            min_scale
-        };
+        let scale = params
+            .max_display_size
+            .checked_div(max_dim)
+            .map_or(min_scale, |s| s.max(1));
         display_width = camera_pixels_h * scale;
         display_height = camera_pixels_v * scale;
     }
 
     // Downsampling ratios (original pixels : camera pixels)
-    let downsample_ratio_h = if camera_pixels_h > 0 {
-        params.original_width_px / camera_pixels_h
-    } else {
-        params.original_width_px
-    };
-    let downsample_ratio_v = if camera_pixels_v > 0 {
-        params.original_height_px / camera_pixels_v
-    } else {
-        params.original_height_px
-    };
+    let downsample_ratio_h = params
+        .original_width_px
+        .checked_div(camera_pixels_h)
+        .unwrap_or(params.original_width_px);
+
+    let downsample_ratio_v = params
+        .original_height_px
+        .checked_div(camera_pixels_v)
+        .unwrap_or(params.original_height_px);
 
     ImageDownsampleResult {
         camera_pixels_h,
