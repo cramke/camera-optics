@@ -25,7 +25,7 @@ pub fn calculate_image_downsample(params: &ImageDownsampleParams) -> ImageDownsa
     let min_scale: u32 = 2;
     let max_dim = camera_pixels_h.max(camera_pixels_v);
 
-    let scale = params
+    let mut scale = params
         .max_display_size
         .checked_div(max_dim)
         .map_or(min_scale, |s| s.max(min_scale));
@@ -34,7 +34,7 @@ pub fn calculate_image_downsample(params: &ImageDownsampleParams) -> ImageDownsa
     let mut display_height = camera_pixels_v * scale;
 
     if display_width > params.max_display_size || display_height > params.max_display_size {
-        let scale = params
+        scale = params
             .max_display_size
             .checked_div(max_dim)
             .map_or(min_scale, |s| s.max(1));
