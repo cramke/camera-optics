@@ -8,12 +8,23 @@ repos:
       - id: check-toml
       - id: check-added-large-files
 
-  - repo: https://github.com/pre-commit/mirrors-prettier
-    rev: v4.0.0-alpha.8
+  # Runs the prettier from package.json devDependencies rather than
+  # mirrors-prettier, which pins prettier@4.0.0-alpha.8 -- that formats
+  # differently from the 3.6.2 CI checks against, and exits 1 with
+  # "No files matching the given patterns were found" whenever every staged
+  # file is covered by .prettierignore.
+  - repo: local
     hooks:
       - id: prettier
+        name: prettier
+        # Invoked directly rather than via `pnpm exec`: pnpm 11 runs a
+        # dependency-status check first and tries to reinstall node_modules,
+        # which needs a TTY that git hooks do not have.
+        entry: node_modules/.bin/prettier --write --ignore-unknown --no-error-on-unmatched-pattern
+        language: system
         # Match all file extensions that prettier should format.
-        files: \.(js|ts|json|md|toml|yaml|yml)$
+        files: \.(css|html|js|ts|json|md|toml|yaml|yml)$
+        exclude: ^(pnpm-lock\.yaml|src-tauri/Cargo\.lock)$
 
   - repo: https://github.com/doublify/pre-commit-rust
     rev: v1.0
