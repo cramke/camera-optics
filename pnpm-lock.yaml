@@ -27,6 +27,9 @@ importers:
       happy-dom:
         specifier: ^20.8.9
         version: 20.8.9
+      prettier:
+        specifier: 3.6.2
+        version: 3.6.2
       typescript:
         specifier: ~5.6.3
         version: 5.6.3
@@ -898,8 +901,13 @@ packages:
     resolution: {integrity: sha512-vuwillviilfKZsg0VGj5R/YwwcHx4SLsIOI/7K6mQkWx+l5cUHTjj5g0AasTBcyXsbfTgrwsUNmVUb5xVwyPwg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  rollup@4.62.2:
-    resolution: {integrity: sha512-RFnrW4lhXA3s3eqHDZvN654g8OTjzRfqpIRJYczCGB6HzphckVAi/Qh4tbPUbRuDi7s1Llv8g/NspLkttY3gTA==}
+  prettier@3.6.2:
+    resolution: {integrity: sha512-I7AIg5boAr5R0FFtJ6rCfD+LFsWHp81dolrFD8S79U9tb8Az2nGrJncnMSnys+bpQJfRUzqs9hnA81OAA3hCuQ==}
+    engines: {node: '>=14'}
+    hasBin: true
+
+  rollup@4.60.2:
+    resolution: {integrity: sha512-J9qZyW++QK/09NyN/zeO0dG/1GdGfyp9lV8ajHnRVLfo/uFsbji5mHnDgn/qYdUHyCkM2N+8VyspgZclfAh0eQ==}
     engines: {node: '>=18.0.0', npm: '>=8.0.0'}
     hasBin: true
 
@@ -1796,7 +1804,9 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  rollup@4.62.2:
+  prettier@3.6.2: {}
+
+  rollup@4.60.2:
     dependencies:
       '@types/estree': 1.0.9
     optionalDependencies:

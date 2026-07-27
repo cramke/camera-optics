@@ -23,7 +23,7 @@ jobs:
             experimental-features = nix-command flakes
 
       - name: Build Tauri app
-        run: nix develop .# --command bash -c 'pnpm install && pnpm tauri:build'
+        run: nix develop .# --command bash -c 'pnpm install --frozen-lockfile && pnpm tauri:build'
 
       - name: Upload deb package
         uses: actions/upload-artifact@v4

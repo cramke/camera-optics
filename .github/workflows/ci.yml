@@ -50,7 +50,7 @@ jobs:
         run: cargo fmt --check --manifest-path src-tauri/Cargo.toml
 
       - name: Lint Rust code
-        run: cargo clippy --manifest-path src-tauri/Cargo.toml -- -D warnings
+        run: cargo clippy --locked --manifest-path src-tauri/Cargo.toml -- -D warnings
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -63,11 +63,11 @@ jobs:
           version: 9
 
       - name: Install dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Check frontend formatting (Prettier)
         run: |
-          npx prettier --check "**/*.{css,html,js,ts,json}" \
+          pnpm exec prettier --check "**/*.{css,html,js,ts,json}" \
             --ignore-path .prettierignore \
             --ignore-unknown
 
@@ -143,7 +143,7 @@ jobs:
             ${{ runner.os }}-cargo-
 
       - name: Build Rust (no warnings)
-        run: cargo build --manifest-path src-tauri/Cargo.toml --release
+        run: cargo build --locked --manifest-path src-tauri/Cargo.toml --release
         env:
           RUSTFLAGS: -D warnings
 
@@ -153,7 +153,7 @@ jobs:
       - name: Run Rust tests with coverage
         run: |
           cd src-tauri
-          cargo llvm-cov test --lcov --output-path ../coverage-rust.info
+          cargo llvm-cov test --locked --lcov --output-path ../coverage-rust.info
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -180,7 +180,7 @@ jobs:
             ${{ runner.os }}-pnpm-store-
 
       - name: Install frontend dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
       - name: Build TypeScript
         run: pnpm build

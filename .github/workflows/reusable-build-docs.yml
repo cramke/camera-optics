@@ -20,7 +20,7 @@ jobs:
             experimental-features = nix-command flakes
 
       - name: Build documentation
-        run: nix develop .# --command bash -c 'pnpm install && pnpm run build:docs-ts && mdbook build docs'
+        run: nix develop .# --command bash -c 'pnpm install --frozen-lockfile && pnpm run build:docs-ts && mdbook build docs'
 
       - name: Download coverage badges (if available)
         uses: actions/download-artifact@v4
