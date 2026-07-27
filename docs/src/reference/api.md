@@ -9,6 +9,7 @@ The frontend communicates with the Rust backend through Tauri commands.
 Calculate field of view for a camera system.
 
 **TypeScript:**
+
 ```typescript
 import { invoke } from '@tauri-apps/api/core';
 
@@ -26,6 +27,7 @@ const result = await invoke('calculate_fov', {
 ```
 
 **Response:**
+
 ```typescript
 {
   camera: CameraSystem;
@@ -44,6 +46,7 @@ const result = await invoke('calculate_fov', {
 Calculate hyperfocal distance.
 
 **TypeScript:**
+
 ```typescript
 const result = await invoke('calculate_hyperfocal', {
   focalLengthMm: 50,
@@ -52,6 +55,7 @@ const result = await invoke('calculate_hyperfocal', {
 ```
 
 **Response:**
+
 ```typescript
 {
   hyperfocal_distance_mm: number;
@@ -63,6 +67,7 @@ const result = await invoke('calculate_hyperfocal', {
 Calculate depth of field.
 
 **TypeScript:**
+
 ```typescript
 const result = await invoke('calculate_dof', {
   distanceMm: 3000,
@@ -72,6 +77,7 @@ const result = await invoke('calculate_dof', {
 ```
 
 **Response:**
+
 ```typescript
 {
   near_limit_mm: number;
@@ -134,12 +140,12 @@ All inputs are validated with these constraints:
 
 ```typescript
 const VALIDATION_CONSTRAINTS = {
-  sensorWidth: { min: 0.1, max: 200 },      // mm
-  sensorHeight: { min: 0.1, max: 200 },     // mm
-  pixelWidth: { min: 10, max: 100000 },     // pixels
-  pixelHeight: { min: 10, max: 100000 },    // pixels
-  focalLength: { min: 0.1, max: 10000 },    // mm
-  fov: { min: 0.1, max: 180 },              // degrees
-  distance: { min: 0.01, max: 100000 },     // mm
+  sensorWidth: { min: 0.1, max: 200 }, // mm
+  sensorHeight: { min: 0.1, max: 200 }, // mm
+  pixelWidth: { min: 10, max: 100000 }, // pixels
+  pixelHeight: { min: 10, max: 100000 }, // pixels
+  focalLength: { min: 0.1, max: 10000 }, // mm
+  fov: { min: 0.1, max: 180 }, // degrees
+  distance: { min: 0.01, max: 100000 }, // mm
 };
 ```

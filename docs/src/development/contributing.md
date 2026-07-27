@@ -52,6 +52,7 @@ Use [Conventional Commits](https://www.conventionalcommits.org/):
 - `chore:` Maintenance
 
 Examples:
+
 - `feat: add hyperfocal distance calculation`
 - `fix: correct FOV calculation for wide angle lenses`
 - `docs: update API reference`
@@ -89,6 +90,7 @@ Examples:
 ## Security
 
 If you discover a security vulnerability:
+
 1. **Do not** open a public issue
 2. Email the maintainer directly
 3. Provide detailed reproduction steps

@@ -28,6 +28,7 @@ pnpm tauri:dev
 ```
 
 This starts:
+
 - Vite dev server on http://localhost:1420
 - Tauri window with the app
 - Hot reload for frontend changes
@@ -41,6 +42,7 @@ pnpm tauri:build
 ```
 
 Output locations:
+
 - **Linux**: `src-tauri/target/release/bundle/deb/`
 - **Windows**: `src-tauri/target/release/bundle/msi/`
 - **macOS**: `src-tauri/target/release/bundle/dmg/`
@@ -56,11 +58,13 @@ cargo build --release --bin camera-optics-cli
 ## Debug vs Release
 
 **Debug build** (faster compile, slower runtime):
+
 ```bash
 cargo build
 ```
 
 **Release build** (slower compile, optimized):
+
 ```bash
 cargo build --release
 ```
@@ -84,6 +88,7 @@ RUSTFLAGS="-D warnings" cargo build
 ### WebKit errors on Linux
 
 Install missing system dependencies:
+
 ```bash
 sudo apt-get install libwebkit2gtk-4.1-dev
 ```
@@ -97,6 +102,7 @@ npm install -g pnpm
 ### Tauri build fails
 
 Clear cache and rebuild:
+
 ```bash
 rm -rf node_modules target
 pnpm install

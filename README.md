@@ -6,7 +6,6 @@ A dual-interface application for calculating and visualizing camera system perfo
 
 Built with Tauri + Vanilla TypeScript frontend.
 
-
 ## Features
 
 - **Field of View Calculations**: Horizontal and vertical FOV (angular and linear)

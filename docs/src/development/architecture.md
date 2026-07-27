@@ -13,9 +13,11 @@ src/
 ## Structure
 
 ### 📦 `core/` - Domain Layer (117 lines)
+
 Pure domain logic with zero dependencies.
 
 **Files:**
+
 - `types.ts` (37) - CameraSystem, FovResult, CameraWithResult, ReferenceObject
 - `constants.ts` (74) - Reference objects, camera presets, system colors
 - `index.ts` (6) - Module exports
@@ -25,9 +27,11 @@ Pure domain logic with zero dependencies.
 ---
 
 ### 🔌 `services/` - Service Layer (110 lines)
+
 Backend communication and state management.
 
 **Files:**
+
 - `api.ts` (32) - Tauri IPC wrapper (calculateCameraFov, calculateFocalLengthFromFov)
 - `store.ts` (72) - Observable state store for camera systems
 - `index.ts` (6) - Module exports
@@ -37,9 +41,11 @@ Backend communication and state management.
 ---
 
 ### 🎨 `ui/` - Presentation Layer (406 lines)
+
 DOM manipulation, rendering, and user interactions.
 
 **Files:**
+
 - `form.ts` (118) - Form I/O, presets, validation
 - `results.ts` (46) - Results page rendering
 - `visualization.ts` (235) - Canvas FOV visualization
@@ -50,6 +56,7 @@ DOM manipulation, rendering, and user interactions.
 ---
 
 ### 🚀 `main.ts` - Entry Point (170 lines)
+
 Application bootstrap, event handlers, workflow orchestration.
 
 **Dependencies:** All layers
@@ -67,6 +74,7 @@ main.ts
 ```
 
 **Rules:**
+
 - ✅ `core/` → No dependencies
 - ✅ `services/` → `core/` only
 - ✅ `ui/` → `core/` + `services/`
@@ -76,39 +84,44 @@ main.ts
 ## Import Examples
 
 **✅ Correct:**
+
 ```typescript
 // main.ts
-import { calculateCameraFov } from "./services";
-import { drawVisualization } from "./ui";
+import { calculateCameraFov } from './services';
+import { drawVisualization } from './ui';
 
 // ui/form.ts
-import type { CameraSystem } from "../core/types";
-import { store } from "../services/store";
+import type { CameraSystem } from '../core/types';
+import { store } from '../services/store';
 
 // services/api.ts
-import type { FovResult } from "../core/types";
+import type { FovResult } from '../core/types';
 ```
 
 **❌ Wrong:**
+
 ```typescript
 // core/types.ts
-import { store } from "../services/store"; // ❌ Core can't depend on services
+import { store } from '../services/store'; // ❌ Core can't depend on services
 
 // services/api.ts
-import { displayResult } from "../ui/results"; // ❌ Service can't depend on UI
+import { displayResult } from '../ui/results'; // ❌ Service can't depend on UI
 ```
 
 ## Adding Features
 
 **New UI Component:**
+
 1. Create in `ui/`
 2. Import from `core/` and `services/`
 3. Export from `ui/index.ts`
 
 **New Service:**
+
 1. Create in `services/`
 2. Import from `core/` only
 3. Export from `services/index.ts`
 
 **New Type:**
+
 - Add to `core/types.ts` (available everywhere)

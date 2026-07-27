@@ -27,6 +27,7 @@ camera-optics-cli fov \
 ```
 
 **Short flags:**
+
 ```bash
 camera-optics-cli fov -w 36 -H 24 -x 6000 -y 4000 -f 50 -d 5000
 ```

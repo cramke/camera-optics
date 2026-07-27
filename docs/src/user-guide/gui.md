@@ -39,6 +39,7 @@ After calculation, you'll see:
 ### Visualization
 
 Real-time canvas visualization shows:
+
 - FOV rectangle with dimensions
 - Sensor aspect ratio
 - Multiple systems overlaid for comparison
