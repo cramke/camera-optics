@@ -45,7 +45,7 @@
 
         commonPkgs = with pkgs; [
           nodejs_20
-          pnpm
+          pnpm_10
           rustup         # provides the cargo/rustc shims
           pre-commit
           mdbook         # For building the documentation
